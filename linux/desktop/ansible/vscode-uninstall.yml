@@ -1,0 +1,28 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Uninstall VSCode
+  hosts: all
+  become: true
+  tasks:
+    - name: Uninstall Code
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: absent
+        pkg:
+          - code
+
+    - name: Remove Microsoft repository
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/microsoft.list
+        state: absent
+
+    - name: Remove Microsoft official GPG key
+      ansible.builtin.apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        keyring: /usr/share/keyrings/microsoft.asc
+        state: absent

@@ -1,0 +1,45 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Install VSCode
+  hosts: all
+  become: true
+  tasks:
+    - name: Install pre-requisites
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: latest
+        pkg:
+          - apt-transport-https
+          - curl 
+          - gpg
+          - software-properties-common
+
+    - name: Add Microsoft official GPG key
+      ansible.builtin.apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        keyring: /usr/share/keyrings/microsoft.asc
+        state: present
+
+    - name: Add Microsoft repository to apt sources
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/microsoft.list
+        content: deb [arch={{ ansible_facts['architecture'] }} signed-by=/usr/share/keyrings//microsoft.asc] https://packages.microsoft.com/repos/vscode stable main
+
+    - name: Update package repository
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 3600 # 1 hour
+
+    - name: Install Code
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: latest
+        pkg:
+          - code
