@@ -1,0 +1,21 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Unmount Network Share
+  hosts: dns_server
+  vars:
+    nfs_shares:
+      - dst: /mnt/containers/dnscrypt
+      - dst: /mnt/containers/pihole
+      - dst: /mnt/containers/unbound
+      - dst: /mnt/containers/wireguard
+  tasks:
+    - name: Unmount NFS share folders
+      ansible.posix.mount:
+        path: "{{ item.dst }}"
+        state: unmounted
+      with_items: "{{ nfs_shares }}"

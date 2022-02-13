@@ -1,0 +1,22 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Unmount Network Share
+  hosts: media_server
+  vars:
+    nfs_shares:
+      - dst: /mnt/media/animations
+      - dst: /mnt/media/anime
+      - dst: /mnt/media/movies
+      - dst: /mnt/media/music
+      - dst: /mnt/media/tv
+  tasks:
+    - name: Unmount NFS share folders
+      ansible.posix.mount:
+        path: "{{ item.dst }}"
+        state: unmounted
+      with_items: "{{ nfs_shares }}"

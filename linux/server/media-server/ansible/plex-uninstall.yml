@@ -1,0 +1,55 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Uninstall Plex Media Server
+  hosts: media_server
+  become: true
+  vars:
+    plex_home: /var/lib/plexmediaserver/Library/Application Support/Plex Media Server
+  tasks:
+    - name: Stop Plex Media Server service
+      ansible.builtin.service:
+        name: plexmediaserver
+        state: stopped
+
+    - name: Remove installed plugins
+      ansible.builtin.file:
+        path: "{{ plex_home }}/Plug-Ins"
+        state: absent
+
+    - name: Remove installed scanners
+      ansible.builtin.file:
+        path: "{{ plex_home }}/Scanners"
+        state: absent
+
+    - name: Uninstall Plex Media Server
+      ansible.builtin.apt:
+        name: plexmediaserver
+        state: absent
+
+    - name: Remove Plex Media Server repository from apt sources
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/plexmediaserver.list
+        state: absent
+
+    - name: Remove Plex Media Server GPG key
+      ansible.builtin.file:
+        path: /usr/share/keyrings/PlexSign.key
+        state: absent
+
+    - name: Update package repository
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 0 # Do not rely on cache
+
+    - name: Clean package repository
+      ansible.builtin.apt:
+        force_apt_get: yes
+        autoclean: yes
+        autoremove: yes

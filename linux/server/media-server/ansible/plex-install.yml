@@ -1,0 +1,92 @@
+###############################################################################
+# Taken from:
+# https://www.linuxcapable.com/how-to-install-plex-media-server-on-debian-11-bullseye/
+#
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+###############################################################################
+- name: Install Plex Media Server
+  hosts: media_server
+  become: true
+  vars:
+    nfs_media: /mnt/media
+    plex_home: /var/lib/plexmediaserver/Library/Application Support/Plex Media Server
+  tasks:
+    - name: Install dependencies
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - curl
+          - git
+        state: present
+
+    - name: Install Plex Media Server GPG key
+      ansible.builtin.apt_key:
+        url: https://downloads.plex.tv/plex-keys/PlexSign.key
+        keyring: /usr/share/keyrings/PlexSign.key
+        state: present
+
+    - name: Add Plex Media Server repository to apt sources
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/plexmediaserver.list
+        content: deb [signed-by=/usr/share/keyrings/PlexSign.key] https://downloads.plex.tv/repo/deb public main
+
+    - name: Update package repository
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 0 # Do not rely on cache
+
+    - name: Install the latest Plex Media Server
+      ansible.builtin.apt:
+        name: plexmediaserver
+        state: latest
+
+    - name: Set ownership to "plex"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: plex
+        group: plex
+        state: directory
+      with_items:
+        - "{{ nfs_media }}"
+        - "{{ plex_home }}"
+
+    - name: Create "/Scanners/Series" in Plex main directory
+      ansible.builtin.file:
+        path: "{{ plex_home }}/Scanners/Series"
+        owner: plex
+        group: plex
+        state: directory
+
+    - name: Add "Absolute Series Scanner" scanner
+      register: ass_installed
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
+        dest: "{{ plex_home }}/Scanners/Series/Absolute Series Scanner.py"
+
+    - name: Add latest "Hama.bundle" plugin
+      register: hama_installed
+      ansible.builtin.git:
+        repo: https://github.com/ZeroQI/Hama.bundle.git
+        dest: "{{ plex_home }}/Plug-ins/Hama.bundle"
+        version: master
+        depth: 1
+
+    - name: Add latest "Lambda.bundle" plugin
+      register: lambda_installed
+      ansible.builtin.git:
+        repo: https://github.com/ZeroQI/Lambda.bundle.git
+        dest: "{{ plex_home }}/Plug-ins/Lambda.bundle"
+        version: master
+        depth: 1
+
+    - name: Restart Plex Media Server service if a plugin is installed
+      when: ass_installed.changed or hama_installed.changed or lambda_installed.changed
+      ansible.builtin.service:
+        name: plexmediaserver
+        state: restarted
