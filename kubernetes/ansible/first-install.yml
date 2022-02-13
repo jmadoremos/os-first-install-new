@@ -1,0 +1,140 @@
+########################################################################
+# Extra variables:
+# - ansible_user (string)
+# 
+# Host inventory variables:
+# - node_name (string)
+########################################################################
+- name: Prepare All Kubernetes Nodes
+  hosts: k8s_cluster
+  vars:
+    timezone: Asia/Manila
+  tasks:
+    - name: Add dedicated sudoer file for "{{ ansible_user }}"
+      ansible.builtin.copy:
+        dest: '/etc/sudoers.d/{{ ansible_user }}'
+        content: |
+          {{ ansible_user }} ALL=(ALL) NOPASSWD: ALL
+
+    # Additional tasks for Raspberry Pi nodes
+    - name: Register Raspberry Pi nodes
+      ansible.builtin.shell: >-
+        cat /proc/cpuinfo | grep Model | cut -d ' ' -f 2 | grep Raspberry
+      register: raspberrypi
+      changed_when: false
+      failed_when: false
+
+    - when: raspberrypi.rc==0
+      block:
+        - name: Register Raspberry Pi "cgroup_enable=cpuset" flag in cmdline.txt
+          ansible.builtin.shell: >-
+            cat /boot/cmdline.txt | grep cgroup_enable=cpuset
+          register: raspberrypi_cmdline_cgroup_enable_cpuset
+          changed_when: false
+          failed_when: false
+
+        - name: Register Raspberry Pi "cgroup_memory=1" flag in cmdline.txt
+          ansible.builtin.shell: >-
+            cat /boot/cmdline.txt | grep cgroup_memory=1
+          register: raspberrypi_cmdline_cgroup_memory
+          changed_when: false
+          failed_when: false
+
+        - name: Register Raspberry Pi "cgroup_enable=memory" flag in cmdline.txt
+          ansible.builtin.shell: >-
+            cat /boot/cmdline.txt | grep cgroup_enable=memory
+          register: raspberrypi_cmdline_cgroup_enable_memory
+          changed_when: false
+          failed_when: false
+
+        - name: Add "cgroup_enable=cpuset" flag to cmdline.txt for Raspberry Pi
+          when: raspberrypi_cmdline_cgroup_enable_cpuset.rc==1
+          become: yes
+          ansible.builtin.shell: >-
+            sed "1s/$/ cgroup_enable=cpuset/" -i /boot/cmdline.txt
+          register: raspberrypi_cmdline_cgroup_enable_cpuset_added
+          changed_when: true
+          args:
+            warn: false
+
+        - name: Add "cgroup_memory=1" flag to cmdline.txt for Raspberry Pi
+          when: raspberrypi_cmdline_cgroup_memory.rc==1
+          become: yes
+          ansible.builtin.shell: >-
+            sed "1s/$/ cgroup_memory=1/" -i /boot/cmdline.txt
+          register: raspberrypi_cmdline_cgroup_memory_1_added
+          changed_when: true
+          args:
+            warn: false
+
+        - name: Add "cgroup_enable=memory" flag to cmdline.txt for Raspberry Pi
+          when: raspberrypi_cmdline_cgroup_enable_memory.rc==1
+          become: yes
+          ansible.builtin.shell: >-
+            sed "1s/$/ cgroup_enable=memory/" -i /boot/cmdline.txt
+          register: raspberrypi_cmdline_cgroup_enable_memory_added
+          changed_when: true
+          args:
+            warn: false
+
+        - name: Restart when cmdline.txt or config.txt is changed
+          when: raspberrypi_cmdline_cgroup_enable_cpuset_added.changed or raspberrypi_cmdline_cgroup_memory_1_added.changed or raspberrypi_cmdline_cgroup_enable_memory_added.changed
+          ansible.builtin.reboot:
+            msg: "Reboot initiated by Ansible due to changes in cmdline.txt"
+
+    # Update system
+    - name: Update package repository
+      become: yes
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 3600 # 1 hour
+
+    - name: Upgrade all installed packages
+      become: yes
+      ansible.builtin.apt:
+        force_apt_get: yes
+        upgrade: dist
+
+    # Install common tools
+    - name: Install common utilities
+      become: yes
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: present
+        pkg:
+          - curl
+          - git
+          - htop
+          - jq
+          - net-tools
+          - wget
+          - zsh
+
+    - name: Cleanup unused or unneeded packages
+      become: yes
+      ansible.builtin.apt:
+        autoclean: true
+        autoremove: true
+
+    # Set hostname and timezone
+    - name: Update hostname
+      become: yes
+      hostname:
+        name: "{{ node_name }}"
+
+    - name: Update timezone to "{{ timezone }}"
+      become: yes
+      community.general.timezone:
+        name: "{{ timezone }}"
+
+    # Reboot system
+    - name: Reboot
+      become: yes
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime

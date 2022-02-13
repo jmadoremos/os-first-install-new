@@ -1,0 +1,93 @@
+---
+# General configurations
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wireguard-config-map
+  namespace: network-services
+data:
+  PEERDNS: 10.162.53.100 # Modify - DNS IP
+  PEERS: mobile1,mobile2
+  PUID: '1000' # Modify
+  PGID: '1000' # Modify
+  SERVERURL: 10.162.53.100 # Modify - Container Host IP
+  SERVERPORT: '51820'
+  TZ: Asia/Manila
+---
+# Deployment specification
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard
+  namespace: network-services
+  labels:
+    app: wireguard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wireguard
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/role
+                  operator: In
+                  values:
+                    - master
+      containers:
+        - name: wireguard
+          image: linuxserver/wireguard:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 51820
+              protocol: UDP
+          volumeMounts:
+            - name: wireguard-config
+              mountPath: /config
+            - name: wireguard-modules
+              mountPath: /lib/modules
+          envFrom:
+            - configMapRef:
+                name: wireguard-config-map
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: wireguard-config
+          hostPath:
+            path: /mnt/containers/wireguard
+        - name: wireguard-modules
+          hostPath:
+            path: /var/modules
+---
+# UDP Load Balancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: wireguard-service
+  namespace: network-services
+  labels:
+    app: wireguard
+spec:
+  selector:
+    app: wireguard
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+    - name: vpn
+      protocol: UDP
+      port: 51820

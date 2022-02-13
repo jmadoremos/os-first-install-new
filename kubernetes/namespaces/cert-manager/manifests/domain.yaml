@@ -1,0 +1,12 @@
+---
+# Source: Azure Service Principal secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: acme-service-principal-secret
+data:
+  SUBSCRIPTION_ID: '[AZ_SUB]' # Modify
+  DNS_ZONE: '[AZ_DNS_ZONE]' # Modify
+  TENANT_ID: '[AZ_SP_TENANT]' # Modify
+  CLIENT_ID: '[AZ_SP_CLIENT]' # Modify
+  CLIENT_SECRET: '[AZ_SP_SECRET]' # Modify
