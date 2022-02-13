@@ -1,0 +1,6 @@
+# Ansible-generated files
+*.retry
+
+# DotENV
+**/.env
+.env
