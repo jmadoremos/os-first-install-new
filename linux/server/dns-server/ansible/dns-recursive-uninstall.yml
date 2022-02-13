@@ -7,21 +7,22 @@
 ########################################################################
 - name: Uninstall Recursive Domain Name System
   hosts: dns_server
+  vars:
+    container_names:
+      - wireguard
+      - pihole
+      - unbound
   tasks:
     - name: Stop Docker containers
       docker_container:
         name: "{{ item }}"
+        container_default_behavior: no_defaults
         state: stopped
-      with_items:
-        - pihole
-        - unbound
-        - wireguard
+      with_items: "{{ container_names }}"
 
     - name: Remove Docker containers
       docker_container:
         name: "{{ item }}"
+        container_default_behavior: no_defaults
         state: absent
-      with_items:
-        - pihole
-        - unbound
-        - wireguard
+      with_items: "{{ container_names }}"

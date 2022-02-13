@@ -1,13 +1,15 @@
 ########################################################################
 # Extra variables:
-# - ansible_user (string)
-# - nfs_unbound_conf (string)
+# - ansible_host_ip (string)
+# - ansible_user_gid (number)
+# - ansible_user_uid (number) 
 # 
 # Host inventory variables:
 # - None
 ########################################################################
 - name: Install Recursive Domain Name System
   hosts: dns_server
+  become: true # Admin privileges required
   vars:
     network_cidr: 10.162.53.0/24
     pihole_home: /mnt/containers/pihole
@@ -20,20 +22,9 @@
     wireguard_ip: 10.162.53.102
     wireguard_port: '51820'
   tasks:
-    - name: Create container directories
-      ansible.builtin.file:
-        path: "{{ item }}"
-        owner: "{{ ansible_user }}"
-        group: docker
-        state: directory
-      with_items:
-        - "{{ pihole_home }}"
-        - "{{ unbound_home }}"
-        - "{{ wireguard_home }}"
-
-    - name: Create Docker network "docker_network_one"
+    - name: Create Docker network "dns_recursive_network"
       docker_network:
-        name: docker_network_one
+        name: dns_recursive_network
         ipam_driver: default
         ipam_config:
           - subnet: "{{ network_cidr }}"
@@ -46,11 +37,11 @@
         pull: true # Always pull the latest image
         restart_policy: unless-stopped
         volumes:
-          - "{{ unbound_home }}:/opt/unbound/etc/unbound"
+          - "{{ unbound_home }}/unbound.conf:/opt/unbound/etc/unbound/unbound.conf"
         networks_cli_compatible: yes
-        network_mode: docker_network_one
+        network_mode: dns_recursive_network
         networks:
-          - name: docker_network_one
+          - name: dns_recursive_network
             ipv4_address: "{{ unbound_ip }}"
 
     - name: Start Pi-hole as a Docker container
@@ -61,9 +52,9 @@
         pull: true # Always pull the latest image
         restart_policy: unless-stopped
         ports:
-          - "{{ pihole_port_web }}:80/TCP"
-          - "{{ pihole_port_dns }}:53/TCP"
-          - "{{ pihole_port_dns }}:53/UDP"
+          - "{{ ansible_host_ip }}:{{ pihole_port_web }}:80/TCP"
+          - "{{ ansible_host_ip }}:{{ pihole_port_dns }}:53/TCP"
+          - "{{ ansible_host_ip }}:{{ pihole_port_dns }}:53/UDP"
         volumes:
           - "{{ pihole_home }}/dnsmasq.d:/etc/dnsmasq.d"
           - "{{ pihole_home }}/pihole:/etc/pihole"
@@ -71,15 +62,16 @@
           PIHOLE_DNS_: "{{ unbound_ip }}"
           ServerIP: "{{ pihole_ip }}"
           TZ: Asia/Manila
+          WEBPASSWORD: ''
         capabilities:
           - NET_ADMIN
         dns_servers:
           - 127.0.0.1 # Points to localhost
           - "{{ unbound_ip }}"
         networks_cli_compatible: yes
-        network_mode: docker_network_one
+        network_mode: dns_recursive_network
         networks:
-          - name: docker_network_one
+          - name: dns_recursive_network
             ipv4_address: "{{ pihole_ip }}"
 
     - name: Start Wireguard as a Docker container
@@ -90,15 +82,15 @@
         pull: true # Always pull the latest image
         restart_policy: unless-stopped
         ports:
-          - "{{ wireguard_port }}:51820/UDP"
+          - "{{ ansible_host_ip }}:{{ wireguard_port }}:51820/UDP"
         volumes:
           - "{{ wireguard_home }}:/config"
           - /var/modules:/lib/modules
         env:
           PEERDNS: "{{ pihole_ip }}"
           PEERS: mobile1,mobile2
-          PUID: '1001'
-          PGID: '1002'
+          PUID: "{{ ansible_user_uid }}"
+          PGID: "{{ ansible_user_gid }}"
           SERVERURL: "{{ ansible_host }}"
           SERVERPORT: "{{ wireguard_port }}"
           TZ: Asia/Manila
@@ -111,7 +103,7 @@
           - "{{ pihole_ip }}"
           - "{{ unbound_ip }}"
         networks_cli_compatible: yes
-        network_mode: docker_network_one
+        network_mode: dns_recursive_network
         networks:
-          - name: docker_network_one
+          - name: dns_recursive_network
             ipv4_address: "{{ wireguard_ip }}"
