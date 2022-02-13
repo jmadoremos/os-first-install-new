@@ -1,0 +1,7 @@
+{
+    // Define file associations with extensions
+    "files.associations": {
+        "**/ansible/**/*.yml": "ansible",
+        "**/ansible/*.yml": "ansible"
+    }
+}
