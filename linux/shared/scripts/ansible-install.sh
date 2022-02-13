@@ -9,8 +9,8 @@ FAILED="${COLOR_RED}FAILED${COLOR_NONE}"
 SKIPPED="${COLOR_GREEN}SKIPPED${COLOR_NONE}"
 
 # Install ansible
-echo -n "Installing ansible..."
-sudo apt-get install -y ansible &> /dev/null
+echo -n "Installing ansible and required packages..."
+sudo apt-get install -y ansible git libffi-dev libssl-dev python-pip &> /dev/null
 [[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
 
 # Create .ansible directory in home
