@@ -1,0 +1,31 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Install Docker
+  hosts: all
+  become: true
+  tasks:
+    - name: Uninstall Docker
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: absent
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - docker-compose
+
+    - name: Remove Docker repository
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Remove Docker official GPG key
+      when: ansible_distribution == 'Debian'
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        keyring: /usr/share/keyrings/docker-ce-test-gpg.key
+        state: absent

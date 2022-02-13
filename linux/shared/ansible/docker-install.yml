@@ -1,0 +1,70 @@
+########################################################################
+# Extra variables:
+# - ansible_user (string)
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Install Docker
+  hosts: all
+  become: true
+  tasks:
+    - name: Install pre-requisites
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: latest
+        pkg:
+          - ca-certificates
+          - curl 
+          - gnupg
+          - lsb-release
+
+    - when: ansible_distribution == 'Debian'
+      block: 
+        - name: Add Docker official GPG key
+          ansible.builtin.apt_key:
+            url: https://download.docker.com/linux/debian/gpg
+            keyring: /usr/share/keyrings/docker-ce-test-gpg.key
+            state: present
+
+        - name: Add Docker repository to apt sources
+          ansible.builtin.copy:
+            dest: /etc/apt/sources.list.d/docker.list
+            content: deb [arch={{ ansible_facts['architecture'] }} signed-by=/usr/share/keyrings/docker-ce-test-gpg.key] https://download.docker.com/linux/debian {{ ansible_facts['lsb']['codename'] }} stable
+
+    - name: Update package repository
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 3600 # 1 hour
+
+    - name: Install Docker
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: latest
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - docker-compose
+          - containerd.io
+
+    - name: Ensure "docker" group exists with correct gid
+      ansible.builtin.group:
+        name: docker
+        state: present
+        gid: 1750
+
+    - name: Add current user to "docker" group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Reboot the node
+      ansible.builtin.reboot:
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
