@@ -2,6 +2,8 @@
 
 This repository contains a set of instructions and executables to setup a newly installed operating system.
 
+* [Docker](./docker/README.md)
+
 * [Kubernetes](./kubernetes/README.md)
 
 * [Linux](./linux/README.md)

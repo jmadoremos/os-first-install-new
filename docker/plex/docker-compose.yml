@@ -1,0 +1,33 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+################################################
+services:
+  plex:
+    image: 'linuxserver/plex:latest'
+    container_name: 'plex'
+    ports:
+      - '32400:32400/tcp'
+    volumes:
+      - '/mnt/containers/plex:/config'
+      - '/mnt/media:/mnt/media:ro'
+      - '/tmp/plex:/transcode'
+    network_mode: 'host'
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:32400/identity' ]
+      interval: '30s'
+      timeout: '5s'
+      retries: 3
+      start_period: '5m30s'
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: 'Asia/Manila'
+      VERSION: 'docker'
+    privileged: true
+    devices:
+      - '/dev/dri:/dev/dri'
+    mem_limit: '4G'
+    cpu_percent: 50
+    restart: 'unless-stopped'

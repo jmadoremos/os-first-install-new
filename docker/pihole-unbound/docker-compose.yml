@@ -1,0 +1,52 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+################################################
+services:
+  # Unbound
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    volumes:
+      - '/mnt/containers/unbound/unbound.conf:/mnt/containers/unbound/unbound.conf:ro'
+    networks:
+      dns_net:
+        ipv4_address: '10.168.53.2'
+        ipv6_address: '2001:3984:3989::10'
+    restart: unless-stopped
+  # Pihole
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    ports:
+      - '10.162.22.100:53:53/tcp'
+      - '10.162.22.100:8053:80/tcp'
+      - '10.162.22.100:44353:443/tcp'
+      - '10.162.22.100:53:53/udp'
+      - '10.162.22.100:67:67/udp'
+    volumes:
+      - '/mnt/containers/pihole/dnsmasq.d:/etc/dnsmasq.d'
+      - '/mnt/containers/pihole/pihole:/etc/pihole'
+    networks:
+      dns_net:
+        ipv4_address: '10.168.53.3'
+        ipv6_address: '2001:3984:3989::20'
+    environment:
+      PIHOLE_DNS_: '10.168.53.2#5053'
+      TZ: 'Asia/Manila'
+    restart: unless-stopped
+    depends_on:
+      - dnscrypt-proxy
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+  dns_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: '10.168.53.0/24'
+          gateway: '10.168.53.1'
+        - subnet: '2001:3984:3989::/64'

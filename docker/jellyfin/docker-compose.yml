@@ -1,0 +1,34 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+################################################
+services:
+  jellyfin:
+    image: 'linuxserver/jellyfin:latest'
+    container_name: 'jellyfin'
+    ports:
+      - '8096:8096/tcp'
+      - '8096:8096/udp'
+    volumes:
+      - '/mnt/containers/jellyfin:/config'
+      - '/mnt/media:/mnt/media:ro'
+      - '/opt/vc/lib:/opt/vc/lib'
+      - '/tmp/jellyfin:/transcode'
+    network_mode: 'host'
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8096' ]
+      interval: '3m'
+      timeout: '30s'
+      retries: 3
+      start_period: '1m'
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: 'Asia/Manila'
+    devices:
+      - '/dev/vcsm-cma:/dev/vcsm'
+      - '/dev/vchiq:/dev/vchiq'
+    mem_limit: '4G'
+    cpu_percent: 50
+    restart: 'unless-stopped'
