@@ -35,3 +35,14 @@ ansible-playbook "linux/server/dns-server/ansible/dns-recursive-uninstall.yml"
 ```sh
 ansible-playbook "linux/server/dns-server/ansible/media-unmount.yml"
 ```
+
+
+## Frequently Asked Questions
+
+> Pi-hole is reporting that there is an attempt to write to a read-only database.
+
+Run the command to fix the problem. Taken from [Reddit](https://www.reddit.com/r/pihole/comments/owkao0/comment/hj1v0x0/?utm_source=share&utm_medium=web2x&context=3).
+
+```sh
+docker exec pihole chown -R www-data:pihole /etc/pihole
+```
