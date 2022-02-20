@@ -156,6 +156,8 @@ sudo ${HOME}/Downloads/omv-install
 
   * Privilege: [PERMISSION OF SHARED FOLDER]
 
+  * Extra options: [INCLUDE `no_root_squash` FOR PUBLICLY ACCESSIBLE MOUNTS]
+
 7. Click the "Save" button
 
 8. Repeat #5 to #7 for other shared folders to expose
