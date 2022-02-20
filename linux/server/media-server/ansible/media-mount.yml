@@ -39,6 +39,19 @@
         owner: plex
         group: plex
 
+    - name: Unmount NFS share folders
+      become: true # Admin privileges required
+      ansible.posix.mount:
+        path: "{{ item.dst }}"
+        state: absent
+      with_items: "{{ nfs_shares }}"
+
+    - name: Remove NFS share folder remnants
+      ansible.builtin.file:
+        path: "{{ item.dst }}"
+        state: absent
+      with_items: "{{ nfs_shares }}"
+
     - name: Mount NFS share folders
       become: true # Admin privileges required
       ansible.posix.mount:
