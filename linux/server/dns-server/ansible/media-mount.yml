@@ -36,10 +36,7 @@
     - name: Unmount NFS share folders
       become: true # Admin privileges required
       ansible.posix.mount:
-        src: "{{ network_storage_ip }}:{{ item.src }}"
         path: "{{ item.dst }}"
-        fstype: nfs
-        opts: "{{ item.opts }}"
         state: absent
       with_items: "{{ nfs_shares }}"
 
