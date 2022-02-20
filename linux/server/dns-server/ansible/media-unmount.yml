@@ -15,7 +15,7 @@
       - dst: /mnt/containers/wireguard
   tasks:
     - name: Unmount NFS share folders
-      become: true # Admin privileges required
+      become: yes # Admin privileges required
       ansible.posix.mount:
         path: "{{ item.dst }}"
         state: unmounted

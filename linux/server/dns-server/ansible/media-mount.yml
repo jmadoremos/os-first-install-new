@@ -24,7 +24,7 @@
         opts: rw,sync,hard,intr
   tasks:
     - name: Install NFS support
-      become: true # Admin privileges required
+      become: yes # Admin privileges required
       ansible.builtin.apt:
         name: nfs-common
         state: present
@@ -35,7 +35,7 @@
         state: directory
 
     - name: Unmount NFS share folders
-      become: true # Admin privileges required
+      become: yes # Admin privileges required
       ansible.posix.mount:
         path: "{{ item.dst }}"
         state: absent
@@ -48,7 +48,7 @@
       with_items: "{{ nfs_shares }}"
 
     - name: Mount NFS share folders
-      become: true # Admin privileges required
+      become: yes # Admin privileges required
       ansible.posix.mount:
         src: "{{ network_storage_ip }}:{{ item.src }}"
         path: "{{ item.dst }}"
