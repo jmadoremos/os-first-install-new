@@ -13,19 +13,19 @@
     nfs_shares:
       - src: /media-01/Animations
         dst: /mnt/media/animations
-        opts: ro,sync,hard,intr
+        opts: ro,soft,nointr
       - src: /media-01/Anime
         dst: /mnt/media/anime
-        opts: ro,sync,hard,intr
+        opts: ro,soft,nointr
       - src: /media-02/Movies
         dst: /mnt/media/movies
-        opts: ro,sync,hard,intr
+        opts: ro,soft,nointr
       - src: /media-01/Music
         dst: /mnt/media/music
-        opts: ro,sync,hard,intr
+        opts: ro,soft,nointr
       - src: /media-01/TV
         dst: /mnt/media/tv
-        opts: ro,sync,hard,intr
+        opts: ro,soft,nointr
   tasks:
     - name: Install NFS support
       ansible.builtin.apt:
