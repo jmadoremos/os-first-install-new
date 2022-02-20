@@ -12,16 +12,16 @@
     nfs_shares:
       - src: /containers/dnscrypt
         dst: /mnt/containers/dnscrypt
-        opts: rw,sync,hard,intr
+        opts: rw,nointr
       - src: /containers/pihole
         dst: /mnt/containers/pihole
-        opts: rw,sync,hard,intr
+        opts: rw,nointr
       - src: /containers/unbound
         dst: /mnt/containers/unbound
-        opts: rw,sync,hard,intr
+        opts: rw,nointr
       - src: /containers/wireguard
         dst: /mnt/containers/wireguard
-        opts: rw,sync,hard,intr
+        opts: rw,nointr
   tasks:
     - name: Install NFS support
       become: yes # Admin privileges required
@@ -42,6 +42,7 @@
       with_items: "{{ nfs_shares }}"
 
     - name: Remove NFS share folder remnants
+      become: yes # Admin privileges required
       ansible.builtin.file:
         path: "{{ item.dst }}"
         state: absent
