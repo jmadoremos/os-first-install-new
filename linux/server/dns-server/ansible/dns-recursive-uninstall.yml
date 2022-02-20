@@ -19,6 +19,7 @@
         container_default_behavior: no_defaults
         state: stopped
       with_items: "{{ container_names }}"
+      failed_when: false
 
     - name: Remove Docker containers
       community.docker.docker_container:
@@ -26,3 +27,4 @@
         container_default_behavior: no_defaults
         state: absent
       with_items: "{{ container_names }}"
+      failed_when: false
