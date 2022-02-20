@@ -20,3 +20,9 @@
         path: "{{ item.dst }}"
         state: unmounted
       with_items: "{{ nfs_shares }}"
+
+    - name: Remove remnant folders
+      ansible.builtin.file:
+        path: "{{ item.dst }}"
+        state: absent
+      with_items: "{{ nfs_shares }}"
