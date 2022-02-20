@@ -14,14 +14,14 @@
       - unbound
   tasks:
     - name: Stop Docker containers
-      docker_container:
+      community.docker.docker_container:
         name: "{{ item }}"
         container_default_behavior: no_defaults
         state: stopped
       with_items: "{{ container_names }}"
 
     - name: Remove Docker containers
-      docker_container:
+      community.docker.docker_container:
         name: "{{ item }}"
         container_default_behavior: no_defaults
         state: absent

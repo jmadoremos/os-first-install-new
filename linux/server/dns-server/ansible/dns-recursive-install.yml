@@ -22,14 +22,14 @@
     wireguard_port: '51820'
   tasks:
     - name: Create Docker network "dns_recursive_network"
-      docker_network:
+      community.docker.docker_network:
         name: dns_recursive_network
         ipam_driver: default
         ipam_config:
           - subnet: "{{ network_cidr }}"
 
     - name: Start Unbound as a Docker container
-      docker_container:
+      community.docker.docker_container:
         name: unbound
         image: mvance/unbound:latest
         container_default_behavior: no_defaults
@@ -44,7 +44,7 @@
             ipv4_address: "{{ unbound_ip }}"
 
     - name: Start Pi-hole as a Docker container
-      docker_container:
+      community.docker.docker_container:
         name: pihole
         image: pihole/pihole:latest
         container_default_behavior: no_defaults
@@ -74,7 +74,7 @@
             ipv4_address: "{{ pihole_ip }}"
 
     - name: Start Wireguard as a Docker container
-      docker_container:
+      community.docker.docker_container:
         name: wireguard
         image: linuxserver/wireguard:latest
         container_default_behavior: no_defaults
