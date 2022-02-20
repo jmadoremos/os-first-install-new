@@ -7,7 +7,6 @@
 ########################################################################
 - name: Mount Network Share
   hosts: media_server
-  become: true # Admin privileges required
   vars:
     nfs_dst: /mnt/media
     nfs_shares:
@@ -28,6 +27,7 @@
         opts: ro,soft,nointr
   tasks:
     - name: Install NFS support
+      become: true # Admin privileges required
       ansible.builtin.apt:
         name: nfs-common
         state: present
@@ -40,6 +40,7 @@
         group: plex
 
     - name: Mount NFS share folders
+      become: true # Admin privileges required
       ansible.posix.mount:
         src: "{{ network_storage_ip }}:{{ item.src }}"
         path: "{{ item.dst }}"
