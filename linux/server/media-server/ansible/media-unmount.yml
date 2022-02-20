@@ -16,6 +16,7 @@
       - dst: /mnt/media/tv
   tasks:
     - name: Unmount NFS share folders
+      become: true # Admin privileges required
       ansible.posix.mount:
         path: "{{ item.dst }}"
         state: unmounted
