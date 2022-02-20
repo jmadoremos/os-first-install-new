@@ -13,13 +13,13 @@
     nfs_shares:
       - src: /containers/dnscrypt
         dst: /mnt/containers/dnscrypt
-        opts: ro,sync,hard,intr
+        opts: rw,sync,hard,intr
       - src: /containers/pihole
         dst: /mnt/containers/pihole
         opts: rw,sync,hard,intr
       - src: /containers/unbound
         dst: /mnt/containers/unbound
-        opts: ro,sync,hard,intr
+        opts: rw,sync,hard,intr
       - src: /containers/wireguard
         dst: /mnt/containers/wireguard
         opts: rw,sync,hard,intr
