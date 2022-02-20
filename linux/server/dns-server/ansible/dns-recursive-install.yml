@@ -36,7 +36,7 @@
         pull: true # Always pull the latest image
         restart_policy: unless-stopped
         volumes:
-          - "{{ unbound_home }}/unbound.conf:/opt/unbound/etc/unbound/unbound.conf"
+          - "{{ unbound_home }}:/opt/unbound/etc/unbound/"
         networks_cli_compatible: yes
         network_mode: dns_recursive_network
         networks:
@@ -90,7 +90,7 @@
           PEERS: mobile1,mobile2
           PUID: "{{ ansible_user_uid }}"
           PGID: "{{ ansible_user_gid }}"
-          SERVERURL: "{{ ansible_host }}"
+          SERVERURL: "{{ ansible_host_ip }}"
           SERVERPORT: "{{ wireguard_port }}"
           TZ: Asia/Manila
         capabilities:
