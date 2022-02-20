@@ -9,7 +9,6 @@
 ########################################################################
 - name: Install Recursive Domain Name System
   hosts: dns_server
-  become: true # Admin privileges required
   vars:
     network_cidr: 10.162.53.0/24
     pihole_home: /mnt/containers/pihole
