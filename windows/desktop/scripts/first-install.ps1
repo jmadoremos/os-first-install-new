@@ -10,6 +10,9 @@ wsl --set-default-version 2
 # Install Debian distro in Windows Subsystem for Linux
 wsl --install -d Debian
 
+# Set Debian as default distro
+wsl --set-default Debian
+
 # Login to wsl to setup credentials
 wsl
 
