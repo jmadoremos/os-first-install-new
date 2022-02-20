@@ -13,14 +13,19 @@ echo -n "Installing ansible and required packages..."
 sudo apt-get install -y ansible git libffi-dev libssl-dev python-pip &> /dev/null
 [[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
 
-# Create .ansible directory in home
+# Create .ansible/ directory in home
 echo -n "Creating ~/.ansible..."
 mkdir ${HOME}/.ansible -m 770 &> /dev/null
 [[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $SKIPPED"
 
-# Create host inventory
+# Create .ansible/hosts/ directory in home
 echo -n "Creating ~/.ansible/hosts..."
-cat << EOF | tee ${HOME}/.ansible/hosts &> /dev/null
+mkdir ${HOME}/.ansible/hosts -m 770 &> /dev/null
+[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $SKIPPED"
+
+# Create host inventory
+echo -n "Creating ~/.ansible/hosts/servers..."
+cat << EOF | tee ${HOME}/.ansible/hosts/servers &> /dev/null
 servers:
   children:
     network_storage:
@@ -44,6 +49,11 @@ servers:
           ansible_connection: ssh
           ansible_python_interpreter: /usr/bin/python3
           ansible_shell_executable: /bin/bash
+EOF
+[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
+
+echo -n "Creating ~/.ansible/hosts/k8s_cluster..."
+cat << EOF | tee ${HOME}/.ansible/hosts/k8s_cluster &> /dev/null
 k8s_cluster:
   children:
     k8s_masters:
@@ -96,7 +106,7 @@ EOF
 sudo chmod 640 ${HOME}/.ansible.cfg
 
 # Add host inventory to environment variable
-export ANSIBLE_INVENTORY=${HOME}/.ansible/hosts
+export ANSIBLE_INVENTORY=${HOME}/.ansible/hosts/
 
 # Ping all hosts
 ansible all -m ping
