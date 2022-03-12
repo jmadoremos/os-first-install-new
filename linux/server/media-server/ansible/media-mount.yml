@@ -16,6 +16,12 @@
       - src: /media-01/Anime
         dst: /mnt/media/anime
         opts: ro,soft,nointr
+      - src: '/media-01/Anime Downloading'
+        dst: /mnt/media/anime-downloading
+        opts: ro,soft,nointr
+      - src: '/media-01/Anime Movies'
+        dst: /mnt/media/anime-movies
+        opts: ro,soft,nointr
       - src: /media-02/Movies
         dst: /mnt/media/movies
         opts: ro,soft,nointr
