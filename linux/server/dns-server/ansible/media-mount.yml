@@ -13,8 +13,11 @@
       - src: /containers/dnscrypt
         dst: /mnt/containers/dnscrypt
         opts: rw,nointr
-      - src: /containers/pihole
-        dst: /mnt/containers/pihole
+      - src: /containers/pihole_doh
+        dst: /mnt/containers/pihole_doh
+        opts: rw,nointr
+      - src: /containers/pihole_recursive
+        dst: /mnt/containers/pihole_recursive
         opts: rw,nointr
       - src: /containers/unbound
         dst: /mnt/containers/unbound
