@@ -5,12 +5,13 @@
 # Host inventory variables:
 # - None
 ########################################################################
-- name: Uninstall Recursive Domain Name System
+- name: Uninstall DNS-over-HTTPS Domain Name System
   hosts: dns_server
   vars:
     container_names:
-      - pihole_recursive
-      - unbound
+      - wireguard
+      - pihole_doh
+      - dnscrypt
   tasks:
     - name: Stop Docker containers
       community.docker.docker_container:

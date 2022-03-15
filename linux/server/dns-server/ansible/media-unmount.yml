@@ -10,7 +10,8 @@
   vars:
     nfs_shares:
       - dst: /mnt/containers/dnscrypt
-      - dst: /mnt/containers/pihole
+      - dst: /mnt/containers/pihole_doh
+      - dst: /mnt/containers/pihole_recursive
       - dst: /mnt/containers/unbound
       - dst: /mnt/containers/wireguard
   tasks:
