@@ -11,7 +11,7 @@
   hosts: dns_server
   vars:
     network_cidr: 10.162.53.0/24
-    pihole_home: /mnt/containers/pihole
+    pihole_home: /mnt/containers/pihole_recursive
     pihole_ip: 10.162.53.101
     pihole_port_dns: '53'
     pihole_port_web: '8053'
@@ -33,7 +33,6 @@
         name: unbound
         image: mvance/unbound:latest
         container_default_behavior: no_defaults
-        pull: true # Always pull the latest image
         restart_policy: unless-stopped
         volumes:
           - "{{ unbound_home }}:/opt/unbound/etc/unbound/"
@@ -45,10 +44,9 @@
 
     - name: Start Pi-hole as a Docker container
       community.docker.docker_container:
-        name: pihole
+        name: pihole_recursive
         image: pihole/pihole:latest
         container_default_behavior: no_defaults
-        pull: true # Always pull the latest image
         restart_policy: unless-stopped
         ports:
           - "{{ ansible_host_ip }}:{{ pihole_port_web }}:80/TCP"
@@ -58,15 +56,19 @@
           - "{{ pihole_home }}/dnsmasq.d:/etc/dnsmasq.d"
           - "{{ pihole_home }}/pihole:/etc/pihole"
         env:
+          # Never forward reverse lookups for private ranges
+          DNS_BOGUS_PRIV: 'true' 
+          # Never forward non-FQDNs
+          DNS_FQDN_REQUIRED: 'true'
+          # Upstream DNS server(s) for Pi-hole to forward queries to, seperated by a semicolon
           PIHOLE_DNS_: "{{ unbound_ip }}"
-          ServerIP: "{{ pihole_ip }}"
+          # Set your timezone to make sure logs rotate at local midnight instead of at UTC midnight.
           TZ: Asia/Manila
+          # No password. Change the password through:
+          # docker exec -it pihole_recursive pihole -a -p
           WEBPASSWORD: ''
         capabilities:
           - NET_ADMIN
-        dns_servers:
-          - 127.0.0.1 # Points to localhost
-          - "{{ unbound_ip }}"
         networks_cli_compatible: yes
         network_mode: dns_recursive_network
         networks:
