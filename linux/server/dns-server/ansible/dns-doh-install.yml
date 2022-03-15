@@ -1,0 +1,103 @@
+########################################################################
+# Extra variables:
+# - ansible_host_ip (string)
+# - ansible_user_gid (number)
+# - ansible_user_uid (number) 
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Install DNS-over-HTTPS Domain Name System
+  hosts: dns_server
+  vars:
+    dnscrypt_home: /mnt/containers/dnscrypt
+    dnscrypt_ip: 10.162.54.100
+    network_cidr: 10.162.54.0/24
+    pihole_home: /mnt/containers/pihole_doh
+    pihole_ip: 10.162.54.101
+    pihole_port_web: '8054'
+    wireguard_home: /mnt/containers/wireguard
+    wireguard_ip: 10.162.54.102
+    wireguard_port: '51820'
+  tasks:
+    - name: Create Docker network "dns_doh_network"
+      community.docker.docker_network:
+        name: dns_doh_network
+        ipam_driver: default
+        ipam_config:
+          - subnet: "{{ network_cidr }}"
+
+    - name: Start DNSCrypt as a Docker container
+      community.docker.docker_container:
+        name: dnscrypt
+        image: gists/dnscrypt-proxy:latest
+        container_default_behavior: no_defaults
+        restart_policy: unless-stopped
+        volumes:
+          - "{{ dnscrypt_home }}/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml"
+        networks_cli_compatible: yes
+        network_mode: dns_doh_network
+        networks:
+          - name: dns_doh_network
+            ipv4_address: "{{ dnscrypt_ip }}"
+
+    - name: Start Pi-hole as a Docker container
+      community.docker.docker_container:
+        name: pihole_doh
+        image: pihole/pihole:latest
+        container_default_behavior: no_defaults
+        restart_policy: unless-stopped
+        ports:
+          - "{{ ansible_host_ip }}:{{ pihole_port_web }}:80/TCP"
+        volumes:
+          - "{{ pihole_home }}/dnsmasq.d:/etc/dnsmasq.d"
+          - "{{ pihole_home }}/pihole:/etc/pihole"
+        env:
+          # Never forward reverse lookups for private ranges
+          DNS_BOGUS_PRIV: 'true' 
+          # Never forward non-FQDNs
+          DNS_FQDN_REQUIRED: 'true'
+          # Upstream DNS server(s) for Pi-hole to forward queries to, seperated by a semicolon
+          PIHOLE_DNS_: "{{ dnscrypt_ip }}#5053"
+          # Set your timezone to make sure logs rotate at local midnight instead of at UTC midnight.
+          TZ: Asia/Manila
+          # No password. Change the password through:
+          # docker exec -it pihole_recursive pihole -a -p
+          WEBPASSWORD: ''
+        capabilities:
+          - NET_ADMIN
+        networks_cli_compatible: yes
+        network_mode: dns_doh_network
+        networks:
+          - name: dns_doh_network
+            ipv4_address: "{{ pihole_ip }}"
+
+    - name: Start Wireguard as a Docker container
+      community.docker.docker_container:
+        name: wireguard
+        image: linuxserver/wireguard:latest
+        container_default_behavior: no_defaults
+        restart_policy: unless-stopped
+        ports:
+          - "{{ ansible_host_ip }}:{{ wireguard_port }}:51820/UDP"
+        volumes:
+          - "{{ wireguard_home }}:/config"
+          - /var/modules:/lib/modules
+        env:
+          PEERDNS: "{{ pihole_ip }}"
+          PEERS: mobile1,mobile2
+          PUID: "{{ ansible_user_uid }}"
+          PGID: "{{ ansible_user_gid }}"
+          SERVERURL: "{{ ansible_host_ip }}"
+          SERVERPORT: "{{ wireguard_port }}"
+          TZ: Asia/Manila
+        capabilities:
+          - NET_ADMIN
+          - SYS_MODULE
+        sysctls:
+          net.ipv4.conf.all.src_valid_mark: 1
+        networks_cli_compatible: yes
+        network_mode: dns_doh_network
+        networks:
+          - name: dns_doh_network
+            ipv4_address: "{{ wireguard_ip }}"
