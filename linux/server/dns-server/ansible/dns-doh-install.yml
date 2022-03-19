@@ -58,7 +58,7 @@
           # Never forward non-FQDNs
           DNS_FQDN_REQUIRED: 'true'
           # Upstream DNS server(s) for Pi-hole to forward queries to, seperated by a semicolon
-          PIHOLE_DNS_: "{{ dnscrypt_ip }}#5353"
+          PIHOLE_DNS_: "{{ dnscrypt_ip }}#5053"
           # Set your timezone to make sure logs rotate at local midnight instead of at UTC midnight.
           TZ: Asia/Manila
           # No password. Change the password through:
@@ -84,18 +84,27 @@
           - "{{ wireguard_home }}:/config"
           - /var/modules:/lib/modules
         env:
-          PEERDNS: "{{ pihole_ip }}"
+          # DNS server set in peer/client configs (can be set as 8.8.8.8). Used in server mode. Defaults to auto, which uses wireguard docker host's DNS via included CoreDNS forward.
+          PEERDNS: auto
+          # Number of peers to create confs for. Required for server mode. Can also be a list of names: myPC,myPhone,myTablet (alphanumeric only)
           PEERS: mobile1,mobile2
+          # for UserID
           PUID: "{{ ansible_user_uid }}"
+          # for GroupID
           PGID: "{{ ansible_user_gid }}"
+          # External IP or domain name for docker host. Used in server mode. If set to auto, the container will try to determine and set the external IP automatically
           SERVERURL: "{{ ansible_host_ip }}"
+          # External port for docker host. Used in server mode.
           SERVERPORT: "{{ wireguard_port }}"
+          # Specify a timezone
           TZ: Asia/Manila
         capabilities:
           - NET_ADMIN
           - SYS_MODULE
         sysctls:
           net.ipv4.conf.all.src_valid_mark: 1
+        dns_servers:
+          - "{{ pihole_ip }}"
         networks_cli_compatible: yes
         network_mode: dns_doh_network
         networks:
