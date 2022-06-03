@@ -30,21 +30,14 @@ servers:
   children:
     network_storage:
       hosts:
-        omv-momonga:
+        alexandria:
           node_name: alexandria
-          ansible_connection: ssh
+          ansible_connection: local
           ansible_python_interpreter: /usr/bin/python3
           ansible_shell_executable: /bin/bash
-    dns_server:
-        hosts:
-          media-momonga:
-            node_name: dionysus
-            ansible_connection: ssh
-            ansible_python_interpreter: /usr/bin/python3
-            ansible_shell_executable: /bin/bash
     media_server:
       hosts:
-        media-momonga:
+        dionysus:
           node_name: dionysus
           ansible_connection: ssh
           ansible_python_interpreter: /usr/bin/python3
@@ -76,7 +69,7 @@ k8s_cluster:
       children:
         k8s_worker_local:
           hosts:
-            localhost:
+            sily-01:
               node_name: sily-01
               ansible_connection: local
               ansible_python_interpreter: /usr/bin/python
