@@ -1,6 +1,6 @@
 ########################################################################
 # Extra variables:
-# - network_storage_ip (string)
+# - storage_server_ip (string)
 # 
 # Host inventory variables:
 # - None
@@ -61,7 +61,7 @@
     - name: Mount NFS share folders
       become: yes # Admin privileges required
       ansible.posix.mount:
-        src: "{{ network_storage_ip }}:{{ item.src }}"
+        src: "{{ storage_server_ip }}:{{ item.src }}"
         path: "{{ item.dst }}"
         fstype: nfs
         opts: "{{ item.opts }}"

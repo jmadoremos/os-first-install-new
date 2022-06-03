@@ -6,7 +6,7 @@
 # - node_name (string)
 ########################################################################
 - name: First setup for network storage
-  hosts: network_storage
+  hosts: storage_server
   vars:
     timezone: Asia/Manila
   tasks:

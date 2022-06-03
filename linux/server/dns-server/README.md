@@ -5,9 +5,9 @@
 1. Mount network share
 
 ```sh
-NETWORK_STORAGE_IP="127.0.0.1" # Modify with the IP address of the network_storage
+STORAGE_SERVER_IP="127.0.0.1" # Modify with the IP address of the storage_server
 
-ansible-playbook "linux/server/dns-server/ansible/media-mount.yml" --extra-vars "network_storage_ip=${NETWORK_STORAGE_IP}"
+ansible-playbook "linux/server/dns-server/ansible/media-mount.yml" --extra-vars "storage_server_ip=${STORAGE_SERVER_IP}"
 ```
 
 2. Install and configure one of the following:

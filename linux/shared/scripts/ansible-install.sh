@@ -28,7 +28,7 @@ echo -n "Creating ~/.ansible/hosts/servers..."
 cat << EOF | tee ${HOME}/.ansible/hosts/servers &> /dev/null
 servers:
   children:
-    network_storage:
+    storage_server:
       hosts:
         alexandria:
           node_name: alexandria
