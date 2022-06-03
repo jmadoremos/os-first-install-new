@@ -53,6 +53,7 @@
       with_items: "{{ nfs_shares }}"
 
     - name: Remove NFS share folder remnants
+      become: yes # Admin privileges required
       ansible.builtin.file:
         path: "{{ item.dst }}"
         state: absent
