@@ -6,4 +6,4 @@ Ansible playbook for configuring servers with specific roles and responsibilitie
 
 * [Media Server](./media-server/README.md)
 
-* [Network Storage](./network-storage/README.md)
+* [Network Storage](./storage-server/README.md)

@@ -1,11 +1,11 @@
-# Linux | Ansible for Network Storage
+# Linux | Ansible for Storage Server
 
 ## Installation
 
 1. Install and configure pre-requisites
 
 ```sh
-ansible-playbook "linux/server/network-storage/ansible/first-install.yml" --extra-vars "ansible_user=$(whoami)"
+ansible-playbook "linux/server/storage-server/ansible/first-install.yml" --extra-vars "ansible_user=$(whoami)"
 ```
 
 2. Install Open Media Vault
