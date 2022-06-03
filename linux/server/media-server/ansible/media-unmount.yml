@@ -11,6 +11,8 @@
     nfs_shares:
       - dst: /mnt/media/animations
       - dst: /mnt/media/anime
+      - dst: /mnt/media/anime-downloading
+      - dst: /mnt/media/anime-movies
       - dst: /mnt/media/movies
       - dst: /mnt/media/music
       - dst: /mnt/media/tv
@@ -23,6 +25,7 @@
       with_items: "{{ nfs_shares }}"
 
     - name: Remove NFS share folder remnants
+      become: yes # Admin privileges required
       ansible.builtin.file:
         path: "{{ item.dst }}"
         state: absent
