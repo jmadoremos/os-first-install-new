@@ -3,50 +3,40 @@ version: '3'
 ################################################
 # DEFINE SERVICES
 ################################################
+
 services:
-  # Unbound
+
+  # *** Unbound ***
+  # Unbound is a validating, recursive, caching DNS resolver. It is designed to be fast and
+  # lean and incorporates modern features based on open standards.
+
   unbound:
     image: mvance/unbound:latest
     container_name: unbound
+    ports:
+      - '127.0.0.1:5053:5353/tcp'
+      - '127.0.0.1:5053:5353/udp'
     volumes:
-      - '/mnt/containers/unbound/unbound.conf:/mnt/containers/unbound/unbound.conf:ro'
-    networks:
-      dns_net:
-        ipv4_address: '10.168.53.2'
-        ipv6_address: '2001:3984:3989::10'
+      - '/export/containers/unbound/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro'
     restart: unless-stopped
-  # Pihole
+
+  # *** Pi-hole ***
+  # In addition to blocking advertisements, Pi-hole has an informative Web interface that
+  # shows stats on all the domains being queried on your network.
+
   pihole:
     image: pihole/pihole:latest
-    container_name: pihole
+    container_name: pihole-recursive
     ports:
-      - '10.162.22.100:53:53/tcp'
-      - '10.162.22.100:8053:80/tcp'
-      - '10.162.22.100:44353:443/tcp'
-      - '10.162.22.100:53:53/udp'
-      - '10.162.22.100:67:67/udp'
+      - '127.0.0.1:53:53/tcp'
+      - '127.0.0.1:8053:80/tcp'
+      - '127.0.0.1:53:53/udp'
     volumes:
-      - '/mnt/containers/pihole/dnsmasq.d:/etc/dnsmasq.d'
-      - '/mnt/containers/pihole/pihole:/etc/pihole'
-    networks:
-      dns_net:
-        ipv4_address: '10.168.53.3'
-        ipv6_address: '2001:3984:3989::20'
+      - '/export/containers/pihole/dnsmasq.d:/etc/dnsmasq.d'
+      - '/export/containers/pihole/pihole:/etc/pihole'
     environment:
-      PIHOLE_DNS_: '10.168.53.2#5053'
+      PIHOLE_DNS_: '127.0.0.1#5053'
       TZ: 'Asia/Manila'
     restart: unless-stopped
     depends_on:
-      - dnscrypt-proxy
-
-################################################
-# DEFINE NETWORKS
-################################################
-networks:
-  dns_net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: '10.168.53.0/24'
-          gateway: '10.168.53.1'
-        - subnet: '2001:3984:3989::/64'
+      - unbound
