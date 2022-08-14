@@ -24,14 +24,14 @@ Categories:
 
 ## Containers
 
-> The containers below assume that Network Shares are mounted to `/mnt` directory.
+> The containers below assume that Network Shares are mounted to `/export` directory, and local IP address of the server running docker is `127.0.0.1`.
 
 ### Jellyfin
 
 [Jellyfin](https://jellyfin.org) is the volunteer-built media solution that puts you in control of your media. Stream to any device from your own server, with no strings attached.
 
 ```sh
-docker-compose "docker/jellyfin/docker-compose.yml"
+docker compose up --detach "docker/jellyfin/docker-compose.yml"
 ```
 
 ### Jupyter Notebook
@@ -39,7 +39,7 @@ docker-compose "docker/jellyfin/docker-compose.yml"
 The [Jupyter Notebook](https://jupyter.org) is the original web application for creating and sharing computational documents. It offers a simple, streamlined, document-centric experience.
 
 ```sh
-docker-compose "docker/jupyter-notebook/docker-compose.yml"
+docker compose up --detach "docker/jupyter-notebook/docker-compose.yml"
 ```
 
 ### Pi-hole + DNSCrypt (DNS-on-HTTPS)
@@ -51,7 +51,7 @@ In addition to blocking advertisements, [Pi-hole](https://pi-hole.net) has an in
 [DNSCrypt](https://dnscrypt.info) is a protocol that encrypts, authenticates and optionally anonymizes communications between a DNS client and a DNS resolver.
 
 ```sh
-docker-compose "docker/pihole-dnscrypt/docker-compose.yml"
+docker compose up --detach "docker/pihole-dnscrypt/docker-compose.yml"
 ```
 
 ### Pi-hole + Unbound (Recursive DNS)
@@ -63,7 +63,7 @@ In addition to blocking advertisements, [Pi-hole](https://pi-hole.net) has an in
 [Unbound](https://www.nlnetlabs.nl/projects/unbound/about) is a validating, recursive, caching DNS resolver. It is designed to be fast and lean and incorporates modern features based on open standards.
 
 ```sh
-docker-compose "docker/pihole-unbound/docker-compose.yml"
+docker compose up --detach "docker/pihole-unbound/docker-compose.yml"
 ```
 
 ### Plex Media Server
@@ -71,7 +71,7 @@ docker-compose "docker/pihole-unbound/docker-compose.yml"
 [Plex](https://www.plex.tv) gives you the power to add, access and share all the entertainment that matters to you, on almost any device.
 
 ```sh
-docker-compose "docker/plex/docker-compose.yml"
+docker compose up --detach "docker/plex/docker-compose.yml"
 ```
 
 ### Wireguard
@@ -79,5 +79,5 @@ docker-compose "docker/plex/docker-compose.yml"
 [WireGuard®](https://www.wireguard.com/) is an extremely simple yet fast and modern VPN that utilizes state-of-the-art cryptography.
 
 ```sh
-docker-compose "docker/wireguard/docker-compose.yml"
+docker compose up --detach "docker/wireguard/docker-compose.yml"
 ```
