@@ -20,6 +20,8 @@ Categories:
 
   * [Pihole + Unbound](#pi-hole--unbound-recursive-dns)
 
+  * [Wireguard](#wireguard)
+
 ## Containers
 
 > The containers below assume that Network Shares are mounted to `/mnt` directory.
@@ -70,4 +72,12 @@ docker-compose "docker/pihole-unbound/docker-compose.yml"
 
 ```sh
 docker-compose "docker/plex/docker-compose.yml"
+```
+
+### Wireguard
+
+[WireGuard®](https://www.wireguard.com/) is an extremely simple yet fast and modern VPN that utilizes state-of-the-art cryptography.
+
+```sh
+docker-compose "docker/wireguard/docker-compose.yml"
 ```

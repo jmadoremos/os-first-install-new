@@ -1,0 +1,34 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+################################################
+
+services:
+
+  # *** Wireguard ***
+  # WireGuard® is an extremely simple yet fast and modern VPN that utilizes state-of-the-art
+  # cryptography.
+
+  wireguard:
+    image: linuxserver/wireguard:latest
+    container_name: wireguard
+    ports:
+      - '127.0.0.1:51820:51820/udp'
+    volumes:
+      - '/export/containers/wireguard:/config:rw'
+      - '/var/modules:/lib/modules:rw'
+    environment:
+      PEERDNS: 127.0.0.1 # Modify - DNS IP
+      PEERS: mobile1,mobile2
+      PUID: '1000' # Modify
+      PGID: '1000' # Modify
+      SERVERURL: 127.0.0.1 # Modify - Container Host IP
+      SERVERPORT: '51820'
+      TZ: Asia/Manila
+    # !!! The cap_add and cap_drop options are ignored when deploying a stack in swarm mode. !!!
+    # Ref: https://docs.docker.com/compose/compose-file/compose-file-v3/#cap_add-cap_drop
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
