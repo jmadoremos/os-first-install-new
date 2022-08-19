@@ -1,0 +1,57 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Install kubectl using APT
+  tasks:
+    - name: Install packages needed to use the Kubernetes apt repository
+      become: true
+      ansible.builtin.apt:
+        force_apt_get: yes
+        state: latest
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+
+    - name: Add Google Cloud public signing key
+      become: true
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        keyring: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+        state: present
+
+    - name: Add Kubernetes apt repository
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        content: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+
+    - name: Update apt package index with the new repository
+      become: true
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 0 # Do not rely on cache
+
+    - name: Install the latest kubectl
+      become: true
+      ansible.builtin.apt:
+        name: kubectl
+        state: latest
+
+    - name: Create .kube folder in home directory
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+
+    # ln -s /export/containers/k3s_server/kubeconfig.yaml ~/.kube/config
+    - name: Create symbolic link from k3s server output
+      ansible.builtin.file:
+        src: /export/containers/k3s_server/kubeconfig.yaml
+        dest: ~/.kube/config
+        state: link

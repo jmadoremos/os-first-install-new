@@ -1,0 +1,139 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+################################################
+
+services:
+
+  # *** k3s node with server role ***
+
+  k3s_server:
+    image: rancher/k3s:${K3S_VERSION:-latest}
+    container_name: k3s-server
+    command: 
+      - server
+    ports:
+      - 127.0.0.1:6443:6443/tcp
+    privileged: true
+    volumes:
+      - /export/containers/k3s_server:/output:rw
+    tmpfs:
+      - /run
+      - /var/run
+    networks:
+      k3s_net:
+        ipv4_address: 10.64.43.20
+        ipv6_address: 2001:3984:3989::20
+    environment:
+      - K3S_TOKEN=${K3S_TOKEN:-SOME_SECRET_TEXT}
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=644
+    healthcheck:
+      test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 5m
+    restart: unless-stopped
+
+  # *** k3s nodes with agent role ***
+
+  k3s_agent_1:
+    image: rancher/k3s:${K3S_VERSION:-latest}
+    container_name: k3s-agent-1
+    command:
+      - agent
+    privileged: true
+    volumes:
+      - /export/containers/k3s_agents/kubeconfig.yaml:$HOME/.kube/config:ro
+    tmpfs:
+      - /run
+      - /var/run
+    networks:
+      k3s_net:
+        ipv4_address: 10.64.43.21
+        ipv6_address: 2001:3984:3989::21
+    environment:
+      - K3S_URL=https://10.64.43.20:6443
+      - K3S_TOKEN=${K3S_TOKEN:-SOME_SECRET_TEXT}
+    healthcheck:
+      test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 5m
+    restart: unless-stopped
+    depends_on:
+      - k3s_server
+
+  k3s_agent_2:
+    image: rancher/k3s:${K3S_VERSION:-latest}
+    container_name: k3s-agent-2
+    command:
+      - agent
+    privileged: true
+    volumes:
+      - /export/containers/k3s_agents/kubeconfig.yaml:$HOME/.kube/config:ro
+    tmpfs:
+      - /run
+      - /var/run
+    networks:
+      k3s_net:
+        ipv4_address: 10.64.43.22
+        ipv6_address: 2001:3984:3989::22
+    environment:
+      - K3S_URL=https://10.64.43.20:6443
+      - K3S_TOKEN=${K3S_TOKEN:-SOME_SECRET_TEXT}
+    healthcheck:
+      test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 5m
+    restart: unless-stopped
+    depends_on:
+      - k3s_server
+
+  k3s_agent_3:
+    image: rancher/k3s:${K3S_VERSION:-latest}
+    container_name: k3s-agent-3
+    command:
+      - agent
+    privileged: true
+    volumes:
+      - /export/containers/k3s_agents/kubeconfig.yaml:$HOME/.kube/config:ro
+    tmpfs:
+      - /run
+      - /var/run
+    networks:
+      k3s_net:
+        ipv4_address: 10.64.43.23
+        ipv6_address: 2001:3984:3989::23
+    environment:
+      - K3S_URL=https://10.64.43.20:6443
+      - K3S_TOKEN=${K3S_TOKEN:-SOME_SECRET_TEXT}
+    healthcheck:
+      test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 5m
+    restart: unless-stopped
+    depends_on:
+      - k3s_server
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** k3s network ***
+
+  k3s_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.64.43.0/24
+          gateway: 10.64.43.1
+        - subnet: 2001:3984:3989::/64

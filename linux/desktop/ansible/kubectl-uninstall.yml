@@ -1,0 +1,41 @@
+########################################################################
+# Extra variables:
+# - None
+# 
+# Host inventory variables:
+# - None
+########################################################################
+- name: Uninstall kubectl using APT
+  tasks:
+    - name: Remove .kube folder from home directory
+      become: true
+      ansible.builtin.file:
+        path: ~/.kube
+        state: absent
+
+    - name: Uninstall kubectl
+      become: true
+      ansible.builtin.apt:
+        name: kubectl
+        state: absent
+
+    - name: Remove Kubernetes apt repository
+      become: true
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        state: absent
+
+    - name: Remove Google Cloud public signing key
+      become: true
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        keyring: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+        state: absent
+
+    - name: Refresh apt package index
+      become: true
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 0 # Do not rely on cache
