@@ -5,24 +5,31 @@
 # Host inventory variables:
 # - None
 ########################################################################
-- name: Uninstall VSCode
-  hosts: all
-  become: true
+- name: Uninstall Visual Studio Code using APT
   tasks:
-    - name: Uninstall Code
+    - name: Uninstall code
+      become: true
       ansible.builtin.apt:
-        force_apt_get: yes
+        name: code
         state: absent
-        pkg:
-          - code
 
     - name: Remove Microsoft repository
+      become: true
       ansible.builtin.file:
         path: /etc/apt/sources.list.d/microsoft.list
         state: absent
 
     - name: Remove Microsoft official GPG key
+      become: true
       ansible.builtin.apt_key:
         url: https://packages.microsoft.com/keys/microsoft.asc
         keyring: /usr/share/keyrings/microsoft.asc
         state: absent
+
+    - name: Refresh apt package index
+      become: true
+      ansible.builtin.apt:
+        force_apt_get: yes
+        update_cache: yes
+        update_cache_retries: 3
+        cache_valid_time: 0 # Do not rely on cache
