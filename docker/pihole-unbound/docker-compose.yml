@@ -2,22 +2,28 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment variables:
+# - DIR_UNBOUND (default: ./unbound)
+# - DIR_PIHOLE (default: ./pihole)
+# - HOST_IP (default: 127.0.0.1)
+# - TIME_ZONE (default: Asia/Manila)
 ################################################
 
 services:
 
   # *** Unbound ***
-  # Unbound is a validating, recursive, caching DNS resolver. It is designed to be fast and
-  # lean and incorporates modern features based on open standards.
+  # Unbound is a validating, recursive, caching DNS resolver. It is designed to
+  # be fast and lean and incorporates modern features based on open standards.
 
   unbound:
     image: mvance/unbound:latest
     container_name: unbound
     ports:
-      - '127.0.0.1:5053:5353/tcp'
-      - '127.0.0.1:5053:5353/udp'
+      - '${HOST_IP:-127.0.0.1}:5053:5353/tcp'
+      - '${HOST_IP:-127.0.0.1}:5053:5353/udp'
     volumes:
-      - '/export/containers/unbound/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro'
+      - ${DIR_UNBOUND:-./unbound}/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro
     restart: unless-stopped
 
   # *** Pi-hole ***
@@ -28,15 +34,15 @@ services:
     image: pihole/pihole:latest
     container_name: pihole-recursive
     ports:
-      - '127.0.0.1:53:53/tcp'
-      - '127.0.0.1:8053:80/tcp'
-      - '127.0.0.1:53:53/udp'
+      - '${HOST_IP:-127.0.0.1}:53:53/tcp'
+      - '${HOST_IP:-127.0.0.1}:53:53/udp'
+      - '8053:80/tcp'
     volumes:
-      - '/export/containers/pihole/dnsmasq.d:/etc/dnsmasq.d'
-      - '/export/containers/pihole/pihole:/etc/pihole'
+      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d
+      - ${DIR_PIHOLE:-./pihole}/pihole:/etc/pihole
     environment:
-      PIHOLE_DNS_: '127.0.0.1#5053'
-      TZ: 'Asia/Manila'
+      PIHOLE_DNS_: ${HOST_IP:-127.0.0.1}#5053
+      TZ: ${TIME_ZONE:-Asia/Manila}
     restart: unless-stopped
     depends_on:
       - unbound

@@ -2,16 +2,25 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment Variables:
+# - DIR_NOTEBOOKS (default: ./jupyter-notebook)
+# - PORT (default: 8888)
 ################################################
 services:
+
+  # *** Jupyter Notebook ***
+  # is the original web application for creating and sharing computational
+  # documents. It offers a simple, streamlined, document-centric experience.
+
   jupyter-notebook:
     image: continuumio/miniconda3:latest
     container_name: jupyter-notebook
     ports:
-      - 8888:8888
+      - '${PORT:-8888}:8888/tcp'
     command:
       - conda install jupyter -y --quiet
       - jupyter notebook --port=8888 --notebook-dir=/opt/notebooks --ip='*' --no-browser --allow-root
     volumes:
-      - '/mnt/containers/jupyter-notebook:/opt/notebooks'
+      - ${DIR_NOTEBOOKS:-./jupyter-notebook}:/opt/notebooks
     restart: unless-stopped

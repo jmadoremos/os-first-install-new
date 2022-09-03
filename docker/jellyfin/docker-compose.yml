@@ -2,33 +2,47 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment Variables:
+# - DIR_CONFIG (default: ./jellyfin)
+# - DIR_MEDIA (default: /mnt/media)
+# - DIR_TRANSCODE (default: /dev/shm)
+# - PORT (default: 8096)
+# - PGID (default: 1000)
+# - PUID (default: 1000)
+# - TIME_ZONE (default: Asia/Manila)
 ################################################
 services:
+
+  # *** Jellyfin ***
+  # is the volunteer-built media solution that puts you in control of your media.
+  # Stream to any device from your own server, with no strings attached.
+
   jellyfin:
-    image: 'linuxserver/jellyfin:latest'
-    container_name: 'jellyfin'
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
     ports:
-      - '8096:8096/tcp'
-      - '8096:8096/udp'
+      - '${PORT:-8096}:8096/tcp'
+      - '${PORT:-8096}:8096/udp'
     volumes:
-      - '/mnt/containers/jellyfin:/config'
-      - '/mnt/media:/mnt/media:ro'
-      - '/opt/vc/lib:/opt/vc/lib'
-      - '/tmp/jellyfin:/transcode'
-    network_mode: 'host'
+      - ${DIR_CONFIG:-./jellyfin}:/config
+      - ${DIR_MEDIA:-/mnt/media}:/mnt/media:ro
+      - ${DIR_TRANSCODE:-/dev/shm}:/transcode
+      - /opt/vc/lib:/opt/vc/lib
+    network_mode: host
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8096' ]
-      interval: '3m'
-      timeout: '30s'
+      test: curl -f http://localhost:8096
+      interval: 3m
+      timeout: 30s
       retries: 3
-      start_period: '1m'
+      start_period: 1m
     environment:
-      PUID: '1000'
-      PGID: '1000'
-      TZ: 'Asia/Manila'
+      PGID: ${PGID:-1000}
+      PUID: ${PUID:-1000}
+      TZ: ${TIME_ZONE:-Asia/Manila}
     devices:
-      - '/dev/vcsm-cma:/dev/vcsm'
-      - '/dev/vchiq:/dev/vchiq'
-    mem_limit: '4G'
+      - /dev/vcsm-cma:/dev/vcsm
+      - /dev/vchiq:/dev/vchiq
+    mem_limit: 4G
     cpu_percent: 50
-    restart: 'unless-stopped'
+    restart: unless-stopped

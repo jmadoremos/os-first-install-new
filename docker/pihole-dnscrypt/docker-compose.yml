@@ -2,41 +2,46 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment variables:
+# - DIR_DNSCRYPT (default: ./dnscrypt)
+# - DIR_PIHOLE (default: ./pihole)
+# - HOST_IP (default: 127.0.0.1)
+# - TIME_ZONE (default: Asia/Manila)
 ################################################
-
 services:
 
   # *** DNSCrypt ***
-  # DNSCrypt is a protocol that encrypts, authenticates and optionally anonymizes communications
-  # between a DNS client and a DNS resolver.
+  # DNSCrypt is a protocol that encrypts, authenticates and optionally anonymizes
+  # communications between a DNS client and a DNS resolver.
 
   dnscrypt-proxy:
     image: gists/dnscrypt-proxy:latest
     container_name: dnscrypt-proxy
     ports:
-      - '127.0.0.1:5053:5353/tcp'
-      - '127.0.0.1:5053:5353/udp'
+      - '${HOST_IP:-127.0.0.1}:5053:5353/tcp'
+      - '${HOST_IP:-127.0.0.1}:5053:5353/udp'
     volumes:
-      - '/export/containers/dnscrypt/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro'
+      - ${DIR_DNSCRYPT:-./dnscrypt}/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro
     restart: unless-stopped
 
   # *** Pi-hole ***
-  # In addition to blocking advertisements, Pi-hole has an informative Web interface that
-  # shows stats on all the domains being queried on your network.
+  # In addition to blocking advertisements, Pi-hole has an informative Web
+  # interface that shows stats on all the domains being queried on your network.
 
   pihole:
     image: pihole/pihole:latest
     container_name: pihole-doh
     ports:
-      - '127.0.0.1:53:53/tcp'
-      - '127.0.0.1:8053:80/tcp'
-      - '127.0.0.1:53:53/udp'
+      - '${HOST_IP:-127.0.0.1}:53:53/tcp'
+      - '${HOST_IP:-127.0.0.1}:53:53/udp'
+      - '8053:80/tcp'
     volumes:
-      - '/export/containers/pihole_doh/dnsmasq.d:/etc/dnsmasq.d'
-      - '/export/containers/pihole_doh/pihole:/etc/pihole'
+      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d
+      - ${DIR_PIHOLE:-./pihole}/pihole:/etc/pihole
     environment:
-      PIHOLE_DNS_: '127.0.0.1#5053'
-      TZ: 'Asia/Manila'
+      PIHOLE_DNS_: ${HOST_IP:-127.0.0.1}#5053
+      TZ: ${TIME_ZONE:-Asia/Manila}
     restart: unless-stopped
     depends_on:
       - dnscrypt-proxy

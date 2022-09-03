@@ -2,8 +2,11 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment Variables:
+# - K3S_TOKEN (default: SOME_SECRET_TEXT)
+# - K3S_VERSION (default: latest)
 ################################################
-
 services:
 
   # *** k3s node with server role ***
@@ -14,7 +17,7 @@ services:
     command: 
       - server
     ports:
-      - 127.0.0.1:6443:6443/tcp
+      - "6443:6443/tcp"
     privileged: true
     volumes:
       - /export/containers/k3s_server:/output:rw

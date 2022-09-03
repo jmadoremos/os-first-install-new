@@ -2,32 +2,45 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment variables:
+# - DIR_CONFIG (default: ./plex)
+# - DIR_MEDIA (default: /mnt/media)
+# - DIR_TRANSCODE (default: /dev/shm)
+# - PGID (default: 1000)
+# - PUID (default: 1000)
+# - TIME_ZONE (default: Asia/Manila)
 ################################################
 services:
+
+  # *** Plex ***
+  # Plex gives you the power to add, access and share all the entertainment that
+  # matters to you, on almost any device.
+
   plex:
-    image: 'linuxserver/plex:latest'
-    container_name: 'plex'
+    image: linuxserver/plex:latest
+    container_name: plex
     ports:
       - '32400:32400/tcp'
     volumes:
-      - '/mnt/containers/plex:/config'
-      - '/mnt/media:/mnt/media:ro'
-      - '/tmp/plex:/transcode'
-    network_mode: 'host'
+      - ${DIR_CONFIG:-./plex}:/config
+      - ${DIR_MEDIA:-/mnt/media}:/mnt/media:ro
+      - ${DIR_TRANSCODE:-/dev/shm}:/transcode
+    network_mode: host
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:32400/identity' ]
-      interval: '30s'
-      timeout: '5s'
+      test: curl -f http://localhost:32400/identity
+      interval: 30s
+      timeout: 5s
       retries: 3
-      start_period: '5m30s'
+      start_period: 5m30s
     environment:
-      PGID: '1000'
-      PUID: '1000'
-      TZ: 'Asia/Manila'
-      VERSION: 'docker'
+      PGID: ${PGID:-1000}
+      PUID: ${PUID:-1000}
+      TZ: ${TIME_ZONE:-Asia/Manila}
+      VERSION: docker
     privileged: true
     devices:
-      - '/dev/dri:/dev/dri'
-    mem_limit: '4G'
+      - /dev/dri:/dev/dri
+    mem_limit: 4G
     cpu_percent: 50
-    restart: 'unless-stopped'
+    restart: unless-stopped

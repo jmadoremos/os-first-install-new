@@ -2,30 +2,42 @@ version: '3'
 
 ################################################
 # DEFINE SERVICES
+#
+# Environment Variables:
+# - DIR_CONFIG (default: ./wireguard)
+# - HOST_IP (default: 127.0.0.1)
+# - PEER_DNS (default: 127.0.0.1)
+# - PEER_USERS (default: mobile1,mobile2)
+# - PORT (default: 51820)
+# - PUID (default: 1000)
+# - PGID (default: 1000)
+# - TIME_ZONE (default: Asia/Manila)
 ################################################
-
 services:
 
   # *** Wireguard ***
-  # WireGuard® is an extremely simple yet fast and modern VPN that utilizes state-of-the-art
-  # cryptography.
+  # WireGuard® is an extremely simple yet fast and modern VPN that utilizes
+  # state-of-the-art cryptography.
 
   wireguard:
     image: linuxserver/wireguard:latest
     container_name: wireguard
     ports:
-      - '127.0.0.1:51820:51820/udp'
+      - '${PORT:-51820}:51820/udp'
     volumes:
-      - '/export/containers/wireguard:/config:rw'
-      - '/var/modules:/lib/modules:rw'
+      - ${DIR_CONFIG:-./wireguard}:/config
+      - /var/modules:/lib/modules
     environment:
-      PEERDNS: 127.0.0.1 # Modify - DNS IP
-      PEERS: mobile1,mobile2
-      PUID: '1000' # Modify
-      PGID: '1000' # Modify
-      SERVERURL: 127.0.0.1 # Modify - Container Host IP
-      SERVERPORT: '51820'
-      TZ: Asia/Manila
+      PEERDNS: ${PEERDNS:-127.0.0.1}
+      PEERS: ${PEERS:-mobile1,mobile2}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      SERVERURL: ${HOST_IP:-127.0.0.1}
+      SERVERPORT: ${PORT:-51820}
+      TZ: ${TIME_ZONE:-Asia/Manila}
+    privileged: true
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
     # !!! The cap_add and cap_drop options are ignored when deploying a stack in swarm mode. !!!
     # Ref: https://docs.docker.com/compose/compose-file/compose-file-v3/#cap_add-cap_drop
     cap_add:
