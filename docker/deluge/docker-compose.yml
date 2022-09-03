@@ -1,0 +1,60 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment Variables:
+# - LAN_NETWORK (default: 192.168.1.0/24)
+# - NAME_SERVERS (default: 192.168.1.1)
+# - PUID (default: 1000)
+# - PGID (default: 1000)
+# - UMASK (default: 000)
+# - VPN_USER
+# - VPN_PASS
+# - VPN_INPUT_PORTS
+# - VPN_OUTPUT_PORTS
+################################################
+services:
+
+  # *** Deluge (custom image) ***
+  # Deluge is a full-featured ​BitTorrent client for Linux, OS X, Unix and Windows.
+
+  # This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the
+  # Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also
+  # includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your
+  # application at http://<host ip>:8118.
+
+  deluge-vpn:
+    image: binhex/arch-delugevpn:latest
+    container_name: deluge
+    ports:
+      - 8112:8112 # Deluge
+      - 8118:8118 # Privoxy
+      - 58846:58846
+      - 58946:58946
+    volumes:
+      - /export/containers/deluge-vpn/data:/data
+      - /export/containers/deluge-vpn/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      DEBUG: false # Options: true|false
+      DELUGE_DAEMON_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
+      DELUGE_WEB_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
+      ENABLE_PRIVOXY: yes # Options: yes|no
+      LAN_NETWORK: ${LAN_NETWORK:-192.168.1.0/24}
+      NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      STRICT_PORT_FORWARD: yes # Options: yes|no
+      UMASK: ${PGID:-000}
+      VPN_ENABLED: yes # Options: yes|no
+      VPN_USER: ${VPN_USER}
+      VPN_PASS: ${VPN_PASS}
+      VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
+      VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
+      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS}
+      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS}
+    privileged: true
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+    restart: unless-stopped
