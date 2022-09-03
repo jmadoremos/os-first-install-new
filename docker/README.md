@@ -10,6 +10,8 @@ Categories:
 
 * Multimedia Services
 
+  * [Deluge VPN](#deluge-vpn)
+
   * [Jellyfin](#jellyfin)
 
   * [Plex Media Server](#plex-media-server)
@@ -25,6 +27,16 @@ Categories:
 ## Containers
 
 > The containers below assume that Network Shares are mounted to `/export` directory, and local IP address of the server running docker is `127.0.0.1`.
+
+### Deluge VPN
+
+[Deluge VPN](https://github.com/binhex/arch-delugevpn) (custom image) is a full-featured ​BitTorrent client for Linux, OS X, Unix and Windows.
+
+This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your application at http://<host ip>:8118.
+
+```sh
+docker compose up --detach "docker/deluge-vpn/docker-compose.yml" 
+```
 
 ### Jellyfin
 
