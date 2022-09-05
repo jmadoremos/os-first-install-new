@@ -4,15 +4,22 @@ version: '3'
 # DEFINE SERVICES
 #
 # Environment Variables:
+# - DIR_DELUGE (default: ./deluge)
+# - DIR_MEDIA (default: /mnt/media)
+# - DIR_PROWLARR (default: ./prowlarr)
+# - DIR_RADARR (default: ./radarr)
+# - DIR_SONARR (default: ./sonarr)
 # - LAN_NETWORK (default: 192.168.1.0/24)
 # - NAME_SERVERS (default: 192.168.1.1)
 # - PUID (default: 1000)
 # - PGID (default: 1000)
 # - UMASK (default: 000)
-# - VPN_USER
-# - VPN_PASS
+# - VPN_CLIENT (default: wireguard)
 # - VPN_INPUT_PORTS
 # - VPN_OUTPUT_PORTS
+# - VPN_PASS
+# - VPN_PROV (default: custom)
+# - VPN_USER
 ################################################
 services:
 
@@ -28,15 +35,15 @@ services:
 
   deluge-vpn:
     image: binhex/arch-delugevpn:latest
-    container_name: deluge
+    container_name: deluge-vpn
     ports:
-      - 8112:8112 # Deluge
+      - 8112:8112 # Deluge UI
       - 8118:8118 # Privoxy
-      - 58846:58846
-      - 58946:58946
+      - 58846:58846 # Deluge Daemon
+      # - 58946:58946 # Port for incoming traffic when VPN is disabled. If ignored, will show a warning in the logs that can be safely ignored.
     volumes:
-      - /export/containers/deluge-vpn/data:/data
-      - /export/containers/deluge-vpn/config:/config
+      - ${DIR_DELUGE:-./deluge}/data:/data
+      - ${DIR_DELUGE:-./deluge}/config:/config
       - /etc/localtime:/etc/localtime:ro
     environment:
       DEBUG: false # Options: true|false
@@ -48,7 +55,7 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
       STRICT_PORT_FORWARD: yes # Options: yes|no
-      UMASK: ${PGID:-000}
+      UMASK: ${UMASK:-000}
       VPN_ENABLED: yes # Options: yes|no
       VPN_USER: ${VPN_USER}
       VPN_PASS: ${VPN_PASS}
@@ -59,4 +66,67 @@ services:
     privileged: true
     sysctls:
       net.ipv4.conf.all.src_valid_mark: 1
+    restart: unless-stopped
+
+  # *** Sonarr ***
+  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS
+  # feeds for new episodes of your favorite shows and will grab, sort and rename
+  # them. It can also be configured to automatically upgrade the quality of files
+  # already downloaded when a better quality format becomes available.
+
+  sonarr:
+    image: binhex/arch-sonarr:latest
+    container_name: deluge-sonarr
+    ports:
+      - "8989:8989/tcp"
+      - "9897:9897/tcp"
+    volumes:
+      - ${DIR_MEDIA:-./mnt/media}:/media
+      - ${DIR_SONARR:-./sonarr}/data:/data
+      - ${DIR_SONARR:-./sonarr}/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+
+  # *** Radarr ***
+  # This fork of Sonarr aims to turn it into something like Couchpotato.
+
+  radarr:
+    image: binhex/arch-radarr:latest
+    container_name: deluge-radarr
+    ports:
+      - "7878:7878/tcp"
+    volumes:
+      - ${DIR_MEDIA:-./mnt/media}:/media
+      - ${DIR_RADARR:-./radarr}/data:/data
+      - ${DIR_RADARR:-./radarr}/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+
+  # *** Prowlarr ***
+  # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
+  # base stack to integrate with your various PVR apps. Prowlarr supports both
+  # Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr,
+  # Radarr, Lidarr, and Readarr offering complete management of your indexers
+  # with no per app Indexer setup required (we do it all).
+
+  prowlarr:
+    image: binhex/arch-prowlarr:latest
+    container_name: deluge-prowlarr
+    ports:
+      - "9696:9696/tcp"
+    volumes:
+      - ${DIR_PROWLARR:-./prowlarr}:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UMASK: ${PGID:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
     restart: unless-stopped
