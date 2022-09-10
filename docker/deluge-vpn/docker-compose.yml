@@ -5,6 +5,7 @@ version: '3'
 #
 # Environment Variables:
 # - DIR_DELUGE (default: ./deluge)
+# - DIR_LIDARR (default: ./lidarr)
 # - DIR_MEDIA (default: /mnt/media)
 # - DIR_PROWLARR (default: ./prowlarr)
 # - DIR_RADARR (default: ./radarr)
@@ -37,10 +38,9 @@ services:
     image: binhex/arch-delugevpn:latest
     container_name: deluge-vpn
     ports:
-      - 8112:8112 # Deluge UI
-      - 8118:8118 # Privoxy
-      - 58846:58846 # Deluge Daemon
-      # - 58946:58946 # Port for incoming traffic when VPN is disabled. If ignored, will show a warning in the logs that can be safely ignored.
+      - '8112:8112/tcp' # Deluge WebUI
+      - '8118:8118/tcp' # Privoxy
+      - '58846:58846/tcp' # Deluge Daemon
     volumes:
       - ${DIR_DELUGE:-./deluge}/data:/data
       - ${DIR_DELUGE:-./deluge}/config:/config
@@ -68,6 +68,31 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     restart: unless-stopped
 
+  # *** Lidarr ***
+  # Lidarr is a music collection manager for Usenet and BitTorrent users.
+  # It can monitor multiple RSS feeds for new tracks from your favorite
+  # artists and will grab, sort and rename them. It can also be configured
+  # to automatically upgrade the quality of files already downloaded when
+  # a better quality format becomes available.
+
+  lidarr:
+    image: binhex/arch-lidarr:latest
+    container_name: deluge-lidarr
+    ports:
+      - '8686:8686/tcp'
+    volumes:
+      - ${DIR_MEDIA:-./mnt/media}:/media
+      - ${DIR_LIDARR:-./lidarr}/data:/data
+      - ${DIR_LIDARR:-./lidarr}/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+    depends_on:
+      - deluge-vpn
+
   # *** Sonarr ***
   # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS
   # feeds for new episodes of your favorite shows and will grab, sort and rename
@@ -78,8 +103,8 @@ services:
     image: binhex/arch-sonarr:latest
     container_name: deluge-sonarr
     ports:
-      - "8989:8989/tcp"
-      - "9897:9897/tcp"
+      - '8989:8989/tcp'
+      - '9897:9897/tcp'
     volumes:
       - ${DIR_MEDIA:-./mnt/media}:/media
       - ${DIR_SONARR:-./sonarr}/data:/data
@@ -90,6 +115,8 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     restart: unless-stopped
+    depends_on:
+      - deluge-vpn
 
   # *** Radarr ***
   # This fork of Sonarr aims to turn it into something like Couchpotato.
@@ -98,7 +125,7 @@ services:
     image: binhex/arch-radarr:latest
     container_name: deluge-radarr
     ports:
-      - "7878:7878/tcp"
+      - '7878:7878/tcp'
     volumes:
       - ${DIR_MEDIA:-./mnt/media}:/media
       - ${DIR_RADARR:-./radarr}/data:/data
@@ -109,6 +136,8 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     restart: unless-stopped
+    depends_on:
+      - deluge-vpn
 
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
@@ -121,7 +150,7 @@ services:
     image: binhex/arch-prowlarr:latest
     container_name: deluge-prowlarr
     ports:
-      - "9696:9696/tcp"
+      - '9696:9696/tcp'
     volumes:
       - ${DIR_PROWLARR:-./prowlarr}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -130,3 +159,7 @@ services:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
     restart: unless-stopped
+    depends_on:
+      - lidarr
+      - sonarr
+      - radarr

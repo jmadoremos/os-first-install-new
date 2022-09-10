@@ -34,6 +34,8 @@ Categories:
 
 This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your application at http://<host ip>:8118.
 
+[Lidarr](https://github.com/binhex/arch-lidarr) (custom image) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
+
 [Sonarr](https://github.com/binhex/arch-sonarr) (custom image) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
 [Radarr](https://github.com/binhex/arch-radarr) (custom image) is a fork of Sonarr aims to turn it into something like Couchpotato.
