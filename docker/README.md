@@ -10,7 +10,7 @@ Categories:
 
 * Multimedia Services
 
-  * [Deluge VPN](#deluge-vpn)
+  * [BitTorrent](#bittorrent)
 
   * [Jellyfin](#jellyfin)
 
@@ -28,22 +28,12 @@ Categories:
 
 > The containers below assume that Network Shares are mounted to `/export` directory, and local IP address of the server running docker is `127.0.0.1`.
 
-### Deluge VPN
+### BitTorrent
 
-[Deluge VPN](https://github.com/binhex/arch-delugevpn) (custom image) is a full-featured ​BitTorrent client for Linux, OS X, Unix and Windows.
-
-This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your application at http://<host ip>:8118.
-
-[Lidarr](https://github.com/binhex/arch-lidarr) (custom image) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
-
-[Sonarr](https://github.com/binhex/arch-sonarr) (custom image) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
-
-[Radarr](https://github.com/binhex/arch-radarr) (custom image) is a fork of Sonarr aims to turn it into something like Couchpotato.
-
-[Prowlarr](https://hub.docker.com/r/binhex/arch-prowlarr) (custom image) is a indexer manager/proxy built on the popular arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports both Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr, Radarr, Lidarr, and Readarr offering complete management of your indexers with no per app Indexer setup required (we do it all).
+This stack creates services to support and manage a BitTorrent client. BitTorrent is a communication protocol for peer-to-peer (P2P) file sharing in  a distributed, decentralized infrastructure.
 
 ```sh
-docker compose up --detach "docker/deluge-vpn/docker-compose.yml" 
+docker compose up --detach "docker/bittorrent/docker-compose.yml" 
 ```
 
 ### Jellyfin

@@ -4,9 +4,11 @@ version: '3'
 # DEFINE SERVICES
 #
 # Environment Variables:
-# - DIR_DELUGE (default: ./deluge)
+# - DIR_DELUGE (default: ./deluge-vpn)
+# - DIR_DOWNLOADS
 # - DIR_LIDARR (default: ./lidarr)
-# - DIR_MEDIA (default: /mnt/media)
+# - DIR_MEDIA
+# - DIR_NGINX
 # - DIR_PROWLARR (default: ./prowlarr)
 # - DIR_RADARR (default: ./radarr)
 # - DIR_SONARR (default: ./sonarr)
@@ -16,11 +18,11 @@ version: '3'
 # - PGID (default: 1000)
 # - UMASK (default: 000)
 # - VPN_CLIENT (default: wireguard)
-# - VPN_INPUT_PORTS
-# - VPN_OUTPUT_PORTS
-# - VPN_PASS
+# - VPN_INPUT_PORTS (default: no value)
+# - VPN_OUTPUT_PORTS (default: no value)
+# - VPN_PASS (default: no value)
 # - VPN_PROV (default: custom)
-# - VPN_USER
+# - VPN_USER (default: no value)
 ################################################
 services:
 
@@ -36,15 +38,14 @@ services:
 
   deluge-vpn:
     image: binhex/arch-delugevpn:latest
-    container_name: deluge-vpn
-    ports:
-      - '8112:8112/tcp' # Deluge WebUI
-      - '8118:8118/tcp' # Privoxy
-      - '58846:58846/tcp' # Deluge Daemon
+    container_name: bittorrent-client
     volumes:
-      - ${DIR_DELUGE:-./deluge}/data:/data
-      - ${DIR_DELUGE:-./deluge}/config:/config
+      - ${DIR_DELUGE:-./deluge-vpn}:/config
+      - ${DIR_DOWNLOADS}:/data
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.2
     environment:
       DEBUG: false # Options: true|false
       DELUGE_DAEMON_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
@@ -57,12 +58,12 @@ services:
       STRICT_PORT_FORWARD: yes # Options: yes|no
       UMASK: ${UMASK:-000}
       VPN_ENABLED: yes # Options: yes|no
-      VPN_USER: ${VPN_USER}
-      VPN_PASS: ${VPN_PASS}
+      VPN_USER: ${VPN_USER:-}
+      VPN_PASS: ${VPN_PASS:-}
       VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
       VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
-      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS}
-      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS}
+      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS:-}
+      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS:-}
     privileged: true
     sysctls:
       net.ipv4.conf.all.src_valid_mark: 1
@@ -77,14 +78,15 @@ services:
 
   lidarr:
     image: binhex/arch-lidarr:latest
-    container_name: deluge-lidarr
-    ports:
-      - '8686:8686/tcp'
+    container_name: bittorrent-lidarr
     volumes:
-      - ${DIR_MEDIA:-./mnt/media}:/media
-      - ${DIR_LIDARR:-./lidarr}/data:/data
-      - ${DIR_LIDARR:-./lidarr}/config:/config
+      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_MEDIA}:/media
+      - ${DIR_LIDARR:-./lidarr}:/config
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.3
     environment:
       UMASK: ${UMASK:-000}
       PUID: ${PUID:-1000}
@@ -101,15 +103,15 @@ services:
 
   sonarr:
     image: binhex/arch-sonarr:latest
-    container_name: deluge-sonarr
-    ports:
-      - '8989:8989/tcp'
-      - '9897:9897/tcp'
+    container_name: bittorrent-sonarr
     volumes:
-      - ${DIR_MEDIA:-./mnt/media}:/media
-      - ${DIR_SONARR:-./sonarr}/data:/data
-      - ${DIR_SONARR:-./sonarr}/config:/config
+      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_MEDIA}:/media
+      - ${DIR_SONARR:-./sonarr}:/config
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.4
     environment:
       UMASK: ${UMASK:-000}
       PUID: ${PUID:-1000}
@@ -123,14 +125,15 @@ services:
 
   radarr:
     image: binhex/arch-radarr:latest
-    container_name: deluge-radarr
-    ports:
-      - '7878:7878/tcp'
+    container_name: bittorrent-radarr
     volumes:
-      - ${DIR_MEDIA:-./mnt/media}:/media
-      - ${DIR_RADARR:-./radarr}/data:/data
-      - ${DIR_RADARR:-./radarr}/config:/config
+      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_MEDIA}:/media
+      - ${DIR_RADARR:-./radarr}:/config
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.5
     environment:
       UMASK: ${UMASK:-000}
       PUID: ${PUID:-1000}
@@ -148,12 +151,13 @@ services:
 
   prowlarr:
     image: binhex/arch-prowlarr:latest
-    container_name: deluge-prowlarr
-    ports:
-      - '9696:9696/tcp'
+    container_name: bittorrent-prowlarr
     volumes:
       - ${DIR_PROWLARR:-./prowlarr}:/config
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.6
     environment:
       UMASK: ${PGID:-000}
       PUID: ${PUID:-1000}
@@ -163,3 +167,42 @@ services:
       - lidarr
       - sonarr
       - radarr
+  
+  # *** Nginx ***
+  # Nginx is a simple webserver with php support.
+
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: bittorrent-nginx
+    volumes:
+      - ${DIR_NGINX}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DIR_NGINX}/logs:/etc/nginx/logs
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.7
+      external_net:
+        ipv4_address: ${WEBUI_IPADDR}
+    restart: unless-stopped
+    depends_on:
+      - prowlarr
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** Internal network ***
+
+  internal_net:
+    name: bittorrent_internal_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.81.12.0/24
+          gateway: 10.81.12.1
+
+  # *** External network ***
+
+  external_net:
+    name: ${WEBUI_MACVLAN}
+    external: true
