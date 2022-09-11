@@ -1,0 +1,92 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment variables:
+# - DIR_DNSCRYPT
+# - DIR_NGINX
+# - DIR_PIHOLE (default: ./pihole)
+# - HOST_IPADDR
+# - WEBUI_IPADDR
+# - WEBUI_MACADDR
+# - WEBUI_MACVLAN
+# - TIME_ZONE (default: America/Chicago)
+################################################
+services:
+
+  # *** DNSCrypt ***
+  # DNSCrypt is a protocol that encrypts, authenticates and optionally anonymizes
+  # communications between a DNS client and a DNS resolver.
+
+  dnscrypt-proxy:
+    image: gists/dnscrypt-proxy:latest
+    container_name: dns-over-https
+    volumes:
+      - ${DIR_DNSCRYPT}/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.53.0.2
+    restart: unless-stopped
+
+  # *** Nginx ***
+  # Nginx is a simple webserver with php support.
+
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: doh-nginx
+    volumes:
+      - ${DIR_NGINX}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DIR_NGINX}/logs:/etc/nginx/logs
+    networks:
+      internal_net:
+        ipv4_address: 10.53.0.3
+      external_net:
+        ipv4_address: ${WEBUI_IPADDR}
+    mac_address: ${WEBUI_MACADDR}
+    restart: unless-stopped
+
+  # *** Pi-hole ***
+  # In addition to blocking advertisements, Pi-hole has an informative Web
+  # interface that shows stats on all the domains being queried on your network.
+
+  pihole:
+    image: pihole/pihole:latest
+    container_name: doh-sinkhole
+    ports:
+      - '${HOST_IPADDR}:53:53/tcp'
+      - '${HOST_IPADDR}:53:53/udp'
+    volumes:
+      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d
+      - ${DIR_PIHOLE:-./pihole}/pihole:/etc/pihole
+    networks:
+      internal_net:
+        ipv4_address: 10.53.0.4
+    environment:
+      PIHOLE_DNS_: 10.53.0.2#5353
+      TZ: ${TIME_ZONE:-America/Chicago}
+    restart: unless-stopped
+    depends_on:
+      - dnscrypt-proxy
+      - nginx
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** Internal network ***
+
+  internal_net:
+    name: doh_internal_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.53.0.0/24
+          gateway: 10.53.0.1
+
+  # *** External network ***
+
+  external_net:
+    name: ${WEBUI_MACVLAN}
+    external: true

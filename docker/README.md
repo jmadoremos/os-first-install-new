@@ -18,9 +18,9 @@ Categories:
 
 * Security
 
-  * [Pihole + DNSCrypt](#pi-hole--dnscrypt-dns-on-https)
+  * [DNS-over-HTTPS](#dns-over-https-dnscrypt--pi-hole--nginx)
 
-  * [Pihole + Unbound](#pi-hole--unbound-recursive-dns)
+  * [Recursive DNS](#recursive-dns-unbound--pi-hole--nginx)
 
   * [Wireguard](#wireguard)
 
@@ -62,28 +62,24 @@ The [Jupyter Notebook](https://jupyter.org) is the original web application for 
 docker compose up --detach "docker/jupyter-notebook/docker-compose.yml"
 ```
 
-### Pi-hole + DNSCrypt (DNS-on-HTTPS)
+### DNS-over-HTTPS (DNSCrypt + Pi-hole + Nginx)
 
-> Install only one of pihole-dnscrypt and pihole-unbound.
+> Install only one of DNS-over-HTTPS and Recursive DNS in the same host IP address.
 
-In addition to blocking advertisements, [Pi-hole](https://pi-hole.net) has an informative Web interface that shows stats on all the domains being queried on your network.
-
-[DNSCrypt](https://dnscrypt.info) is a protocol that encrypts, authenticates and optionally anonymizes communications between a DNS client and a DNS resolver.
+This stack creates services to enable DNS-over-HTTPS capability on a specific network with DNS sinkhole to reduce advertisements and serve local DNS records.
 
 ```sh
-docker compose up --detach "docker/pihole-dnscrypt/docker-compose.yml"
+docker compose up --detach "docker/dns-over-https/docker-compose.yml"
 ```
 
-### Pi-hole + Unbound (Recursive DNS)
+### Recursive DNS (Unbound + Pi-hole + Nginx)
 
-> Install only one of pihole-dnscrypt and pihole-unbound.
+> Install only one of DNS-over-HTTPS and Recursive DNS in the same host IP address.
 
-In addition to blocking advertisements, [Pi-hole](https://pi-hole.net) has an informative Web interface that shows stats on all the domains being queried on your network.
-
-[Unbound](https://www.nlnetlabs.nl/projects/unbound/about) is a validating, recursive, caching DNS resolver. It is designed to be fast and lean and incorporates modern features based on open standards.
+This stack creates services to enable recursive DNS capability on a specific network with DNS sinkhole to reduce advertisements and serve local DNS records.
 
 ```sh
-docker compose up --detach "docker/pihole-unbound/docker-compose.yml"
+docker compose up --detach "docker/recursive-dns/docker-compose.yml"
 ```
 
 ### Plex Media Server

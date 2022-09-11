@@ -1,0 +1,92 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment variables:
+# - DIR_NGINX
+# - DIR_PIHOLE (default: ./pihole)
+# - DIR_UNBOUND
+# - HOST_IPADDR
+# - WEBUI_IPADDR
+# - WEBUI_MACADDR
+# - WEBUI_MACVLAN
+# - TIME_ZONE (default: America/Chicago)
+################################################
+services:
+
+  # *** Unbound ***
+  # Unbound is a validating, recursive, caching DNS resolver. It is designed to
+  # be fast and lean and incorporates modern features based on open standards.
+
+  unbound:
+    image: mvance/unbound:latest
+    container_name: recursive-dns
+    volumes:
+      - ${DIR_UNBOUND}/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.54.0.2
+    restart: unless-stopped
+
+  # *** Nginx ***
+  # Nginx is a simple webserver with php support.
+
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: doh-nginx
+    volumes:
+      - ${DIR_NGINX}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DIR_NGINX}/logs:/etc/nginx/logs
+    networks:
+      internal_net:
+        ipv4_address: 10.54.0.3
+      external_net:
+        ipv4_address: ${WEBUI_IPADDR}
+    mac_address: ${WEBUI_MACADDR}
+    restart: unless-stopped
+
+  # *** Pi-hole ***
+  # In addition to blocking advertisements, Pi-hole has an informative Web
+  # interface that shows stats on all the domains being queried on your network.
+
+  pihole:
+    image: pihole/pihole:latest
+    container_name: doh-sinkhole
+    ports:
+      - '${HOST_IPADDR}:53:53/tcp'
+      - '${HOST_IPADDR}:53:53/udp'
+    volumes:
+      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d
+      - ${DIR_PIHOLE:-./pihole}/pihole:/etc/pihole
+    networks:
+      internal_net:
+        ipv4_address: 10.54.0.4
+    environment:
+      PIHOLE_DNS_: 10.54.0.2#5353
+      TZ: ${TIME_ZONE:-America/Chicago}
+    restart: unless-stopped
+    depends_on:
+      - unbound
+      - nginx
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** Internal network ***
+
+  internal_net:
+    name: dns_internal_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.54.0.0/24
+          gateway: 10.54.0.1
+
+  # *** External network ***
+
+  external_net:
+    name: ${WEBUI_MACVLAN}
+    external: true
