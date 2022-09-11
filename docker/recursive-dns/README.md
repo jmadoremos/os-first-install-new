@@ -48,12 +48,6 @@ The IP address to be assigned to serve the Pi-hole's web UI.
 
 _Required_: Yes
 
-`WEBUI_MACADDR`
-
-The MAC address to host the Pi-hole's web UI. This can be used to reserve the IP address in a DHCP server.
-
-_Required_: Yes
-
 `WEBUI_MACVLAN`
 
 An existing network using a [macvlan](https://docs.docker.com/network/macvlan/) driver where the Pi-hole's web UI will request for an IP address.
