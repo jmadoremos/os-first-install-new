@@ -1,0 +1,39 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment Variables:
+# - NETWORK_INF (default: eth0)
+# - IPV4_ADDR
+# - IPV4_GATEWAY
+# - IPV4_SUBNET_CIDR
+# - LOGS_DIR (default: ./logs)
+# - NGINX_DIR (default: .)
+################################################
+services:
+  http_gateway:
+    image: nginx:mainline-alpine
+    container_name: http-gateway
+    volumes:
+      - ${NGINX_DIR:-.}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${NGINX_DIR:-.}/proxy.conf:/etc/nginx/proxy.conf:ro
+      - ${LOGS_DIR:-./logs}:/etc/nginx/logs
+    networks:
+      gateway_net:
+        ipv4_address: ${IPV4_ADDR}
+    restart: unless-stopped
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+  gateway_net:
+    name: gateway-vlan
+    driver: macvlan
+    driver_opts:
+      parent: ${NETWORK_INF:-eth0}
+    ipam:
+      config:
+        - subnet: ${IPV4_SUBNET_CIDR}
+          gateway: ${IPV4_GATEWAY}
