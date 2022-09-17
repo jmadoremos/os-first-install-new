@@ -10,8 +10,10 @@ version: '3'
 # - DIR_MEDIA
 # - DIR_NGINX
 # - DIR_PROWLARR (default: ./prowlarr)
-# - DIR_RADARR (default: ./radarr)
-# - DIR_SONARR (default: ./sonarr)
+# - DIR_RADARR_FHD (default: ./radarr-fhd)
+# - DIR_RADARR_UHD (default: ./radarr-uhd)
+# - DIR_SONARR_ANIME (default: ./sonarr-anime)
+# - DIR_SONARR_TV (default: ./sonarr-tv)
 # - LAN_NETWORK (default: 192.168.1.0/24)
 # - NAME_SERVERS (default: 192.168.1.1)
 # - PUID (default: 1000)
@@ -95,19 +97,16 @@ services:
     depends_on:
       - deluge-vpn
 
-  # *** Sonarr ***
-  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS
-  # feeds for new episodes of your favorite shows and will grab, sort and rename
-  # them. It can also be configured to automatically upgrade the quality of files
-  # already downloaded when a better quality format becomes available.
+  # *** Radarr ***
+  # This fork of Sonarr aims to turn it into something like Couchpotato.
 
-  sonarr:
-    image: binhex/arch-sonarr:latest
-    container_name: bittorrent-sonarr
+  radarr_fhd:
+    image: binhex/arch-radarr:latest
+    container_name: bittorrent-radarr-fhd
     volumes:
       - ${DIR_DOWNLOADS}:/data
       - ${DIR_MEDIA}:/media
-      - ${DIR_SONARR:-./sonarr}:/config
+      - ${DIR_RADARR_FHD:-./radarr-fhd}:/config
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
@@ -120,20 +119,61 @@ services:
     depends_on:
       - deluge-vpn
 
-  # *** Radarr ***
-  # This fork of Sonarr aims to turn it into something like Couchpotato.
-
-  radarr:
+  radarr_uhd:
     image: binhex/arch-radarr:latest
-    container_name: bittorrent-radarr
+    container_name: bittorrent-radarr-uhd
     volumes:
       - ${DIR_DOWNLOADS}:/data
       - ${DIR_MEDIA}:/media
-      - ${DIR_RADARR:-./radarr}:/config
+      - ${DIR_RADARR_UHD:-./radarr-uhd}:/config
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
         ipv4_address: 10.81.12.5
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+    depends_on:
+      - deluge-vpn
+
+  # *** Sonarr ***
+  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS
+  # feeds for new episodes of your favorite shows and will grab, sort and rename
+  # them. It can also be configured to automatically upgrade the quality of files
+  # already downloaded when a better quality format becomes available.
+
+  sonarr_anime:
+    image: binhex/arch-sonarr:latest
+    container_name: bittorrent-sonarr-anime
+    volumes:
+      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_MEDIA}:/media
+      - ${DIR_SONARR_ANIME:-./sonarr-anime}:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.6
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+    depends_on:
+      - deluge-vpn
+
+  sonarr_tv:
+    image: binhex/arch-sonarr:latest
+    container_name: bittorrent-sonarr-tv
+    volumes:
+      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_MEDIA}:/media
+      - ${DIR_SONARR_TV:-./sonarr-tv}:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.7
     environment:
       UMASK: ${UMASK:-000}
       PUID: ${PUID:-1000}
@@ -157,7 +197,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
-        ipv4_address: 10.81.12.6
+        ipv4_address: 10.81.12.8
     environment:
       UMASK: ${PGID:-000}
       PUID: ${PUID:-1000}
@@ -165,8 +205,10 @@ services:
     restart: unless-stopped
     depends_on:
       - lidarr
-      - sonarr
-      - radarr
+      - sonarr_anime
+      - sonarr_tv
+      - radarr_fhd
+      - radarr_uhd
   
   # *** Nginx ***
   # Nginx is a simple webserver with php support.
@@ -179,7 +221,7 @@ services:
       - ${DIR_NGINX}/logs:/etc/nginx/logs
     networks:
       internal_net:
-        ipv4_address: 10.81.12.7
+        ipv4_address: 10.81.12.9
       external_net:
         ipv4_address: ${WEBUI_IPADDR}
     restart: unless-stopped

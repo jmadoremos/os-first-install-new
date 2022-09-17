@@ -66,21 +66,37 @@ _Required_: No
 
 _Default_: `./prowlarr`
 
-`DIR_RADARR`
+`DIR_RADARR_FHD`
 
-The directory containing radarr configurations.
-
-_Required_: No
-
-_Default_: `./radarr`
-
-`DIR_SONARR`
-
-The directory containing sonarr configurations.
+The directory containing radarr configurations. This instance will manage media up to FHD quality.
 
 _Required_: No
 
-_Default_: `./sonarr`
+_Default_: `./radarr-fhd`
+
+`DIR_RADARR_UHD`
+
+The directory containing radarr configurations. This instance will manage media up to UHD quality
+
+_Required_: No
+
+_Default_: `./radarr-uhd`
+
+`DIR_SONARR_ANIME`
+
+The directory containing sonarr configurations. This instance will manage Anime media.
+
+_Required_: No
+
+_Default_: `./sonarr-anime`
+
+`DIR_SONARR_TV`
+
+The directory containing sonarr configurations. This instance will manage TV Series media.
+
+_Required_: No
+
+_Default_: `./sonarr-tv`
 
 `LAN_NETWORK`
 
@@ -181,9 +197,11 @@ The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that wi
 This stack will not expose the individual ports used by any application apart from port `80/TCP`. However, use the following addresses when configuring these applications:
 * `deluge-vpn` address: `http://10.81.12.2:8112/`
 * `lidarr` address: `http://10.81.12.3:8686/`
-* `prowlarr` address: `http://10.81.12.6:9696/`
-* `radarr` address: `http://10.81.12.5:7878/`
-* `sonarr` address: `http://10.81.12.4:8989/`
+* `prowlarr` address: `http://10.81.12.8:9696/`
+* `radarr` (FHD) address: `http://10.81.12.4:7878/`
+* `radarr` (UHD) address: `http://10.81.12.5:7878/`
+* `sonarr` (Anime) address: `http://10.81.12.6:8989/`
+* `sonarr` (TV Series) address: `http://10.81.12.7:8989/`
 
 ## Configurations
 
