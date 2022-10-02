@@ -63,6 +63,11 @@ services:
     environment:
       PIHOLE_DNS_: 10.53.0.2#5353
       TZ: ${TIME_ZONE:-America/Chicago}
+    healthcheck:
+      test: nslookup cloudflare.com 127.0.0.11 || exit 1
+      interval: 1m
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
     depends_on:
       - dnscrypt-proxy
