@@ -10,6 +10,8 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 
 * [Deluge VPN](https://github.com/binhex/arch-delugevpn) is a full-featured ​BitTorrent client for Linux, OS X, Unix and Windows. This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your application at http://<host ip>:8118.
 
+* [deemix](https://deemix.app/) is a barebone deezer downloader library built from the ashes of Deezloader Remix.
+
 * [Lidarr](https://github.com/binhex/arch-lidarr) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
 * [Nginx](https://www.nginx.com) is a simple webserver with php support. This enables the stack to expose the web UIs of the individual applications using a centralized IP address in the host's network.
@@ -23,6 +25,14 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 ## Environment variables
 
 Configure the following environment variables when creating the stack:
+
+`DIR_DEEMIX`
+
+The directory containing deemix configurations.
+
+_Required_: No
+
+_Default_: `./deemix`
 
 `DIR_DELUGE`
 
@@ -192,10 +202,11 @@ _Default_: _(no value)_
 
 ## Exposed ports
 
-The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that will serve `deluge`, `lidarr`, `radarr`, `sonarr` and `prowlarr` web UIs based on the domain used. These domains are configurable in the [nginx.conf](./res/nginx.conf) file.
+The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that will serve `deluge`, `deemix`, `lidarr`, `radarr`, `sonarr` and `prowlarr` web UIs based on the domain used. These domains are configurable in the [nginx.conf](./res/nginx.conf) file.
 
 This stack will not expose the individual ports used by any application apart from port `80/TCP`. However, use the following addresses when configuring these applications:
 * `deluge-vpn` address: `http://10.81.12.2:8112/`
+* `deemix` address: `http://10.81.12.10:6595/`
 * `lidarr` address: `http://10.81.12.3:8686/`
 * `prowlarr` address: `http://10.81.12.8:9696/`
 * `radarr` (FHD) address: `http://10.81.12.4:7878/`
@@ -211,7 +222,11 @@ This stack will not expose the individual ports used by any application apart fr
 
     2. In the same `Preferences` dialog box, enable the `Label` plug-in of the `Plug-ins` page.
 
-2. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains as configured in the [nginx.conf](./res/nginx.conf) file.
+2. Setup `deemix` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+
+    1. Go to the `Settings` page, and login to `Deezer`.
+
+3. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains as configured in the [nginx.conf](./res/nginx.conf) file.
 
     1. Connect each of these applications to the `deluge-vpn` by adding a new entry in `Download Clients` section of `Settings > Download Clients` page.
 
@@ -227,7 +242,7 @@ This stack will not expose the individual ports used by any application apart fr
 
     2. During the setup, copy the `API Key` in `Settings > General` page to be used when connecting `prowlarr` to these applications.
 
-3. Setup `prowlarr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+4. Setup `prowlarr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
 
     1. Connect `lidarr`, `radarr`, and `sonarr` by adding a new entry in `Applications` section of `Settings > Apps` page.
 
