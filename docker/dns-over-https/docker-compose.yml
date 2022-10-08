@@ -26,7 +26,12 @@ services:
     networks:
       internal_net:
         ipv4_address: 10.53.0.2
-    restart: unless-stopped
+    healthcheck:
+      test: nslookup cloudflare.com 127.0.0.11 || exit 1
+      interval: 1m
+      timeout: 5s
+      retries: 3
+    restart: always
 
   # *** Nginx ***
   # Nginx is a simple webserver with php support.
@@ -66,9 +71,9 @@ services:
     healthcheck:
       test: nslookup cloudflare.com 127.0.0.11 || exit 1
       interval: 1m
-      timeout: 5s
+      timeout: 10s
       retries: 3
-    restart: unless-stopped
+    restart: always
     depends_on:
       - dnscrypt-proxy
       - nginx
@@ -81,7 +86,7 @@ networks:
   # *** Internal network ***
 
   internal_net:
-    name: doh_internal_net
+    name: doh-vlan
     driver: bridge
     ipam:
       config:
