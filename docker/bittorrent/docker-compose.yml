@@ -35,8 +35,8 @@ services:
 
   # This Docker includes OpenVPN and WireGuard to ensure a secure and private
   # connection to the Internet, including use of iptables to prevent IP leakage
-  # when the tunnel is down. It also includes Privoxy to allow unfiltered access
-  # to index sites, to use Privoxy please point your application at 
+  # when the tunnel is down. It also includes Privoxy to allow unfiltered
+  # access to index sites, to use Privoxy please point your application at
   # http://<host ip>:8118.
 
   deluge-vpn:
@@ -73,7 +73,8 @@ services:
     restart: unless-stopped
 
   # *** Deemix ***
-  # deemix (lowercase) is a barebone deezer downloader library built from the ashes of Deezloader Remix
+  # deemix (lowercase) is a barebone deezer downloader library built from the
+  # ashes of Deezloader Remix
 
   deemix:
     image: registry.gitlab.com/bockiii/deemix-docker
@@ -159,10 +160,10 @@ services:
       - deluge-vpn
 
   # *** Sonarr ***
-  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS
-  # feeds for new episodes of your favorite shows and will grab, sort and rename
-  # them. It can also be configured to automatically upgrade the quality of files
-  # already downloaded when a better quality format becomes available.
+  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple
+  # RSS feeds for new episodes of your favorite shows and will grab, sort and
+  # rename them. It can also be configured to automatically upgrade the quality
+  # of files already downloaded when a better quality format becomes available.
 
   sonarr_anime:
     image: binhex/arch-sonarr:latest
