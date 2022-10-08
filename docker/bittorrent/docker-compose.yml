@@ -10,6 +10,7 @@ version: '3'
 # - DIR_LIDARR (default: ./lidarr)
 # - DIR_MEDIA
 # - DIR_NGINX
+# - DIR_OVERSEERR (default: ./overseerr)
 # - DIR_PROWLARR (default: ./prowlarr)
 # - DIR_RADARR_FHD (default: ./radarr-fhd)
 # - DIR_RADARR_UHD (default: ./radarr-uhd)
@@ -203,6 +204,34 @@ services:
     depends_on:
       - deluge-vpn
 
+  # *** Overseerr ***
+  # Overseerr is a request management and media discovery tool built to work
+  # with your existing Plex ecosystem. Overseerr helps you find media you want
+  # to watch. With inline recommendations and suggestions, you will find
+  # yourself deeper and deeper in a rabbit hole of content you never knew you
+  # just had to have.
+
+  overseerr:
+    image: binhex/arch-overseerr:latest
+    container_name: bittorrent-overseerr
+    volumes:
+      - ${DIR_OVERSEERR:-./overseerr}:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.11
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    restart: unless-stopped
+    depends_on:
+      - lidarr
+      - sonarr_anime
+      - sonarr_tv
+      - radarr_fhd
+      - radarr_uhd
+
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
   # base stack to integrate with your various PVR apps. Prowlarr supports both
@@ -248,6 +277,7 @@ services:
     restart: unless-stopped
     depends_on:
       - prowlarr
+      - overseerr
 
 ################################################
 # DEFINE NETWORKS

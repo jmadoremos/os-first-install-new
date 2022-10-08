@@ -68,6 +68,14 @@ The directory containing Nginx configuration. This directory should contain the 
 
 _Required_: Yes
 
+`DIR_OVERSEERR`
+
+The directory containing overseerr configurations.
+
+_Required_: No
+
+_Default_: `./overseerr`
+
 `DIR_PROWLARR`
 
 The directory containing prowlarr configurations.
@@ -202,12 +210,13 @@ _Default_: _(no value)_
 
 ## Exposed ports
 
-The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that will serve `deluge`, `deemix`, `lidarr`, `radarr`, `sonarr` and `prowlarr` web UIs based on the domain used. These domains are configurable in the [nginx.conf](./res/nginx.conf) file.
+The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that will serve `deluge`, `deemix`, `lidarr`, `radarr`, `sonarr`, `overseerr` and `prowlarr` web UIs based on the domain used. These domains are configurable in the [nginx.conf](./res/nginx.conf) file.
 
 This stack will not expose the individual ports used by any application apart from port `80/TCP`. However, use the following addresses when configuring these applications:
 * `deluge-vpn` address: `http://10.81.12.2:8112/`
 * `deemix` address: `http://10.81.12.10:6595/`
 * `lidarr` address: `http://10.81.12.3:8686/`
+* `overseerr` address: `http://10.81.12.11:5055/`
 * `prowlarr` address: `http://10.81.12.8:9696/`
 * `radarr` (FHD) address: `http://10.81.12.4:7878/`
 * `radarr` (UHD) address: `http://10.81.12.5:7878/`
@@ -267,3 +276,99 @@ This stack will not expose the individual ports used by any application apart fr
         4. Click the Test button to test the connection. The button should change to a check mark.
 
         5. Click the Save button.
+
+5. Setup `overseerr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+
+    1. Login to Plex.
+
+    2. Connect to a Plex Media Server and select the libraries to sync.
+
+    3. Connect `radarr` and `sonarr`.
+
+        1. For `radarr`,
+
+            1. Click `+ Add Radarr Server` button.
+
+            2. Specify the following values:
+
+                * `Default Server`: _Yes_.
+
+                * `4K Server`:  _No_ if FHD, _Yes_ if UHD.
+
+                * `Server Name`: Any name desired that differentiates FHD and UHD versions.
+
+                * `Hostname or IP Address`: Refer to [domain of each application](#exposed-ports) for the domain but use only the IP Address.
+
+                * `Port`: _7878_.
+
+                * `Use SSL`: _No_.
+
+                * `API Key`: Specify the appropriate API key copied from step #2.2 in the `ApiKey` field.
+
+                * `Quality Profile`: Click the `Test` button first to load options, then select _Any_ as value.
+
+                * `Root Folder`: Options should have loaded after clicking the `Test` button, then select desired value.
+
+                * `Minimum Availability`: _Released_.
+
+                * `Tags`: Don't select any value.
+
+                * `External URL`: _Blank_.
+
+                * `Enable Scan`: _No_.
+
+                * `Enable Automatic Search`: _Yes_.
+
+            3. Click `Add Server` button.
+
+            4. Repeat for the other Radarr version.
+
+        2. For `sonarr`,
+
+            1. Click `+ Add Sonarr Server` button.
+
+            2. Specify the following values:
+
+                * `Default Server`: _Yes_.
+
+                * `4K Server`: _No_.
+
+                * `Server Name`: Any name desired that differentiates Anime and TV Series versions.
+
+                * `Hostname or IP Address`: Refer to [domain of each application](#exposed-ports) for the domain but use only the IP Address.
+
+                * `Port`: _8989_.
+
+                * `Use SSL`: _No_.
+
+                * `API Key`: Specify the appropriate API key copied from step #2.2 in the `ApiKey` field.
+
+                * `Quality Profile`: Click the `Test` button first to load options, then select _Any_ as value.
+
+                * `Root Folder`: Options should have loaded after clicking the `Test` button, then select desired value.
+
+                * `Language Profile`: _English_ if TV Series, _Sub/Dub_ if Anime.
+
+                * `Tags`: Don't select any value.
+
+                * `Anime Quality Profile`: Don't select any value if TV Series, select _Any_ if Anime. 
+
+                * `Anime Root Folder`: Don't select any value if TV Series, select desired value if Anime.
+
+                * `Anime Language Profile`: Don't select any value.
+
+                * `Anime Tags`: Don't select any value if TV Series, _Sub/Dub_ if Anime.
+
+                * `Season Folders`: _Yes_.
+
+                * `External URL`: _Blank_.
+
+                * `Enable Scan`: _No_.
+
+                * `Enable Automatic Search`: _Yes_.
+
+            3. Click `Add Server` button.
+
+            4. Repeat for the other Sonarr version.
+
+    4. Click `Finish Setup` to continue.
