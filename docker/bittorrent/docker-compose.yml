@@ -257,7 +257,7 @@ networks:
   # *** Internal network ***
 
   internal_net:
-    name: bittorrent_internal_net
+    name: bittorrent-vlan
     driver: bridge
     ipam:
       config:
