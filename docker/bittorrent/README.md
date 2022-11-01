@@ -14,6 +14,8 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 
 * [Lidarr](https://github.com/binhex/arch-lidarr) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
+* [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) is a proxy server to bypass Cloudflare and DDoS-GUARD protection.
+
 * [Nginx](https://www.nginx.com) is a simple webserver with php support. This enables the stack to expose the web UIs of the individual applications using a centralized IP address in the host's network.
 
 * [Sonarr](https://github.com/binhex/arch-sonarr) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
@@ -25,6 +27,14 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 ## Environment variables
 
 Configure the following environment variables when creating the stack:
+
+`CAPTCHA_SOLVER`
+
+Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Captcha solving method. It is used when a captcha is encountered.
+
+_Required_: No
+
+_Default_: `none`
 
 `DIR_DEEMIX`
 
@@ -124,6 +134,22 @@ _Required_: No
 
 _Default_: `192.168.1.0/24`
 
+`LOG_LEVEL`
+
+Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Verbosity of the logging. Use `debug` for more information.
+
+_Required_: No
+
+_Default_: `info`
+
+`LOG_HTML`
+
+Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Only for debugging. If `true`, all HTML that passes through the proxy will be logged to the console in `debug` level.
+
+_Required_: No
+
+_Default_: `false`
+
 `NAME_SERVERS`
 
 A semi-colon delimited list of name servers. This is passed to the VPN client defined in the container variables.
@@ -147,6 +173,14 @@ A local group's ID. This allows the containers to map their internal users to a 
 _Required_: No
 
 _Default_: `1000`
+
+`TIMEZONE`
+
+Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Timezone used in the logs and the web browser.
+
+_Required_: No
+
+_Default_: `Europe/London`
 
 `UMASK`
 
@@ -216,6 +250,7 @@ This stack will not expose the individual ports used by any application apart fr
 * `deluge-vpn` address: `http://10.81.12.2:8112/`
 * `deemix` address: `http://10.81.12.10:6595/`
 * `lidarr` address: `http://10.81.12.3:8686/`
+* `flaresolverr` address: `http://10.81.12.12:8191/`
 * `overseerr` address: `http://10.81.12.11:5055/`
 * `prowlarr` address: `http://10.81.12.8:9696/`
 * `radarr` (FHD) address: `http://10.81.12.4:7878/`
@@ -276,6 +311,20 @@ This stack will not expose the individual ports used by any application apart fr
         4. Click the Test button to test the connection. The button should change to a check mark.
 
         5. Click the Save button.
+
+    3. Connect `flaresolverr` by adding a new indexer proxy in `Indexer Proxies` section of `Settings > Indexers` page.
+
+        1. Use the [IP address of deluge-vpn](#exposed-ports) in the `Host` field.
+
+        2. Specify any name.
+
+        3. Specify `flaresolverr` in the `Tags` field. This will ensure that all indexers that use the `flaresolverr` tag will proxy through FlareSolverr.
+
+        4. Click the Save button.
+
+    4. Add Indexers by clicking the `+ Add Indexer` button in the `Indexers` page.
+
+        > For indexers with `FlareSolverr` section in the `Edit Indexer` page, add the `flaresolverr` in the `Tags` field. 
 
 5. Setup `overseerr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
 

@@ -4,6 +4,7 @@ version: '3'
 # DEFINE SERVICES
 #
 # Environment Variables:
+# - CAPTCHA_SOLVER (default: none)
 # - DIR_DEEMIX (default: ./deemix)
 # - DIR_DELUGE (default: ./deluge-vpn)
 # - DIR_DOWNLOADS
@@ -17,9 +18,12 @@ version: '3'
 # - DIR_SONARR_ANIME (default: ./sonarr-anime)
 # - DIR_SONARR_TV (default: ./sonarr-tv)
 # - LAN_NETWORK (default: 192.168.1.0/24)
+# - LOG_LEVEL (default: info)
+# - LOG_HTML (default: false)
 # - NAME_SERVERS (default: 192.168.1.1)
 # - PUID (default: 1000)
 # - PGID (default: 1000)
+# - TIMEZONE (default: Europe/London)
 # - UMASK (default: 000)
 # - VPN_CLIENT (default: wireguard)
 # - VPN_INPUT_PORTS (default: no value)
@@ -231,6 +235,23 @@ services:
       - sonarr_tv
       - radarr_fhd
       - radarr_uhd
+
+  # *** FlareSolverr ***
+  # FlareSolverr is a proxy server to bypass Cloudflare and DDoS-GUARD
+  # protection.
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: bittorrent-flaresolverr
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.12
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=${TIMEZONE:-Europe/London}
+    restart: unless-stopped
 
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
