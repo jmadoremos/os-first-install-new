@@ -5,25 +5,26 @@ version: '3'
 #
 # Environment Variables:
 # - CAPTCHA_SOLVER (default: none)
+# - DELUGE_PASS
 # - DIR_DEEMIX (default: ./deemix)
 # - DIR_DELUGE (default: ./deluge-vpn)
-# - DIR_DOWNLOADS
+# - DIR_DOWNLOADS_ARR
+# - DIR_DOWNLOADS_DEEMIX
 # - DIR_LIDARR (default: ./lidarr)
 # - DIR_MEDIA
-# - DIR_NGINX
 # - DIR_OVERSEERR (default: ./overseerr)
 # - DIR_PROWLARR (default: ./prowlarr)
 # - DIR_RADARR_FHD (default: ./radarr-fhd)
 # - DIR_RADARR_UHD (default: ./radarr-uhd)
 # - DIR_SONARR_ANIME (default: ./sonarr-anime)
 # - DIR_SONARR_TV (default: ./sonarr-tv)
-# - LAN_NETWORK (default: 192.168.1.0/24)
+# - HOST_CIDR (default: 192.168.1.0/24)
 # - LOG_LEVEL (default: info)
 # - LOG_HTML (default: false)
 # - NAME_SERVERS (default: 192.168.1.1)
 # - PUID (default: 1000)
 # - PGID (default: 1000)
-# - TIMEZONE (default: Europe/London)
+# - TZ (default: Europe/London)
 # - UMASK (default: 000)
 # - VPN_CLIENT (default: wireguard)
 # - VPN_INPUT_PORTS (default: no value)
@@ -49,7 +50,7 @@ services:
     container_name: bittorrent-client
     volumes:
       - ${DIR_DELUGE:-./deluge-vpn}:/config
-      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_DOWNLOADS_ARR}:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
@@ -59,7 +60,7 @@ services:
       DELUGE_DAEMON_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
       DELUGE_WEB_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
       ENABLE_PRIVOXY: yes # Options: yes|no
-      LAN_NETWORK: ${LAN_NETWORK:-192.168.1.0/24}
+      LAN_NETWORK: ${HOST_CIDR:-192.168.1.0/24}
       NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
@@ -85,8 +86,8 @@ services:
     image: registry.gitlab.com/bockiii/deemix-docker
     container_name: bittorrent-deemix
     volumes:
-			- ${DIR_DEEMIX:-./deemix}:/config
-			- ${DIR_DOWNLOADS}/deemix:/downloads
+      - ${DIR_DEEMIX:-./deemix}:/config
+      - ${DIR_DOWNLOADS_DEEMIX}:/downloads
     networks:
       internal_net:
         ipv4_address: 10.81.12.10
@@ -103,25 +104,25 @@ services:
   # to automatically upgrade the quality of files already downloaded when
   # a better quality format becomes available.
 
-  lidarr:
-    image: binhex/arch-lidarr:latest
-    container_name: bittorrent-lidarr
-    volumes:
-      - ${DIR_DOWNLOADS}:/data
-      - ${DIR_MEDIA}:/media
-      - ${DIR_LIDARR:-./lidarr}:/config
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.3
-    environment:
-      UMASK: ${UMASK:-000}
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-    restart: unless-stopped
-    depends_on:
-      - deluge-vpn
-      - deemix
+  # lidarr:
+  #   image: binhex/arch-lidarr:latest
+  #   container_name: bittorrent-lidarr
+  #   volumes:
+  #     - ${DIR_DOWNLOADS_ARR}:/data
+  #     - ${DIR_MEDIA}:/media
+  #     - ${DIR_LIDARR:-./lidarr}:/config
+  #     - /etc/localtime:/etc/localtime:ro
+  #   networks:
+  #     internal_net:
+  #       ipv4_address: 10.81.12.3
+  #   environment:
+  #     UMASK: ${UMASK:-000}
+  #     PUID: ${PUID:-1000}
+  #     PGID: ${PGID:-1000}
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - deluge-vpn
+  #     - deemix
 
   # *** Radarr ***
   # This fork of Sonarr aims to turn it into something like Couchpotato.
@@ -130,7 +131,7 @@ services:
     image: binhex/arch-radarr:latest
     container_name: bittorrent-radarr-fhd
     volumes:
-      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
       - ${DIR_RADARR_FHD:-./radarr-fhd}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -149,7 +150,7 @@ services:
     image: binhex/arch-radarr:latest
     container_name: bittorrent-radarr-uhd
     volumes:
-      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
       - ${DIR_RADARR_UHD:-./radarr-uhd}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -170,30 +171,30 @@ services:
   # rename them. It can also be configured to automatically upgrade the quality
   # of files already downloaded when a better quality format becomes available.
 
-  sonarr_anime:
-    image: binhex/arch-sonarr:latest
-    container_name: bittorrent-sonarr-anime
-    volumes:
-      - ${DIR_DOWNLOADS}:/data
-      - ${DIR_MEDIA}:/media
-      - ${DIR_SONARR_ANIME:-./sonarr-anime}:/config
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.6
-    environment:
-      UMASK: ${UMASK:-000}
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-    restart: unless-stopped
-    depends_on:
-      - deluge-vpn
+  # sonarr_anime:
+  #  image: binhex/arch-sonarr:latest
+  #  container_name: bittorrent-sonarr-anime
+  #  volumes:
+  #    - ${DIR_DOWNLOADS_ARR}:/data
+  #    - ${DIR_MEDIA}:/media
+  #    - ${DIR_SONARR_ANIME:-./sonarr-anime}:/config
+  #    - /etc/localtime:/etc/localtime:ro
+  #  networks:
+  #    internal_net:
+  #      ipv4_address: 10.81.12.6
+  #  environment:
+  #    UMASK: ${UMASK:-000}
+  #    PUID: ${PUID:-1000}
+  #    PGID: ${PGID:-1000}
+  #  restart: unless-stopped
+  #  depends_on:
+  #    - deluge-vpn
 
   sonarr_tv:
     image: binhex/arch-sonarr:latest
     container_name: bittorrent-sonarr-tv
     volumes:
-      - ${DIR_DOWNLOADS}:/data
+      - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
       - ${DIR_SONARR_TV:-./sonarr-tv}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -230,8 +231,8 @@ services:
       PGID: ${PGID:-1000}
     restart: unless-stopped
     depends_on:
-      - lidarr
-      - sonarr_anime
+      # - lidarr
+      # - sonarr_anime
       - sonarr_tv
       - radarr_fhd
       - radarr_uhd
@@ -247,11 +248,29 @@ services:
       internal_net:
         ipv4_address: 10.81.12.12
     environment:
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - LOG_HTML=${LOG_HTML:-false}
-      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=${TIMEZONE:-Europe/London}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_HTML: ${LOG_HTML:-false}
+      CAPTCHA_SOLVER: ${CAPTCHA_SOLVER:-none}
+      TZ: ${TZ:-Europe/London}
     restart: unless-stopped
+
+  # *** Prometheus Exporter ***
+  # A Prometheus exporter for Pi-hole.
+
+  prometheus:
+    image: tobbez/deluge_exporter:latest
+    container_name: bittorrent-client-monitor
+    volumes:
+      - ${DIR_DELUGE:-./deluge-vpn}:/root/.config/deluge/:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.9
+    environment:
+      DELUGE_HOST: 10.81.12.2
+      DELUGE_PASSWORD: ${DELUGE_PASS}
+    restart: unless-stopped
+    depends_on:
+      - deluge-vpn
 
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
@@ -275,38 +294,18 @@ services:
       PGID: ${PGID:-1000}
     restart: unless-stopped
     depends_on:
-      - lidarr
-      - sonarr_anime
+      # - lidarr
+      # - sonarr_anime
       - sonarr_tv
       - radarr_fhd
       - radarr_uhd
   
-  # *** Nginx ***
-  # Nginx is a simple webserver with php support.
-
-  nginx:
-    image: nginx:mainline-alpine
-    container_name: bittorrent-nginx
-    volumes:
-      - ${DIR_NGINX}/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${DIR_NGINX}/logs:/etc/nginx/logs
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.9
-      external_net:
-        ipv4_address: ${WEBUI_IPADDR}
-    restart: unless-stopped
-    depends_on:
-      - prowlarr
-      - overseerr
-
 ################################################
 # DEFINE NETWORKS
 ################################################
 networks:
 
   # *** Internal network ***
-
   internal_net:
     name: bittorrent-vlan
     driver: bridge
@@ -314,9 +313,3 @@ networks:
       config:
         - subnet: 10.81.12.0/24
           gateway: 10.81.12.1
-
-  # *** External network ***
-
-  external_net:
-    name: ${WEBUI_MACVLAN}
-    external: true

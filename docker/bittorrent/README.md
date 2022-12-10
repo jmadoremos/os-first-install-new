@@ -10,19 +10,19 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 
 * [Deluge VPN](https://github.com/binhex/arch-delugevpn) is a full-featured ​BitTorrent client for Linux, OS X, Unix and Windows. This Docker includes OpenVPN and WireGuard to ensure a secure and private connection to the Internet, including use of iptables to prevent IP leakage when the tunnel is down. It also includes Privoxy to allow unfiltered access to index sites, to use Privoxy please point your application at http://<host ip>:8118.
 
-* [deemix](https://deemix.app/) is a barebone deezer downloader library built from the ashes of Deezloader Remix.
-
-* [Lidarr](https://github.com/binhex/arch-lidarr) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
+* [Deemix](https://deemix.app/) is a barebone deezer downloader library built from the ashes of Deezloader Remix.
 
 * [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) is a proxy server to bypass Cloudflare and DDoS-GUARD protection.
 
-* [Nginx](https://www.nginx.com) is a simple webserver with php support. This enables the stack to expose the web UIs of the individual applications using a centralized IP address in the host's network.
+* [Lidarr](https://github.com/binhex/arch-lidarr) is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
-* [Sonarr](https://github.com/binhex/arch-sonarr) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
+* [Prometheus Exporter](https://github.com/tobbez/deluge_exporter) A Prometheus exporter for Deluge.
+
+* [Prowlarr](https://hub.docker.com/r/binhex/arch-prowlarr) (custom image) is a indexer manager/proxy built on the popular arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports both Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr, Radarr, Lidarr, and Readarr offering complete management of your indexers with no per app Indexer setup required (we do it all).
 
 * [Radarr](https://github.com/binhex/arch-radarr) is a fork of Sonarr aims to turn it into something like Couchpotato.
 
-* [Prowlarr](https://hub.docker.com/r/binhex/arch-prowlarr) (custom image) is a indexer manager/proxy built on the popular arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports both Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr, Radarr, Lidarr, and Readarr offering complete management of your indexers with no per app Indexer setup required (we do it all).
+* [Sonarr](https://github.com/binhex/arch-sonarr) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
 ## Environment variables
 
@@ -35,6 +35,12 @@ Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Captcha so
 _Required_: No
 
 _Default_: `none`
+
+`DELUGE_PASS`
+
+The password to be set or already set for Deluge web client.
+
+_Required_: Yes
 
 `DIR_DEEMIX`
 
@@ -52,9 +58,15 @@ _Required_: No
 
 _Default_: `./deluge-vpn`
 
-`DIR_DOWNLOADS`
+`DIR_DOWNLOADS_ARR`
 
-The directory where dowloading and dowloaded files are stored. This directory should contain `incomplete/` and `completed` directories.
+The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete/` and `completed` directories.
+
+_Required_: Yes
+
+`DIR_DOWNLOADS_DEEMIX`
+
+The directory where dowloading and dowloaded music from Deemix are stored.
 
 _Required_: Yes
 
@@ -69,12 +81,6 @@ _Default_: `./lidarr`
 `DIR_MEDIA`
 
 The directory containing all media files for lidar, radarr and sonarr to reference in their libraries.
-
-_Required_: Yes
-
-`DIR_NGINX`
-
-The directory containing Nginx configuration. This directory should contain the [nginx.conf](./res/nginx.conf) file and a `logs/` directory.
 
 _Required_: Yes
 
@@ -126,7 +132,7 @@ _Required_: No
 
 _Default_: `./sonarr-tv`
 
-`LAN_NETWORK`
+`HOST_CIDR`
 
 The local area network CIDR address. This is passed to the VPN client defined in the container variables.
 
@@ -174,7 +180,7 @@ _Required_: No
 
 _Default_: `1000`
 
-`TIMEZONE`
+`TZ`
 
 Used by [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr). Timezone used in the logs and the web browser.
 
@@ -244,14 +250,13 @@ _Default_: _(no value)_
 
 ## Exposed ports
 
-The `WEBUI_IPADDR` will export a port `80/TCP` to serve a virtual server that will serve `deluge`, `deemix`, `lidarr`, `radarr`, `sonarr`, `overseerr` and `prowlarr` web UIs based on the domain used. These domains are configurable in the [nginx.conf](./res/nginx.conf) file.
-
 This stack will not expose the individual ports used by any application apart from port `80/TCP`. However, use the following addresses when configuring these applications:
 * `deluge-vpn` address: `http://10.81.12.2:8112/`
 * `deemix` address: `http://10.81.12.10:6595/`
-* `lidarr` address: `http://10.81.12.3:8686/`
 * `flaresolverr` address: `http://10.81.12.12:8191/`
+* `lidarr` address: `http://10.81.12.3:8686/`
 * `overseerr` address: `http://10.81.12.11:5055/`
+* `prometheus` (Deluge) address: `http://10.81.12.9:9354/`
 * `prowlarr` address: `http://10.81.12.8:9696/`
 * `radarr` (FHD) address: `http://10.81.12.4:7878/`
 * `radarr` (UHD) address: `http://10.81.12.5:7878/`
@@ -260,17 +265,17 @@ This stack will not expose the individual ports used by any application apart fr
 
 ## Configurations
 
-1. Setup `deluge-vpn` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+1. Setup `deluge-vpn` by navigating to its domain.
 
     1. The default (Old) password is `deluge`. Replace the password with a new value in the `WebUI Password` field of `Interface` page of the `Preferences` dialog box.
 
     2. In the same `Preferences` dialog box, enable the `Label` plug-in of the `Plug-ins` page.
 
-2. Setup `deemix` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+2. Setup `deemix` by navigating to its domain.
 
     1. Go to the `Settings` page, and login to `Deezer`.
 
-3. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains as configured in the [nginx.conf](./res/nginx.conf) file.
+3. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains.
 
     1. Connect each of these applications to the `deluge-vpn` by adding a new entry in `Download Clients` section of `Settings > Download Clients` page.
 
@@ -286,7 +291,7 @@ This stack will not expose the individual ports used by any application apart fr
 
     2. During the setup, copy the `API Key` in `Settings > General` page to be used when connecting `prowlarr` to these applications.
 
-4. Setup `prowlarr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+4. Setup `prowlarr` by navigating to its domain.
 
     1. Connect `lidarr`, `radarr`, and `sonarr` by adding a new entry in `Applications` section of `Settings > Apps` page.
 
@@ -326,7 +331,7 @@ This stack will not expose the individual ports used by any application apart fr
 
         > For indexers with `FlareSolverr` section in the `Edit Indexer` page, add the `flaresolverr` in the `Tags` field. 
 
-5. Setup `overseerr` by navigating to its domain as configured in the [nginx.conf](./res/nginx.conf) file.
+5. Setup `overseerr` by navigating to its domain.
 
     1. Login to Plex.
 
