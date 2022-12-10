@@ -4,36 +4,104 @@ version: '3'
 # DEFINE SERVICES
 #
 # Environment Variables:
-# - NETWORK_INF (default: eth0)
 # - IPV4_ADDR
-# - IPV4_GATEWAY
-# - IPV4_SUBNET_CIDR
-# - LOGS_DIR (default: ./logs)
-# - NGINX_DIR (default: .)
+# - GRAFANA_DIR (default: ./grafana)
+# - HOST_CIDR
+# - HOST_GATEWAY
+# - NETWORK_INTERFACE (default: eth0)
+# - NGINX_DIR (default: ./nginx)
+# - PROMETHEUS_DIR (default: ./prometheus)
 ################################################
 services:
-  http_gateway:
+
+  # *** nginx ***
+  # Reverse proxy to redirect HTTP requests to specific containers where this
+  # instance is part of the network.
+
+  nginx:
     image: nginx:mainline-alpine
     container_name: http-gateway
     volumes:
-      - ${NGINX_DIR:-.}/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${NGINX_DIR:-.}/proxy.conf:/etc/nginx/proxy.conf:ro
-      - ${LOGS_DIR:-./logs}:/etc/nginx/logs
+      - ${NGINX_DIR:-./nginx}/logs:/etc/nginx/logs
+      - ${NGINX_DIR:-./nginx}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${NGINX_DIR:-./nginx}/proxy.conf:/etc/nginx/proxy.conf:ro
     networks:
+      internal_net:
+        ipv4_address: 10.80.0.2
       gateway_net:
         ipv4_address: ${IPV4_ADDR}
+    restart: unless-stopped
+
+  # *** Prometheus ***
+  # Prometheus is an open-source systems monitoring and alerting toolkit
+  # originally built at SoundCloud. Since its inception in 2012, many companies
+  # and organizations have adopted Prometheus, and the project has a very
+  # active developer and user community. It is now a standalone open source
+  # project and maintained independently of any company. To emphasize this, and
+  # to clarify the project's governance structure, Prometheus joined the Cloud
+  # Native Computing Foundation in 2016 as the second hosted project, after
+  # Kubernetes.
+  #
+  # Prometheus collects and stores its metrics as time series data, i.e.
+  # metrics information is stored with the timestamp at which it was recorded,
+  # alongside optional key-value pairs called labels.
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: container-monitor
+    volumes:
+      - ${PROMETHEUS_DIR:-./prometheus}/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.3
+    restart: unless-stopped
+
+  # *** Grafana ***
+  # Grafana is the open source analytics & monitoring solution for every
+  # database.
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: container-dashboard
+    volumes:
+      - gateway_grafana_data:/var/lib/grafana
+      - ${GRAFANA_DIR:-./grafana}/grafana.ini:/etc/grafana/grafana.ini
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.4
     restart: unless-stopped
 
 ################################################
 # DEFINE NETWORKS
 ################################################
 networks:
-  gateway_net:
+
+  # *** Internal network ***
+  internal_net:
     name: gateway-vlan
-    driver: macvlan
-    driver_opts:
-      parent: ${NETWORK_INF:-eth0}
+    driver: bridge
     ipam:
       config:
-        - subnet: ${IPV4_SUBNET_CIDR}
-          gateway: ${IPV4_GATEWAY}
+        - subnet: 10.80.0.0/24
+          gateway: 10.80.0.1
+
+  # *** External network ****
+  gateway_net:
+    name: gateway-macvlan
+    driver: macvlan
+    driver_opts:
+      parent: ${NETWORK_INTERFACE:-eth0}
+    ipam:
+      config:
+        - subnet: ${HOST_CIDR}
+          gateway: ${HOST_GATEWAY}
+
+################################################
+# DEFINE VOLUMES
+################################################
+volumes:
+
+  # *** Persistent storage for Grafana ***
+  # For /var/lib/grafana
+  gateway_grafana_data:
+    name: gateway-grafana-data

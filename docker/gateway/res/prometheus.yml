@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 10s # Default: 15s
+  evaluation_interval: 10s # Default: 15s
+  scrape_timeout: 10s # Default: 10s
+
+  # In this section, you can pass through labels on every metric written to the
+  # Prometheus destination server. Here, you can place some labels to help you
+  # easily identify and scope the metrics later.
+  #
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: pihole
+    origin_prometheus: donald-pihole
+
+# A scrape configuration containing exactly one endpoint to scrape.
+#
+# Here, you can define jobs to tell Prometheus where to scrape the metrics
+# from. In this case, the only job you need is to connect to the loopback
+# and collect the metrics from the Pi-Hole Exporter on port 9617.
+#
+# By default, Prometheus will scrape from the /metrics path when an
+# alternative is not defined, which is exactly what we need.
+scrape_configs:
+  - job_name: pihole
+    static_configs:
+      - targets: [ 10.53.0.4:9617 ]
+
+# This is the section you’ll use to ship metrics to the Prometheus server. You
+# need to define an url that is the API endpoint for the Prometheus server.
+remote_write:
+  - url: 10.80.0.3
+    tls_config:
+      insecure_skip_verify: true
