@@ -5,11 +5,11 @@ version: '3'
 #
 # Environment variables:
 # - DIR_DNSCRYPT
-# - DIR_NGINX
-# - DIR_PIHOLE (default: ./pihole)
+# - HOST_CIDR
+# - HOST_GATEWAY
 # - HOST_IPADDR
-# - WEBUI_IPADDR
-# - WEBUI_MACVLAN
+# - NETWORK_INTERFACE (default: eth0)
+# - PIHOLE_PASS
 # - TIME_ZONE (default: America/Chicago)
 ################################################
 services:
@@ -28,26 +28,10 @@ services:
         ipv4_address: 10.53.0.2
     healthcheck:
       test: nslookup cloudflare.com 127.0.0.11 || exit 1
-      interval: 1m
+      interval: 30s
       timeout: 5s
       retries: 3
     restart: always
-
-  # *** Nginx ***
-  # Nginx is a simple webserver with php support.
-
-  nginx:
-    image: nginx:mainline-alpine
-    container_name: doh-nginx
-    volumes:
-      - ${DIR_NGINX}/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${DIR_NGINX}/logs:/etc/nginx/logs
-    networks:
-      internal_net:
-        ipv4_address: 10.53.0.3
-      external_net:
-        ipv4_address: ${WEBUI_IPADDR}
-    restart: unless-stopped
 
   # *** Pi-hole ***
   # In addition to blocking advertisements, Pi-hole has an informative Web
@@ -59,24 +43,48 @@ services:
     ports:
       - '${HOST_IPADDR}:53:53/tcp'
       - '${HOST_IPADDR}:53:53/udp'
+      - '${HOST_IPADDR}:8053:80/tcp'
     volumes:
-      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d
-      - ${DIR_PIHOLE:-./pihole}/pihole:/etc/pihole
+      - doh-sinkhole_dnsmasq_data:/etc/dnsmasq.d
+      - doh-sinkhole_pihole_data:/etc/pihole
     networks:
       internal_net:
-        ipv4_address: 10.53.0.4
+        ipv4_address: 10.53.0.3
     environment:
+      INTERFACE: ${NETWORK_INTERFACE:-eth0}
       PIHOLE_DNS_: 10.53.0.2#5353
+      REV_SERVER: true
+      REV_SERVER_CIDR: ${HOST_CIDR}
+      REV_SERVER_TARGET: ${HOST_GATEWAY}
       TZ: ${TIME_ZONE:-America/Chicago}
+      WEBPASSWORD: ${PIHOLE_PASS}
     healthcheck:
       test: nslookup cloudflare.com 127.0.0.11 || exit 1
-      interval: 1m
+      interval: 30s
       timeout: 10s
       retries: 3
     restart: always
     depends_on:
       - dnscrypt-proxy
-      - nginx
+
+  # *** Prometheus Exporter ***
+  # A Prometheus exporter for Pi-hole.
+
+  prometheus:
+    image: ekofr/pihole-exporter:latest
+    container_name: doh-sinkhole-monitor
+    volumes:
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.53.0.4
+    environment:
+      PIHOLE_HOSTNAME: 10.53.0.3
+      PIHOLE_API_TOKEN: ${PIHOLE_PASS}
+      PORT: '9617'
+    restart: always
+    depends_on:
+      - pihole
 
 ################################################
 # DEFINE NETWORKS
@@ -84,7 +92,6 @@ services:
 networks:
 
   # *** Internal network ***
-
   internal_net:
     name: doh-vlan
     driver: bridge
@@ -93,8 +100,15 @@ networks:
         - subnet: 10.53.0.0/24
           gateway: 10.53.0.1
 
-  # *** External network ***
+################################################
+# DEFINE VOLUMES
+################################################
+volumes:
 
-  external_net:
-    name: ${WEBUI_MACVLAN}
-    external: true
+  # *** Persistent storage for Pi-hole ***
+  # For /etc/dnsmasq.d
+  doh-sinkhole_dnsmasq_data:
+    name: doh-sinkhole-dnsmasq-data
+  # For /etc/pihole 
+  doh-sinkhole_pihole_data:
+    name: doh-sinkhole-pihole-data

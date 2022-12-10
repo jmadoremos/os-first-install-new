@@ -10,7 +10,7 @@ For more information, refer to [A cartoon intro into DNS-over-HTTPS](https://hac
 
 * [Pi-hole](https://pi-hole.net) is a DNS sinkhole that blocks advertisements. It has an informative Web interface that shows stats on all the domains being queried on your network.
 
-* [Nginx](https://www.nginx.com) is a simple webserver with php support. This enables to expose Pi-hole's web UI with its own IP address in the host's network.
+* [Prometheus Exporter](https://github.com/eko/pihole-exporter) A Prometheus exporter for Pi-hole.
 
 ## Environment variables
 
@@ -22,19 +22,17 @@ The directory containing DNSCrypt-proxy configuration. This should contain the [
 
 _Required_: Yes
 
-`DIR_NGINX`
+`HOST_CIDR`
 
-The directory containing Nginx configuration. This directory should contain the [nginx.conf](./res/nginx.conf) file and a `logs/` directory.
+The host network's CIDR notation (e.g., 192.168.0.0/24).
 
 _Required_: Yes
 
-`DIR_PIHOLE`
+`HOST_GATEWAY`
 
-The directory containing Pi-hole configurations and data. This directory should contain the `dnsmasq.d/` and `pihole/` directories.
+The host network's gateway address (e.g., 192.168.0.1).
 
-_Required_: No
-
-_Default_: `./pihole`
+_Required_: Yes
 
 `HOST_IPADDR`
 
@@ -42,15 +40,17 @@ The host's assigned IP address from a DHCP server.
 
 _Required_: Yes
 
-`WEBUI_IPADDR`
+`NETWORK_INTERFACE`
 
-The IP address to be assigned to serve the Pi-hole's web UI.
+The network interface used.
 
-_Required_: Yes
+_Required_: No
 
-`WEBUI_MACVLAN`
+_Default_: `eth0`
 
-An existing network using a [macvlan](https://docs.docker.com/network/macvlan/) driver where the Pi-hole's web UI will request for an IP address.
+`PIHOLE_PASS`
+
+The pre-defined Pi-hole web password.
 
 _Required_: Yes
 
@@ -64,6 +64,4 @@ _Default_: `America/Chicago`
 
 ## Exposed ports
 
-The `HOST_IPADDR` will export ports `53/TCP` and `53/UDP` to receive DNS requests from clients.
-
-The `WEBUI_IPADDR` will export a port `80/TCP` to serve Pi-hole's web UI to configure adlists, local DNS records, and other related settings.
+The `HOST_IPADDR` will export ports `53/TCP` and `53/UDP` to receive DNS requests from clients, and `8053/TCP` to serve the admin portal.
