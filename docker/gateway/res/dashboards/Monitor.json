@@ -36,11 +36,31 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "mode": "continuous-RdYlGr"
+                        "mode": "fixed"
                     },
-                    "mappings": [],
+                    "custom": {
+                        "neutral": 0
+                    },
+                    "mappings": [
+                        {
+                            "options": {
+                                "0": {
+                                    "color": "red",
+                                    "index": 1,
+                                    "text": "DNS offline"
+                                },
+                                "1": {
+                                    "color": "green",
+                                    "index": 0,
+                                    "text": "DNS online"
+                                }
+                            },
+                            "type": "value"
+                        }
+                    ],
                     "max": 1,
                     "min": 0,
+                    "noValue": "0",
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
@@ -91,7 +111,6 @@
                     "refId": "A"
                 }
             ],
-            "title": "DNS Online",
             "type": "gauge"
         },
         {
@@ -153,12 +172,11 @@
                     },
                     "editorMode": "builder",
                     "expr": "pihole_dns_queries_today",
-                    "legendFormat": "__auto",
+                    "legendFormat": "Total DNS queries",
                     "range": true,
                     "refId": "A"
                 }
             ],
-            "title": "Total DNS queries",
             "type": "stat"
         },
         {
@@ -209,7 +227,7 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "auto"
+                "textMode": "value_and_name"
             },
             "pluginVersion": "9.3.1",
             "targets": [
@@ -220,12 +238,11 @@
                     },
                     "editorMode": "builder",
                     "expr": "pihole_ads_blocked_today",
-                    "legendFormat": "__auto",
+                    "legendFormat": "Blocked DNS queries",
                     "range": true,
                     "refId": "A"
                 }
             ],
-            "title": "Blocked DNS queries",
             "type": "stat"
         },
         {
@@ -239,8 +256,15 @@
                         "fixedColor": "dark-orange",
                         "mode": "fixed"
                     },
+                    "custom": {
+                        "neutral": 0
+                    },
                     "decimals": 2,
+                    "displayName": "Blocked DNS percentage",
                     "mappings": [],
+                    "max": 100,
+                    "min": 0,
+                    "noValue": "0",
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
@@ -291,7 +315,6 @@
                     "refId": "A"
                 }
             ],
-            "title": "Blocked DNS percentage",
             "type": "gauge"
         },
         {
@@ -342,7 +365,7 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "auto"
+                "textMode": "value_and_name"
             },
             "pluginVersion": "9.3.1",
             "targets": [
@@ -353,12 +376,11 @@
                     },
                     "editorMode": "builder",
                     "expr": "pihole_unique_clients",
-                    "legendFormat": "__auto",
+                    "legendFormat": "Unique DNS clients",
                     "range": true,
                     "refId": "A"
                 }
             ],
-            "title": "Unique DNS clients",
             "type": "stat"
         },
         {
@@ -399,7 +421,7 @@
             "id": 8,
             "options": {
                 "colorMode": "background",
-                "graphMode": "none",
+                "graphMode": "area",
                 "justifyMode": "auto",
                 "orientation": "auto",
                 "reduceOptions": {
@@ -409,7 +431,7 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "auto"
+                "textMode": "value_and_name"
             },
             "pluginVersion": "9.3.1",
             "targets": [
@@ -420,12 +442,11 @@
                     },
                     "editorMode": "builder",
                     "expr": "pihole_domains_being_blocked",
-                    "legendFormat": "__auto",
+                    "legendFormat": "Domains blocked",
                     "range": true,
                     "refId": "A"
                 }
             ],
-            "title": "Domains blocked",
             "type": "stat"
         },
         {
@@ -501,7 +522,8 @@
                     "calcs": [
                         "min",
                         "max",
-                        "last"
+                        "mean",
+                        "stdDev"
                     ],
                     "displayMode": "table",
                     "placement": "bottom",
@@ -548,13 +570,22 @@
             },
             "fieldConfig": {
                 "defaults": {
+                    "color": {
+                        "fixedColor": "yellow",
+                        "mode": "continuous-GrYlRd"
+                    },
                     "mappings": [],
+                    "noValue": "0",
                     "thresholds": {
-                        "mode": "absolute",
+                        "mode": "percentage",
                         "steps": [
                             {
                                 "color": "green",
                                 "value": null
+                            },
+                            {
+                                "color": "#EAB839",
+                                "value": 60
                             },
                             {
                                 "color": "red",
@@ -568,15 +599,15 @@
             },
             "gridPos": {
                 "h": 10,
-                "w": 5,
+                "w": 4,
                 "x": 10,
                 "y": 5
             },
-            "id": 26,
+            "id": 33,
             "options": {
                 "colorMode": "background",
-                "graphMode": "none",
-                "justifyMode": "auto",
+                "graphMode": "area",
+                "justifyMode": "center",
                 "orientation": "auto",
                 "reduceOptions": {
                     "calcs": [
@@ -585,7 +616,8 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "auto"
+                "text": {},
+                "textMode": "value_and_name"
             },
             "pluginVersion": "9.3.1",
             "targets": [
@@ -595,20 +627,79 @@
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
-                    "expr": "deluge_torrents{state=\"downloading\"}",
-                    "hide": false,
-                    "legendFormat": "Downloading",
+                    "expr": "deluge_torrents{state=\"total\"}",
+                    "legendFormat": "Total torrents",
                     "range": true,
-                    "refId": "Downloading"
+                    "refId": "A"
+                }
+            ],
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "displayName": "Downloading",
+                    "mappings": [],
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 25
+                            },
+                            {
+                                "color": "green",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "none"
                 },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 3,
+                "x": 14,
+                "y": 5
+            },
+            "id": 28,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": false
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
                 {
                     "datasource": {
                         "type": "prometheus",
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
+                    "exemplar": false,
                     "expr": "deluge_torrents{state=\"active\"}",
-                    "legendFormat": "Active",
+                    "instant": false,
+                    "legendFormat": "{{state}}",
                     "range": true,
                     "refId": "Active"
                 },
@@ -618,9 +709,98 @@
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
-                    "expr": "deluge_torrents{state=\"seeding\"}",
+                    "expr": "deluge_config_max_active_downloading",
                     "hide": false,
-                    "legendFormat": "Seeding",
+                    "legendFormat": "max",
+                    "range": true,
+                    "refId": "Max Active"
+                }
+            ],
+            "transformations": [
+                {
+                    "id": "configFromData",
+                    "options": {
+                        "applyTo": {
+                            "id": "byName",
+                            "options": "active"
+                        },
+                        "configRefId": "Max Active",
+                        "mappings": [
+                            {
+                                "fieldName": "max",
+                                "handlerKey": "max"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "gauge"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "displayName": "Seeding",
+                    "mappings": [],
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 25
+                            },
+                            {
+                                "color": "green",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 3,
+                "x": 17,
+                "y": 5
+            },
+            "id": 29,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": false
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "exemplar": false,
+                    "expr": "deluge_torrents{state=\"seeding\"}",
+                    "instant": false,
+                    "legendFormat": "{{state}}",
                     "range": true,
                     "refId": "Seeding"
                 },
@@ -630,9 +810,163 @@
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
-                    "expr": "deluge_torrents{state=\"queued\"}",
+                    "expr": "deluge_config_max_active_seeding",
                     "hide": false,
-                    "legendFormat": "Queued",
+                    "legendFormat": "max",
+                    "range": true,
+                    "refId": "Max Seeding"
+                }
+            ],
+            "transformations": [
+                {
+                    "id": "configFromData",
+                    "options": {
+                        "applyTo": {
+                            "id": "byName",
+                            "options": "seeding"
+                        },
+                        "configRefId": "Max Seeding",
+                        "mappings": [
+                            {
+                                "fieldName": "max",
+                                "handlerKey": "max"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "gauge"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "displayName": "Download speed",
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "orange",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "binBps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 4,
+                "x": 20,
+                "y": 5
+            },
+            "id": 35,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "irate(deluge_libtorrent_net_recv_bytes_total[10m])",
+                    "legendFormat": "__auto",
+                    "range": true,
+                    "refId": "A"
+                }
+            ],
+            "type": "gauge"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "displayName": "Queued",
+                    "mappings": [],
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 3,
+                "x": 14,
+                "y": 10
+            },
+            "id": 30,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": false
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "exemplar": false,
+                    "expr": "deluge_torrents{state=\"queued\"}",
+                    "instant": false,
+                    "legendFormat": "{{state}}",
                     "range": true,
                     "refId": "Queued"
                 },
@@ -642,18 +976,201 @@
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
-                    "expr": "deluge_torrents{state=\"paused\"}",
+                    "expr": "deluge_torrents{state=\"total\"}",
                     "hide": false,
-                    "legendFormat": "Paused",
+                    "legendFormat": "max",
                     "range": true,
-                    "refId": "Paused"
+                    "refId": "Total"
                 }
             ],
-            "title": "Torrent metrics",
-            "type": "stat"
+            "transformations": [
+                {
+                    "id": "configFromData",
+                    "options": {
+                        "applyTo": {
+                            "id": "byName",
+                            "options": "queued"
+                        },
+                        "configRefId": "Total",
+                        "mappings": [
+                            {
+                                "fieldName": "max",
+                                "handlerKey": "max"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "gauge"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "displayName": "Paused",
+                    "mappings": [],
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 3,
+                "x": 17,
+                "y": 10
+            },
+            "id": 31,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": false
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "exemplar": false,
+                    "expr": "deluge_torrents{state=\"paused\"}",
+                    "instant": false,
+                    "legendFormat": "{{state}}",
+                    "range": true,
+                    "refId": "Paused"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"total\"}",
+                    "hide": false,
+                    "legendFormat": "max",
+                    "range": true,
+                    "refId": "Total"
+                }
+            ],
+            "transformations": [
+                {
+                    "id": "configFromData",
+                    "options": {
+                        "applyTo": {
+                            "id": "byName",
+                            "options": "paused"
+                        },
+                        "configRefId": "Total",
+                        "mappings": [
+                            {
+                                "fieldName": "max",
+                                "handlerKey": "max"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "type": "gauge"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "displayName": "Upload speed",
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "orange",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "binBps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 4,
+                "x": 20,
+                "y": 10
+            },
+            "id": 36,
+            "options": {
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "irate(deluge_libtorrent_net_sent_bytes_total[10m])",
+                    "legendFormat": "__auto",
+                    "range": true,
+                    "refId": "A"
+                }
+            ],
+            "type": "gauge"
         }
     ],
-    "refresh": "30s",
+    "refresh": false,
     "schemaVersion": 37,
     "style": "dark",
     "tags": [],
@@ -668,6 +1185,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 4,
-    "weekStart": ""
+    "version": 8,
+    "weekStart": "sunday"
 }
