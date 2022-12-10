@@ -30,6 +30,10 @@ scrape_configs:
   - job_name: pihole
     static_configs:
       - targets: [ 10.53.0.4:9617 ]
+  # Wireguard
+  - job_name: wireguard
+    static_configs:
+      - targets: [ 10.51.82.3:9586 ]
 
 # This is the section you’ll use to ship metrics to the Prometheus server. You
 # need to define an url that is the API endpoint for the Prometheus server.

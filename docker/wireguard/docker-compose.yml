@@ -4,14 +4,13 @@ version: '3'
 # DEFINE SERVICES
 #
 # Environment Variables:
-# - DIR_CONFIG (default: ./wireguard)
+# - DIR_WIREGUARD (default: ./wireguard)
 # - HOST_IP (default: 127.0.0.1)
-# - PEER_DNS (default: 127.0.0.1)
-# - PEER_USERS (default: mobile1,mobile2)
-# - PORT (default: 51820)
+# - NAME_SERVER (default: 127.0.0.1)
+# - PEERS
 # - PUID (default: 1000)
 # - PGID (default: 1000)
-# - TIME_ZONE (default: Asia/Manila)
+# - TZ (default: Asia/Manila)
 ################################################
 services:
 
@@ -23,24 +22,61 @@ services:
     image: linuxserver/wireguard:latest
     container_name: wireguard
     ports:
-      - '${PORT:-51820}:51820/udp'
+      - '${HOST_IP}:51820:51820/udp'
     volumes:
-      - ${DIR_CONFIG:-./wireguard}:/config
+      - ${DIR_WIREGUARD:-./wireguard}:/config
       - /var/modules:/lib/modules
+    networks:
+      internal_net:
+        ipv4_address: 10.51.82.2
     environment:
-      PEERDNS: ${PEERDNS:-127.0.0.1}
-      PEERS: ${PEERS:-mobile1,mobile2}
+      PEERDNS: ${NAME_SERVER:-127.0.0.1}
+      PEERS: ${PEERS}
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
-      SERVERURL: ${HOST_IP:-127.0.0.1}
-      SERVERPORT: ${PORT:-51820}
-      TZ: ${TIME_ZONE:-Asia/Manila}
-    privileged: true
-    sysctls:
-      net.ipv4.conf.all.src_valid_mark: 1
+      SERVERURL: ${HOST_IP}
+      SERVERPORT: '51820'
+      TZ: ${TZ:-Asia/Manila}
     # !!! The cap_add and cap_drop options are ignored when deploying a stack in swarm mode. !!!
     # Ref: https://docs.docker.com/compose/compose-file/compose-file-v3/#cap_add-cap_drop
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     restart: unless-stopped
+
+  # *** Prometheus Exporter ***
+  # A Prometheus exporter for Pi-hole.
+  #
+  # Currently using v3.6.1 because of an open issue with the argument `-a`
+  # that now requires a value `true` or `false` to be passed but none was
+  # provided. Environment variable also does not work to fix the issue despite
+  # the documentation stating otherwise.
+
+  prometheus:
+    image: mindflavor/prometheus-wireguard-exporter:3.6.1
+    container_name: wireguard-monitor
+    networks:
+      internal_net:
+        ipv4_address: 10.51.82.3
+    environment:
+      PROMETHEUS_WIREGUARD_EXPORTER_ADDRESS: 10.51.82.3
+      PROMETHEUS_WIREGUARD_EXPORTER_PREPEND_SUDO_ENABLED: false
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    depends_on:
+      - wireguard
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** Internal network ***
+  internal_net:
+    name: vpn-vlan
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.51.82.0/24
+          gateway: 10.51.82.1
