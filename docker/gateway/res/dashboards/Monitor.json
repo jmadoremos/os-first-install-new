@@ -358,7 +358,7 @@
                     "refId": "A"
                 }
             ],
-            "title": "DNS unique clients",
+            "title": "Unique DNS clients",
             "type": "stat"
         },
         {
@@ -427,6 +427,230 @@
             ],
             "title": "Domains blocked",
             "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 50,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineInterpolation": "smooth",
+                        "lineStyle": {
+                            "fill": "solid"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "auto",
+                        "spanNulls": true,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "Bps"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 10,
+                "x": 0,
+                "y": 5
+            },
+            "id": 24,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "min",
+                        "max",
+                        "last"
+                    ],
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "showLegend": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "irate(deluge_libtorrent_net_recv_bytes_total[10m])",
+                    "legendFormat": "Download",
+                    "range": true,
+                    "refId": "Download"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "irate(deluge_libtorrent_net_sent_bytes_total[10m])",
+                    "hide": false,
+                    "interval": "",
+                    "legendFormat": "Upload",
+                    "range": true,
+                    "refId": "Upload"
+                }
+            ],
+            "title": "Bandwidth utilization",
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 5,
+                "x": 10,
+                "y": 5
+            },
+            "id": 26,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"downloading\"}",
+                    "hide": false,
+                    "legendFormat": "Downloading",
+                    "range": true,
+                    "refId": "Downloading"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"active\"}",
+                    "legendFormat": "Active",
+                    "range": true,
+                    "refId": "Active"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"seeding\"}",
+                    "hide": false,
+                    "legendFormat": "Seeding",
+                    "range": true,
+                    "refId": "Seeding"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"queued\"}",
+                    "hide": false,
+                    "legendFormat": "Queued",
+                    "range": true,
+                    "refId": "Queued"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state=\"paused\"}",
+                    "hide": false,
+                    "legendFormat": "Paused",
+                    "range": true,
+                    "refId": "Paused"
+                }
+            ],
+            "title": "Torrent metrics",
+            "type": "stat"
         }
     ],
     "refresh": "30s",
@@ -444,6 +668,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 3,
+    "version": 4,
     "weekStart": ""
 }
