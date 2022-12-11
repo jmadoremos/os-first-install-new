@@ -26,6 +26,10 @@ scrape_configs:
   - job_name: deluge
     static_configs:
       - targets: [ 10.81.12.9:9354 ]
+  # Node machines
+  - job_name: node-machines
+    static_configs:
+      - targets: [ 10.80.0.6:9100 ]
   # Omada
   - job_name: omada
     static_configs:

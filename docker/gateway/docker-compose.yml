@@ -38,8 +38,23 @@ services:
     restart: unless-stopped
 
   # *** Prometheus Exporter ***
-  # A Prometheus exporter for Omada.
+  # Prometheus exporter for node machines.
+  node_monitor:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-monitor
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.6
+    pid: host
+    cap_add:
+      - SYS_TIME
+    restart: unless-stopped
 
+  # A Prometheus exporter for Omada.
   omada_monitor:
     image: chhaley/omada_exporter:latest
     container_name: omada-monitor
