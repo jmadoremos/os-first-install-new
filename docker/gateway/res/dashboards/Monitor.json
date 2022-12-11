@@ -248,7 +248,7 @@
             },
             "gridPos": {
                 "h": 5,
-                "w": 4,
+                "w": 3,
                 "x": 6,
                 "y": 0
             },
@@ -314,8 +314,8 @@
             },
             "gridPos": {
                 "h": 5,
-                "w": 4,
-                "x": 10,
+                "w": 3,
+                "x": 9,
                 "y": 0
             },
             "id": 4,
@@ -357,6 +357,69 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
+                        "fixedColor": "dark-purple",
+                        "mode": "fixed"
+                    },
+                    "displayName": "Cached DNS queries",
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "locale"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 5,
+                "w": 3,
+                "x": 12,
+                "y": 0
+            },
+            "id": 55,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "pihole_queries_cached",
+                    "legendFormat": "__auto",
+                    "range": true,
+                    "refId": "A"
+                }
+            ],
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
                         "fixedColor": "dark-green",
                         "mode": "fixed"
                     },
@@ -380,8 +443,8 @@
             },
             "gridPos": {
                 "h": 5,
-                "w": 4,
-                "x": 14,
+                "w": 3,
+                "x": 15,
                 "y": 0
             },
             "id": 8,
@@ -868,6 +931,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 12,
+    "version": 13,
     "weekStart": "sunday"
 }
