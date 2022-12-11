@@ -36,10 +36,9 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "dark-yellow",
+                        "fixedColor": "transparent",
                         "mode": "fixed"
                     },
-                    "displayName": "Network clients",
                     "mappings": [],
                     "thresholds": {
                         "mode": "absolute",
@@ -47,19 +46,46 @@
                             {
                                 "color": "green",
                                 "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
                             }
                         ]
                     }
                 },
-                "overrides": []
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Network"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-yellow",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "DNS"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-purple",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
             },
             "gridPos": {
                 "h": 5,
-                "w": 4,
+                "w": 3,
                 "x": 0,
                 "y": 0
             },
@@ -87,11 +113,25 @@
                     },
                     "editorMode": "builder",
                     "expr": "omada_client_connected_total",
-                    "legendFormat": "{{site}}",
+                    "legendFormat": "Network",
                     "range": true,
-                    "refId": "A"
+                    "refId": "Network"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "pihole_unique_clients",
+                    "hide": false,
+                    "legendFormat": "DNS",
+                    "range": true,
+                    "refId": "DNS"
                 }
             ],
+            "title": "Clients",
+            "transparent": true,
             "type": "stat"
         },
         {
@@ -102,35 +142,45 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "dark-purple",
-                        "mode": "fixed"
+                        "mode": "thresholds"
                     },
-                    "displayName": "DNS clients",
-                    "mappings": [],
+                    "mappings": [
+                        {
+                            "options": {
+                                "0": {
+                                    "color": "red",
+                                    "index": 0,
+                                    "text": "Offline"
+                                },
+                                "1": {
+                                    "color": "green",
+                                    "index": 1,
+                                    "text": "Online"
+                                }
+                            },
+                            "type": "value"
+                        }
+                    ],
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
                             {
                                 "color": "green",
                                 "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
                             }
                         ]
                     },
-                    "unit": "none"
+                    "unit": "bool_yes_no"
                 },
                 "overrides": []
             },
             "gridPos": {
                 "h": 5,
-                "w": 4,
-                "x": 4,
+                "w": 3,
+                "x": 3,
                 "y": 0
             },
-            "id": 10,
+            "id": 38,
             "options": {
                 "colorMode": "background",
                 "graphMode": "none",
@@ -143,7 +193,10 @@
                     "fields": "",
                     "values": false
                 },
-                "textMode": "value_and_name"
+                "text": {
+                    "valueSize": 16
+                },
+                "textMode": "name"
             },
             "pluginVersion": "9.3.1",
             "targets": [
@@ -153,12 +206,15 @@
                         "uid": "-QvJsgc4k"
                     },
                     "editorMode": "builder",
-                    "expr": "pihole_unique_clients",
-                    "legendFormat": "__auto",
+                    "expr": "up",
+                    "format": "time_series",
+                    "legendFormat": "{{job}}",
                     "range": true,
                     "refId": "A"
                 }
             ],
+            "title": "Services",
+            "transparent": true,
             "type": "stat"
         },
         {
@@ -193,7 +249,7 @@
             "gridPos": {
                 "h": 5,
                 "w": 4,
-                "x": 8,
+                "x": 6,
                 "y": 0
             },
             "id": 2,
@@ -259,7 +315,7 @@
             "gridPos": {
                 "h": 5,
                 "w": 4,
-                "x": 12,
+                "x": 10,
                 "y": 0
             },
             "id": 4,
@@ -301,75 +357,6 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "dark-orange",
-                        "mode": "fixed"
-                    },
-                    "decimals": 2,
-                    "displayName": "Blocked DNS percentage",
-                    "mappings": [],
-                    "max": 100,
-                    "min": 0,
-                    "noValue": "0",
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "percent"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 5,
-                "w": 4,
-                "x": 16,
-                "y": 0
-            },
-            "id": 6,
-            "options": {
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showThresholdLabels": false,
-                "showThresholdMarkers": true
-            },
-            "pluginVersion": "9.3.1",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "-QvJsgc4k"
-                    },
-                    "editorMode": "builder",
-                    "expr": "pihole_ads_percentage_today",
-                    "legendFormat": "__auto",
-                    "range": true,
-                    "refId": "A"
-                }
-            ],
-            "type": "gauge"
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "-QvJsgc4k"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
                         "fixedColor": "dark-green",
                         "mode": "fixed"
                     },
@@ -394,13 +381,13 @@
             "gridPos": {
                 "h": 5,
                 "w": 4,
-                "x": 20,
+                "x": 14,
                 "y": 0
             },
             "id": 8,
             "options": {
                 "colorMode": "background",
-                "graphMode": "none",
+                "graphMode": "area",
                 "justifyMode": "auto",
                 "orientation": "auto",
                 "reduceOptions": {
@@ -427,6 +414,121 @@
                 }
             ],
             "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "locale"
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byFrameRefID",
+                            "options": "Allowed queries"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-blue",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byFrameRefID",
+                            "options": "Blocked queries"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 21,
+                "w": 6,
+                "x": 18,
+                "y": 0
+            },
+            "id": 53,
+            "options": {
+                "displayLabels": [
+                    "name",
+                    "percent"
+                ],
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": []
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "asc"
+                }
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "pihole_dns_queries_today - pihole_ads_blocked_today",
+                    "instant": false,
+                    "legendFormat": "Allowed",
+                    "range": true,
+                    "refId": "Allowed queries"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "pihole_ads_blocked_today",
+                    "hide": false,
+                    "legendFormat": "Blocked",
+                    "range": true,
+                    "refId": "Blocked queries"
+                }
+            ],
+            "title": "DNS queries",
+            "transformations": [],
+            "type": "piechart"
         },
         {
             "datasource": {
@@ -491,7 +593,7 @@
             },
             "gridPos": {
                 "h": 6,
-                "w": 16,
+                "w": 18,
                 "x": 0,
                 "y": 5
             },
@@ -523,86 +625,8 @@
                 }
             ],
             "title": "Client download",
+            "transparent": true,
             "type": "timeseries"
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "-QvJsgc4k"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [
-                        {
-                            "options": {
-                                "0": {
-                                    "color": "red",
-                                    "index": 0,
-                                    "text": "Offline"
-                                },
-                                "1": {
-                                    "color": "green",
-                                    "index": 1,
-                                    "text": "Online"
-                                }
-                            },
-                            "type": "value"
-                        }
-                    ],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            }
-                        ]
-                    },
-                    "unit": "bool_yes_no"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 16,
-                "w": 8,
-                "x": 16,
-                "y": 5
-            },
-            "id": 38,
-            "options": {
-                "colorMode": "background",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "textMode": "name"
-            },
-            "pluginVersion": "9.3.1",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "-QvJsgc4k"
-                    },
-                    "editorMode": "builder",
-                    "expr": "up",
-                    "format": "time_series",
-                    "legendFormat": "{{job}}",
-                    "range": true,
-                    "refId": "A"
-                }
-            ],
-            "title": "Services",
-            "type": "stat"
         },
         {
             "datasource": {
@@ -675,6 +699,80 @@
                     "refId": "A"
                 }
             ],
+            "transparent": true,
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "-QvJsgc4k"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "#EAB839",
+                                "value": 80
+                            },
+                            {
+                                "color": "red",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 6,
+                "x": 8,
+                "y": 11
+            },
+            "id": 48,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "text": {
+                    "titleSize": 20
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "9.3.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "deluge_torrents{state!~\"moving|allocating|checking|total|downloading\"}",
+                    "format": "time_series",
+                    "legendFormat": "{{state}}",
+                    "range": true,
+                    "refId": "A"
+                }
+            ],
             "type": "stat"
         },
         {
@@ -709,7 +807,7 @@
             "gridPos": {
                 "h": 10,
                 "w": 4,
-                "x": 8,
+                "x": 14,
                 "y": 11
             },
             "id": 50,
@@ -751,80 +849,11 @@
                     "refId": "B"
                 }
             ],
+            "transparent": true,
             "type": "gauge"
-        },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "-QvJsgc4k"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "percentage",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "#EAB839",
-                                "value": 80
-                            },
-                            {
-                                "color": "red",
-                                "value": 100
-                            }
-                        ]
-                    },
-                    "unit": "short"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 10,
-                "w": 4,
-                "x": 12,
-                "y": 11
-            },
-            "id": 48,
-            "options": {
-                "colorMode": "background",
-                "graphMode": "none",
-                "justifyMode": "center",
-                "orientation": "auto",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "textMode": "auto"
-            },
-            "pluginVersion": "9.3.1",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "-QvJsgc4k"
-                    },
-                    "editorMode": "builder",
-                    "expr": "deluge_torrents{state!~\"moving|allocating|checking|total\"}",
-                    "format": "time_series",
-                    "legendFormat": "{{state}}",
-                    "range": true,
-                    "refId": "A"
-                }
-            ],
-            "type": "stat"
         }
     ],
-    "refresh": false,
+    "refresh": "5m",
     "schemaVersion": 37,
     "style": "dark",
     "tags": [],
@@ -839,6 +868,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 11,
+    "version": 12,
     "weekStart": "sunday"
 }
