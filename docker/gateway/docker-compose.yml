@@ -10,6 +10,11 @@ version: '3'
 # - HOST_GATEWAY
 # - NETWORK_INTERFACE (default: eth0)
 # - NGINX_DIR (default: ./nginx)
+# - OMADA_HOST
+# - OMADA_INSECURE (default: false)
+# - OMADA_PASS
+# - OMADA_SITE (default: Default)
+# - OMADA_USER
 # - PROMETHEUS_DIR (default: ./prometheus)
 ################################################
 services:
@@ -30,6 +35,23 @@ services:
         ipv4_address: 10.80.0.2
       gateway_net:
         ipv4_address: ${IPV4_ADDR}
+    restart: unless-stopped
+
+  # *** Prometheus Exporter ***
+  # A Prometheus exporter for Omada.
+
+  omada_monitor:
+    image: chhaley/omada_exporter:latest
+    container_name: omada-monitor
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.5
+    environment:
+      OMADA_HOST: ${OMADA_HOST}
+      OMADA_INSECURE: ${OMADA_INSECURE:-false}
+      OMADA_PASS: ${OMADA_PASS}
+      OMADA_SITE: ${OMADA_SITE:-Default}
+      OMADA_USER: ${OMADA_USER}
     restart: unless-stopped
 
   # *** Prometheus ***
