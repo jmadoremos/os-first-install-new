@@ -85,7 +85,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: container-monitor
+    container_name: prometheus
     volumes:
       - ${PROMETHEUS_DIR:-./prometheus}/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     networks:
@@ -99,7 +99,7 @@ services:
 
   grafana:
     image: grafana/grafana-oss:latest
-    container_name: container-dashboard
+    container_name: grafana
     volumes:
       - gateway_grafana_data:/var/lib/grafana
       - ${GRAFANA_DIR:-./grafana}/grafana.ini:/etc/grafana/grafana.ini
