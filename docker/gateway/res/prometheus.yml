@@ -22,6 +22,10 @@ global:
 # By default, Prometheus will scrape from the /metrics path when an
 # alternative is not defined, which is exactly what we need.
 scrape_configs:
+  # cAdvisor
+  - job_name: cadvisor
+    static_configs:
+      - targets: [ 10.80.0.7:8080 ]
   # Deluge
   - job_name: deluge
     static_configs:
@@ -38,6 +42,10 @@ scrape_configs:
   - job_name: pihole
     static_configs:
       - targets: [ 10.53.0.4:9617 ]
+  # Plex
+  - job_name: plex
+    static_configs:
+      - targets: [ 10.80.0.8:9594 ]
   # Wireguard
   - job_name: wireguard
     static_configs:

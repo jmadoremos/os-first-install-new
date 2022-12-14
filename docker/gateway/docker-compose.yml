@@ -15,6 +15,8 @@ version: '3'
 # - OMADA_PASS
 # - OMADA_SITE (default: Default)
 # - OMADA_USER
+# - PLEX_SERVER
+# - PLEX_TOKEN
 # - PROMETHEUS_DIR (default: ./prometheus)
 ################################################
 services:
@@ -38,6 +40,24 @@ services:
     restart: unless-stopped
 
   # *** Prometheus Exporter ***
+  # Prometheus exporter for containers.
+  container_monitor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: container-monitor
+    volumes:
+      - '/:/rootfs:ro'
+      - '/var/run:/var/run:ro'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker/:/var/lib/docker:ro'
+      - '/dev/disk/:/dev/disk:ro'
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.7
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    privileged: true
+    restart: unless-stopped
+
   # Prometheus exporter for node machines.
   node_monitor:
     image: quay.io/prometheus/node-exporter:latest
@@ -67,6 +87,19 @@ services:
       OMADA_PASS: ${OMADA_PASS}
       OMADA_SITE: ${OMADA_SITE:-Default}
       OMADA_USER: ${OMADA_USER}
+    restart: unless-stopped
+
+  # A Prometheus exporter for plex.
+  plex_monitor:
+    image: granra/plex_exporter:latest
+    container_name: plex-monitor
+    command:
+      - --plex-server=${PLEX_SERVER}
+      - --token=${PLEX_TOKEN}
+      - --auto-discover
+    networks:
+      internal_net:
+        ipv4_address: 10.80.0.8
     restart: unless-stopped
 
   # *** Prometheus ***
