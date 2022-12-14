@@ -733,7 +733,7 @@
                 },
                 "tooltip": {
                     "mode": "multi",
-                    "sort": "none"
+                    "sort": "desc"
                 }
             },
             "pluginVersion": "9.3.1",
@@ -1183,6 +1183,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 18,
+    "version": 19,
     "weekStart": "sunday"
 }
