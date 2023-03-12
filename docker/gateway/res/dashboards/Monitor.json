@@ -609,7 +609,7 @@
                 "legend": {
                     "displayMode": "list",
                     "placement": "right",
-                    "showLegend": true,
+                    "showLegend": false,
                     "values": []
                 },
                 "pieType": "pie",
@@ -664,7 +664,7 @@
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "mode": "palette-classic"
+                        "mode": "continuous-GrYlRd"
                     },
                     "custom": {
                         "axisCenteredZero": false,
@@ -673,8 +673,8 @@
                         "axisPlacement": "auto",
                         "barAlignment": 0,
                         "drawStyle": "line",
-                        "fillOpacity": 25,
-                        "gradientMode": "none",
+                        "fillOpacity": 50,
+                        "gradientMode": "scheme",
                         "hideFrom": {
                             "legend": false,
                             "tooltip": false,
@@ -706,10 +706,6 @@
                             {
                                 "color": "green",
                                 "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
                             }
                         ]
                     },
@@ -745,7 +741,7 @@
                     },
                     "editorMode": "builder",
                     "expr": "omada_client_download_activity_bytes",
-                    "legendFormat": "{{ip}}",
+                    "legendFormat": "{{client}}({{ip}})",
                     "range": true,
                     "refId": "A"
                 }
@@ -771,7 +767,7 @@
                         "axisPlacement": "auto",
                         "barAlignment": 0,
                         "drawStyle": "line",
-                        "fillOpacity": 20,
+                        "fillOpacity": 50,
                         "gradientMode": "scheme",
                         "hideFrom": {
                             "legend": false,
@@ -916,7 +912,7 @@
                     },
                     "editorMode": "builder",
                     "expr": "irate(deluge_libtorrent_net_recv_bytes_total[1m])",
-                    "legendFormat": "Download",
+                    "legendFormat": "Torrent Download",
                     "range": true,
                     "refId": "A"
                 },
@@ -928,9 +924,21 @@
                     "editorMode": "builder",
                     "expr": "irate(deluge_libtorrent_net_sent_bytes_total[1m])",
                     "hide": false,
-                    "legendFormat": "Upload",
+                    "legendFormat": "Torrent Upload",
                     "range": true,
                     "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "-QvJsgc4k"
+                    },
+                    "editorMode": "builder",
+                    "expr": "irate(sabnzbd_queue_download_rate_bytes_per_second[1m])",
+                    "hide": false,
+                    "legendFormat": "Usenet Download",
+                    "range": true,
+                    "refId": "C"
                 }
             ],
             "title": "Torrent bandwidth utilization",
@@ -993,32 +1001,7 @@
                     },
                     "unit": "percent"
                 },
-                "overrides": [
-                    {
-                        "__systemRef": "hideSeriesFrom",
-                        "matcher": {
-                            "id": "byNames",
-                            "options": {
-                                "mode": "exclude",
-                                "names": [
-                                    "{__name__=\"container_memory_rss\", container_label_com_docker_compose_config_hash=\"0e077f0d22002b223deb466c34da37a77e2bfa9090bacee2d33ed31f4d6d5372\", container_label_com_docker_compose_container_number=\"1\", container_label_com_docker_compose_image=\"sha256:ef66c60e791cd31ababb93073d2088e63c565e1384645147f06991a868fbae0b\", container_label_com_docker_compose_oneoff=\"False\", container_label_com_docker_compose_project=\"bittorrent\", container_label_com_docker_compose_project_config_files=\"/data/compose/17/docker-compose.yml\", container_label_com_docker_compose_project_environment_file=\"/data/compose/17/stack.env\", container_label_com_docker_compose_project_working_dir=\"/data/compose/17\", container_label_com_docker_compose_service=\"deluge-vpn\", container_label_com_docker_compose_version=\"2.5.1\", container_label_org_opencontainers_image_authors=\"= binhex\", container_label_org_opencontainers_image_source=\"= https://github.com/binhex/arch-delugevpn\", id=\"/system.slice/docker-5b3b419564e91fd4b2fffa7ffa75dd0b8e425ae08f58f1d0e38d061308082f1e.scope\", image=\"binhex/arch-delugevpn:latest\", instance=\"10.80.0.7:8080\", job=\"cadvisor\", name=\"bittorrent-client\"}"
-                                ],
-                                "prefix": "All except:",
-                                "readOnly": true
-                            }
-                        },
-                        "properties": [
-                            {
-                                "id": "custom.hideFrom",
-                                "value": {
-                                    "legend": false,
-                                    "tooltip": false,
-                                    "viz": true
-                                }
-                            }
-                        ]
-                    }
-                ]
+                "overrides": []
             },
             "gridPos": {
                 "h": 11,
@@ -1079,7 +1062,7 @@
                         "axisPlacement": "auto",
                         "barAlignment": 0,
                         "drawStyle": "line",
-                        "fillOpacity": 20,
+                        "fillOpacity": 50,
                         "gradientMode": "scheme",
                         "hideFrom": {
                             "legend": false,
@@ -1168,7 +1151,7 @@
             "type": "timeseries"
         }
     ],
-    "refresh": "5m",
+    "refresh": "30s",
     "schemaVersion": 37,
     "style": "dark",
     "tags": [],
@@ -1183,6 +1166,6 @@
     "timezone": "Asia/Manila",
     "title": "Monitor",
     "uid": "JhJW8Rc4z",
-    "version": 22,
+    "version": 29,
     "weekStart": "sunday"
 }

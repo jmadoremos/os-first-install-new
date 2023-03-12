@@ -1,8 +1,8 @@
-# BitTorrent
+# Download Manager
 
-This stack creates services to support and manage a BitTorrent client. BitTorrent is a communication protocol for peer-to-peer (P2P) file sharing in  a distributed, decentralized infrastructure.
+This stack creates services to support and manage a BitTorrent and a Usenet clients. BitTorrent is a communication protocol for peer-to-peer (P2P) file sharing in  a distributed, decentralized infrastructure. Usenet is an early non-centralized computer network for the discussion of particular topics and the sharing of files via newsgroups.
 
-For more information, refer to [What is BitTorrent?](https://help.bittorrent.com/en/support/solutions/articles/29000039924-what-is-bittorrent-) from BitTorrent.
+For more information, refer to [What is BitTorrent?](https://help.bittorrent.com/en/support/solutions/articles/29000039924-what-is-bittorrent-) from BitTorrent and [Usenet](https://en.wikipedia.org/wiki/Usenet) from Wikipedia.
 
 ## Containers
 
@@ -21,6 +21,8 @@ For more information, refer to [What is BitTorrent?](https://help.bittorrent.com
 * [Prowlarr](https://hub.docker.com/r/binhex/arch-prowlarr) (custom image) is a indexer manager/proxy built on the popular arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports both Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr, Radarr, Lidarr, and Readarr offering complete management of your indexers with no per app Indexer setup required (we do it all).
 
 * [Radarr](https://github.com/binhex/arch-radarr) is a fork of Sonarr aims to turn it into something like Couchpotato.
+
+* [SABnzbd VPN](https://github.com/binhex/arch-sabnzbdvpn) is an Open Source Binary Newsreader written in Python.
 
 * [Sonarr](https://github.com/binhex/arch-sonarr) is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.
 
@@ -116,6 +118,14 @@ _Required_: No
 
 _Default_: `./radarr-uhd`
 
+`DIR_SABNZBD`
+
+The directory containing SABnzbd-vpn configurations.
+
+_Required_: No
+
+_Default_: `./sabnzbd-vpn`
+
 `DIR_SONARR_ANIME`
 
 The directory containing sonarr configurations. This instance will manage Anime media.
@@ -179,6 +189,12 @@ A local group's ID. This allows the containers to map their internal users to a 
 _Required_: No
 
 _Default_: `1000`
+
+`SABNZBD_API_KEY`
+
+Comma seperated list of API keys for SABnzbd. Positionally each API key must be for the same server as in the equivilent position of the SABNZBD_BASEURLS.
+
+_Required_: Yes
 
 `TZ`
 
@@ -260,6 +276,7 @@ This stack will not expose the individual ports used by any application apart fr
 * `prowlarr` address: `http://10.81.12.8:9696/`
 * `radarr` (FHD) address: `http://10.81.12.4:7878/`
 * `radarr` (UHD) address: `http://10.81.12.5:7878/`
+* `sabnzbd-vpn` address: `http://10.81.12.13:8080/`
 * `sonarr` (Anime) address: `http://10.81.12.6:8989/`
 * `sonarr` (TV Series) address: `http://10.81.12.7:8989/`
 
@@ -271,11 +288,35 @@ This stack will not expose the individual ports used by any application apart fr
 
     2. In the same `Preferences` dialog box, enable the `Label` plug-in of the `Plug-ins` page.
 
-2. Setup `deemix` by navigating to its domain.
+2. Setup `sabnzdb-vpn`.
+
+    1. Before starting the container, do the following:
+    
+        1. Create a `/config/wg0.conf` file that contains the WireGuard configuration.
+
+        2. Update `/config/sabnzbd.ini` file,
+        
+            * Update `host_whitelist` to add an entry matching the URL used to reverse proxy to the container web UI, if any.
+
+                > This property is a comma-separated (with spaces) values of base URLs (i.e., without http:// or https://, and port number).
+
+            * Set `download_dir` to `/data/incomplete`
+
+            * Set `complete_dir` to `/data/completed`
+
+            * Copy the value of `api_key` to be used for `sabnzbd-monitor` container. This value is auto generated.
+
+    3. After starting the container, wait for about 5 minutes before navigating to its domain.
+
+    4. Configure SABnzbd by setting language and defining primary usenet host.
+
+    5. In SABnzbd configuration page, add `prowlarr` as a category under `Category` tab.
+
+3. Setup `deemix` by navigating to its domain.
 
     1. Go to the `Settings` page, and login to `Deezer`.
 
-3. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains.
+4. Setup `lidarr`, `radarr` and `sonarr` by navigating to their individual domains.
 
     1. Connect each of these applications to the `deluge-vpn` by adding a new entry in `Download Clients` section of `Settings > Download Clients` page.
 
@@ -291,7 +332,7 @@ This stack will not expose the individual ports used by any application apart fr
 
     2. During the setup, copy the `API Key` in `Settings > General` page to be used when connecting `prowlarr` to these applications.
 
-4. Setup `prowlarr` by navigating to its domain.
+5. Setup `prowlarr` by navigating to its domain.
 
     1. Connect `lidarr`, `radarr`, and `sonarr` by adding a new entry in `Applications` section of `Settings > Apps` page.
 
@@ -317,7 +358,17 @@ This stack will not expose the individual ports used by any application apart fr
 
         5. Click the Save button.
 
-    3. Connect `flaresolverr` by adding a new indexer proxy in `Indexer Proxies` section of `Settings > Indexers` page.
+    3. Connect `sabnzbd-vpn` by adding a new entry in `Download Clients` section of `Settings > Download Clients` page.
+
+        1. Use the [IP address of deluge-vpn](#exposed-ports) in the `Host` field.
+        
+        2. Specify the API key in the `API Key` field using the value retrieved from `sabnzbd.ini` when setting up the configuration.
+
+        3. Click the Test button to test the connection. The button should change to a check mark.
+
+        4. Click the Save button.
+
+    4. Connect `flaresolverr` by adding a new indexer proxy in `Indexer Proxies` section of `Settings > Indexers` page.
 
         1. Use the [IP address of deluge-vpn](#exposed-ports) in the `Host` field.
 
@@ -327,11 +378,11 @@ This stack will not expose the individual ports used by any application apart fr
 
         4. Click the Save button.
 
-    4. Add Indexers by clicking the `+ Add Indexer` button in the `Indexers` page.
+    5. Add Indexers by clicking the `+ Add Indexer` button in the `Indexers` page.
 
         > For indexers with `FlareSolverr` section in the `Edit Indexer` page, add the `flaresolverr` in the `Tags` field. 
 
-5. Setup `overseerr` by navigating to its domain.
+6. Setup `overseerr` by navigating to its domain.
 
     1. Login to Plex.
 

@@ -10,7 +10,7 @@ Categories:
 
 * Multimedia Services
 
-  * [BitTorrent](#bittorrent)
+  * [Download Manager](#download-manager)
 
   * [Jellyfin](#jellyfin)
 
@@ -28,12 +28,12 @@ Categories:
 
 > The containers below assume that Network Shares are mounted to `/export` directory, and local IP address of the server running docker is `127.0.0.1`.
 
-### BitTorrent
+### Download Manager
 
-This stack creates services to support and manage a BitTorrent client. BitTorrent is a communication protocol for peer-to-peer (P2P) file sharing in  a distributed, decentralized infrastructure.
+This stack creates services to support and manage a BitTorrent and a Usenet clients. BitTorrent is a communication protocol for peer-to-peer (P2P) file sharing in  a distributed, decentralized infrastructure. Usenet is an early non-centralized computer network for the discussion of particular topics and the sharing of files via newsgroups.
 
 ```sh
-docker compose up --detach "docker/bittorrent/docker-compose.yml" 
+docker compose up --detach "docker/download-manager/docker-compose.yml" 
 ```
 
 ### Jellyfin

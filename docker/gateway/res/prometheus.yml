@@ -46,6 +46,10 @@ scrape_configs:
   - job_name: plex
     static_configs:
       - targets: [ 10.80.0.8:9594 ]
+  # SABnzbd
+  - job_name: sabnzbd
+    static_configs:
+      - targets: [ 10.81.12.14:9387 ]
   # Wireguard
   - job_name: wireguard
     static_configs:

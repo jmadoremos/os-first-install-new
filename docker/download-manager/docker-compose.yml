@@ -16,6 +16,7 @@ version: '3'
 # - DIR_PROWLARR (default: ./prowlarr)
 # - DIR_RADARR_FHD (default: ./radarr-fhd)
 # - DIR_RADARR_UHD (default: ./radarr-uhd)
+# - DIR_SABNZBD (default: ./sabnzbd-vpn)
 # - DIR_SONARR_ANIME (default: ./sonarr-anime)
 # - DIR_SONARR_TV (default: ./sonarr-tv)
 # - HOST_CIDR (default: 192.168.1.0/24)
@@ -24,6 +25,7 @@ version: '3'
 # - NAME_SERVERS (default: 192.168.1.1)
 # - PUID (default: 1000)
 # - PGID (default: 1000)
+# - SABNZBD_API_KEY
 # - TZ (default: Europe/London)
 # - UMASK (default: 000)
 # - VPN_CLIENT (default: wireguard)
@@ -47,7 +49,7 @@ services:
 
   deluge-vpn:
     image: binhex/arch-delugevpn:latest
-    container_name: bittorrent-client
+    container_name: deluge-vpn
     volumes:
       - ${DIR_DELUGE:-./deluge-vpn}:/config
       - ${DIR_DOWNLOADS_ARR}:/data
@@ -78,13 +80,56 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     restart: unless-stopped
 
+  # *** SABnzbd ***
+  # SABnzbd is an Open Source Binary Newsreader written in Python. It's totally
+  # free, incredibly easy to use, and works practically everywhere. SABnzbd
+  # makes Usenet as simple and streamlined as possible by automating everything
+  # we can. All you have to do is add an .nzb.
+  #
+  # This Docker includes OpenVPN and WireGuard to ensure a secure and private
+  # connection to the Internet, including use of iptables to prevent IP leakage
+  # when the tunnel is down. It also includes Privoxy to allow unfiltered
+  # access to index sites, to use Privoxy please point your application at
+  # http://<host ip>:8118.
+
+  sabnzbd-vpn:
+    image: binhex/arch-sabnzbdvpn:latest
+    container_name: sabnzbd-vpn
+    volumes:
+      - ${DIR_SABNZBD:-./sabnzbd-vpn}:/config
+      - ${DIR_DOWNLOADS_ARR}:/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.13
+    environment:
+      DEBUG: false # Options: true|false
+      ENABLE_PRIVOXY: yes # Options: yes|no
+      LAN_NETWORK: ${HOST_CIDR:-192.168.1.0/24}
+      NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      STRICT_PORT_FORWARD: yes # Options: yes|no
+      UMASK: ${UMASK:-000}
+      VPN_ENABLED: yes # Options: yes|no
+      VPN_USER: ${VPN_USER:-}
+      VPN_PASS: ${VPN_PASS:-}
+      VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
+      VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
+      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS:-}
+      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS:-}
+    privileged: true
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+    restart: unless-stopped
+
   # *** Deemix ***
   # deemix (lowercase) is a barebone deezer downloader library built from the
   # ashes of Deezloader Remix
 
   deemix:
     image: registry.gitlab.com/bockiii/deemix-docker
-    container_name: bittorrent-deemix
+    container_name: deemix
     volumes:
       - ${DIR_DEEMIX:-./deemix}:/config
       - ${DIR_DOWNLOADS_DEEMIX}:/downloads
@@ -106,7 +151,7 @@ services:
 
   # lidarr:
   #   image: binhex/arch-lidarr:latest
-  #   container_name: bittorrent-lidarr
+  #   container_name: lidarr
   #   volumes:
   #     - ${DIR_DOWNLOADS_ARR}:/data
   #     - ${DIR_MEDIA}:/media
@@ -129,7 +174,7 @@ services:
 
   radarr_fhd:
     image: binhex/arch-radarr:latest
-    container_name: bittorrent-radarr-fhd
+    container_name: radarr-fhd
     volumes:
       - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
@@ -148,7 +193,7 @@ services:
 
   radarr_uhd:
     image: binhex/arch-radarr:latest
-    container_name: bittorrent-radarr-uhd
+    container_name: radarr-uhd
     volumes:
       - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
@@ -173,7 +218,7 @@ services:
 
   # sonarr_anime:
   #  image: binhex/arch-sonarr:latest
-  #  container_name: bittorrent-sonarr-anime
+  #  container_name: sonarr-anime
   #  volumes:
   #    - ${DIR_DOWNLOADS_ARR}:/data
   #    - ${DIR_MEDIA}:/media
@@ -192,7 +237,7 @@ services:
 
   sonarr_tv:
     image: binhex/arch-sonarr:latest
-    container_name: bittorrent-sonarr-tv
+    container_name: sonarr-tv
     volumes:
       - ${DIR_DOWNLOADS_ARR}:/data
       - ${DIR_MEDIA}:/media
@@ -218,7 +263,7 @@ services:
 
   overseerr:
     image: binhex/arch-overseerr:latest
-    container_name: bittorrent-overseerr
+    container_name: overseerr
     volumes:
       - ${DIR_OVERSEERR:-./overseerr}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -243,7 +288,7 @@ services:
 
   flaresolverr:
     image: flaresolverr/flaresolverr:latest
-    container_name: bittorrent-flaresolverr
+    container_name: flaresolverr
     networks:
       internal_net:
         ipv4_address: 10.81.12.12
@@ -255,11 +300,11 @@ services:
     restart: unless-stopped
 
   # *** Prometheus Exporter ***
-  # A Prometheus exporter for Pi-hole.
+  # A Prometheus exporter for Deluge.
 
-  prometheus:
+  deluge-monitor:
     image: tobbez/deluge_exporter:latest
-    container_name: bittorrent-client-monitor
+    container_name: deluge-monitor
     volumes:
       - ${DIR_DELUGE:-./deluge-vpn}:/root/.config/deluge/:ro
     networks:
@@ -272,6 +317,21 @@ services:
     depends_on:
       - deluge-vpn
 
+  # A Prometheus exporter for SABNzbd.
+
+  sabnzbd-monitor:
+    image: msroest/sabnzbd_exporter:latest
+    container_name: sabnzbd-monitor
+    networks:
+      internal_net:
+        ipv4_address: 10.81.12.14
+    environment:
+      SABNZBD_BASEURLS: http://10.81.12.13:8080
+      SABNZBD_APIKEYS: ${SABNZBD_API_KEY}
+    restart: unless-stopped
+    depends_on:
+      - sabnzbd-vpn
+
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
   # base stack to integrate with your various PVR apps. Prowlarr supports both
@@ -281,7 +341,7 @@ services:
 
   prowlarr:
     image: binhex/arch-prowlarr:latest
-    container_name: bittorrent-prowlarr
+    container_name: prowlarr
     volumes:
       - ${DIR_PROWLARR:-./prowlarr}:/config
       - /etc/localtime:/etc/localtime:ro
@@ -307,7 +367,7 @@ networks:
 
   # *** Internal network ***
   internal_net:
-    name: bittorrent-vlan
+    name: download-manager-vlan
     driver: bridge
     ipam:
       config:
