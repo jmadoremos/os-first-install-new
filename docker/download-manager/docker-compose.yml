@@ -96,7 +96,9 @@ services:
     image: binhex/arch-sabnzbdvpn:latest
     container_name: sabnzbd-vpn
     volumes:
-      - ${DIR_SABNZBD:-./sabnzbd-vpn}:/config
+      - ${DIR_SABNZBD:-./sabnzbd-vpn}/logs:/config/logs
+      - ${DIR_SABNZBD:-./sabnzbd-vpn}/wireguard:/config/wireguard
+      - ${DIR_SABNZBD:-./sabnzbd-vpn}/sabnzbd.ini:/config/sabnzbd.ini
       - ${DIR_DOWNLOADS_ARR}:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
