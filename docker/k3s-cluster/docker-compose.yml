@@ -13,9 +13,9 @@ services:
 
   # *** k3s node with server role ***
 
-  server:
+  server_1:
     image: rancher/k3s:${K3S_VERSION:-latest}
-    container_name: k3s-server
+    container_name: k3s-server-1
     command: 
       - server
     ports:
@@ -61,7 +61,7 @@ services:
         ipv6_address: 2001:3984:3989::11
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.20:6443
+      - K3S_URL=https://10.64.43.10:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -70,7 +70,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server
+      - server_1
 
   agent_2:
     image: rancher/k3s:${K3S_VERSION:-latest}
@@ -89,7 +89,7 @@ services:
         ipv6_address: 2001:3984:3989::12
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.20:6443
+      - K3S_URL=https://10.64.43.10:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -98,7 +98,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server
+      - server_1
 
   agent_3:
     image: rancher/k3s:${K3S_VERSION:-latest}
@@ -117,7 +117,7 @@ services:
         ipv6_address: 2001:3984:3989::13
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.20:6443
+      - K3S_URL=https://10.64.43.10:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -126,7 +126,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server
+      - server_1
 
 ################################################
 # DEFINE NETWORKS
@@ -136,7 +136,7 @@ networks:
   # *** Internal network ***
 
   internal_net:
-    name: k3s_internal_net
+    name: k3s-vlan
     driver: bridge
     ipam:
       config:
