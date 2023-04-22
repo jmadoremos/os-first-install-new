@@ -1,0 +1,50 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment variables:
+# - HOST_IPADDR
+################################################
+services:
+
+  # *** Home Assistant ***
+  # Open source home automation that puts local control and privacy first.
+  # Powered by a worldwide community of tinkerers and DIY enthusiasts.
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    ports:
+      - '${HOST_IPADDR}:8123:8123/tcp'
+    volumes:
+      - home-automation_homeassistant_data:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.81.23.2
+    restart: unless-stopped
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** Internal network ***
+  internal_net:
+    name: home-automation-vlan
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.81.23.0/24
+          gateway: 10.81.23.1
+
+################################################
+# DEFINE VOLUMES
+################################################
+volumes:
+
+  # *** Persistent storage for Home Assistant ***
+  # For /config
+  home-automation_homeassistant_data:
+    name: home-automation-homeassistant-data

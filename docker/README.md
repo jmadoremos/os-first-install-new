@@ -8,6 +8,10 @@ Categories:
 
   * [Jupyter Notebook](#jupyter-notebook)
 
+* Automation
+
+  * [Home Automation](#home-automation)
+
 * Multimedia Services
 
   * [Download Manager](#download-manager)
@@ -86,4 +90,12 @@ docker compose up --detach "docker/plex/docker-compose.yml"
 
 ```sh
 docker compose up --detach "docker/wireguard/docker-compose.yml"
+```
+
+### Home Automation
+
+Home Automation stack creates services to support and manage home automation.
+
+```sh
+docker compose up --detach "docker/home-automation/docker-compose.yml"
 ```
