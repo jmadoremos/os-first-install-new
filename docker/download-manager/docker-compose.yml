@@ -10,6 +10,7 @@ version: '3'
 # - DIR_DELUGE (default: ./deluge-vpn)
 # - DIR_DOWNLOADS_ARR
 # - DIR_DOWNLOADS_DEEMIX
+# - DIR_DOWNLOADS_USENET
 # - DIR_LIDARR (default: ./lidarr)
 # - DIR_MEDIA
 # - DIR_OVERSEERR (default: ./overseerr)
@@ -99,7 +100,7 @@ services:
       - ${DIR_SABNZBD:-./sabnzbd-vpn}/logs:/config/logs
       - ${DIR_SABNZBD:-./sabnzbd-vpn}/wireguard:/config/wireguard
       - ${DIR_SABNZBD:-./sabnzbd-vpn}/sabnzbd.ini:/config/sabnzbd.ini
-      - ${DIR_DOWNLOADS_ARR}:/data
+      - ${DIR_DOWNLOADS_USENET}:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:

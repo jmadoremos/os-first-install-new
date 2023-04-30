@@ -62,13 +62,19 @@ _Default_: `./deluge-vpn`
 
 `DIR_DOWNLOADS_ARR`
 
-The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete` and `completed` directories.
+The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete` and `completed` directories. For torrents only.
 
 _Required_: Yes
 
 `DIR_DOWNLOADS_DEEMIX`
 
 The directory where dowloading and dowloaded music from Deemix are stored.
+
+_Required_: Yes
+
+`DIR_DOWNLOADS_USENET`
+
+The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete` and `completed` directories. For usenets only.
 
 _Required_: Yes
 
