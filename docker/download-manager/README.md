@@ -62,7 +62,7 @@ _Default_: `./deluge-vpn`
 
 `DIR_DOWNLOADS_ARR`
 
-The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete/` and `completed` directories.
+The directory where dowloading and dowloaded movies and TV series are stored. This directory should contain `incomplete` and `completed` directories.
 
 _Required_: Yes
 
