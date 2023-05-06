@@ -40,5 +40,5 @@ Other extra installations:
 * Docker
 
 ```sh
-ansible-playbook "linux/shared/ansible/docker-install.yml" --extra-vars "ansible_user=$(whoami)"
+ansible-playbook "linux/shared/ansible/docker-install.ansible.yml" --extra-vars "ansible_user=$(whoami)"
 ```

@@ -1,8 +1,8 @@
 {
     // Define file associations with extensions
-    "files.associations": {
-        "**/ansible/*.yml": "ansible"
-    },
+    // "files.associations": {
+    //     "**/ansible/*.yml": "ansible"
+    // },
     "yaml.schemas": {
         "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json": "**/ansible/*.yml"
     }

@@ -5,7 +5,7 @@
 1. Install and configure pre-requisites
 
 ```sh
-ansible-playbook "linux/server/storage-server/ansible/first-install.yml" --extra-vars "ansible_user=$(whoami)"
+ansible-playbook "linux/server/storage-server/ansible/first-install.ansible.yml" --extra-vars "ansible_user=$(whoami)"
 ```
 
 2. Install Open Media Vault

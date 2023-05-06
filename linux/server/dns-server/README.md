@@ -7,7 +7,7 @@
 ```sh
 STORAGE_SERVER_IP="127.0.0.1" # Modify with the IP address of the storage_server
 
-ansible-playbook "linux/server/dns-server/ansible/media-mount.yml" --extra-vars "storage_server_ip=${STORAGE_SERVER_IP}"
+ansible-playbook "linux/server/dns-server/ansible/media-mount.ansible.yml" --extra-vars "storage_server_ip=${STORAGE_SERVER_IP}"
 ```
 
 2. Install and configure one of the following:
@@ -19,7 +19,7 @@ ANSIBLE_HOST_IP="127.0.0.1"  # Modify with the IP address of the dns_server
 ANSIBLE_USER_GID="1000" # Modify with the user's group id
 ANSIBLE_USER_UID="1000" # Modify with the user's user id
 
-ansible-playbook "linux/server/dns-server/ansible/dns-recursive-install.yml" --extra-vars "ansible_host_ip=$ANSIBLE_HOST_IP ansible_user_gid=$ANSIBLE_USER_GID ansible_user_uid=$ANSIBLE_USER_UID"
+ansible-playbook "linux/server/dns-server/ansible/dns-recursive-install.ansible.yml" --extra-vars "ansible_host_ip=$ANSIBLE_HOST_IP ansible_user_gid=$ANSIBLE_USER_GID ansible_user_uid=$ANSIBLE_USER_UID"
 
 docker exec pihole_recursive chown -R www-data:pihole /etc/pihole
 ```
@@ -31,7 +31,7 @@ ANSIBLE_HOST_IP="127.0.0.1"  # Modify with the IP address of the dns_server
 ANSIBLE_USER_GID="1000" # Modify with the user's group id
 ANSIBLE_USER_UID="1000" # Modify with the user's user id
 
-ansible-playbook "linux/server/dns-server/ansible/dns-doh-install.yml" --extra-vars "ansible_host_ip=$ANSIBLE_HOST_IP ansible_user_gid=$ANSIBLE_USER_GID ansible_user_uid=$ANSIBLE_USER_UID"
+ansible-playbook "linux/server/dns-server/ansible/dns-doh-install.ansible.yml" --extra-vars "ansible_host_ip=$ANSIBLE_HOST_IP ansible_user_gid=$ANSIBLE_USER_GID ansible_user_uid=$ANSIBLE_USER_UID"
 
 docker exec pihole_doh chown -R www-data:pihole /etc/pihole
 docker exec -it wireguard /app/show-peer mobile1
@@ -45,19 +45,19 @@ docker exec -it wireguard /app/show-peer mobile2
 * Recursive DNS
 
 ```sh
-ansible-playbook "linux/server/dns-server/ansible/dns-recursive-uninstall.yml"
+ansible-playbook "linux/server/dns-server/ansible/dns-recursive-uninstall.ansible.yml"
 ```
 
 * DNS-over-HTTPS
 
 ```sh
-ansible-playbook "linux/server/dns-server/ansible/dns-doh-uninstall.yml"
+ansible-playbook "linux/server/dns-server/ansible/dns-doh-uninstall.ansible.yml"
 ```
 
 2. Unmount network share
 
 ```sh
-ansible-playbook "linux/server/dns-server/ansible/media-unmount.yml"
+ansible-playbook "linux/server/dns-server/ansible/media-unmount.ansible.yml"
 ```
 
 ## Frequently Asked Questions
