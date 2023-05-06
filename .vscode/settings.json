@@ -5,5 +5,7 @@
     // },
     "yaml.schemas": {
         "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json": "**/ansible/*.yml"
-    }
+    },
+    // Disable ansible-lint
+    "ansible.validation.lint.enabled": false
 }
