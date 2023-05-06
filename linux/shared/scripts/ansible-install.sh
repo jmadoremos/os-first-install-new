@@ -32,14 +32,14 @@ k8s_cluster:
       children:
         k8s_master_primary:
           hosts:
-            localhost:
+            regia-01.local:
               node_name: regia-01
               ansible_connection: local
               ansible_python_interpreter: /usr/bin/python3
               ansible_shell_executable: /bin/bash
         k8s_master_redundant:
           hosts:
-            localhost:
+            regia-02.local:
               node_name: regia-02
               ansible_connection: local
               ansible_python_interpreter: /usr/bin/python3
