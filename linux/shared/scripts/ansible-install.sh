@@ -24,27 +24,6 @@ mkdir ${HOME}/.ansible/hosts -m 770 &> /dev/null
 [[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $SKIPPED"
 
 # Create host inventory
-echo -n "Creating ~/.ansible/hosts/servers..."
-cat << EOF | tee ${HOME}/.ansible/hosts/servers &> /dev/null
-servers:
-  children:
-    storage_server:
-      hosts:
-        alexandria:
-          node_name: alexandria
-          ansible_connection: local
-          ansible_python_interpreter: /usr/bin/python3
-          ansible_shell_executable: /bin/bash
-    media_server:
-      hosts:
-        dionysus:
-          node_name: dionysus
-          ansible_connection: ssh
-          ansible_python_interpreter: /usr/bin/python3
-          ansible_shell_executable: /bin/bash
-EOF
-[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
-
 echo -n "Creating ~/.ansible/hosts/k8s_cluster..."
 cat << EOF | tee ${HOME}/.ansible/hosts/k8s_cluster &> /dev/null
 k8s_cluster:
@@ -54,32 +33,16 @@ k8s_cluster:
         k8s_master_primary:
           hosts:
             localhost:
-              node_name: seraphimy
+              node_name: regia-01
               ansible_connection: local
-              ansible_python_interpreter: /usr/bin/python
+              ansible_python_interpreter: /usr/bin/python3
               ansible_shell_executable: /bin/bash
         k8s_master_redundant:
           hosts:
             localhost:
-              node_name: cheruvimy
+              node_name: regia-02
               ansible_connection: local
-              ansible_python_interpreter: /usr/bin/python
-              ansible_shell_executable: /bin/bash
-    k8s_workers:
-      children:
-        k8s_worker_local:
-          hosts:
-            sily-01:
-              node_name: sily-01
-              ansible_connection: local
-              ansible_python_interpreter: /usr/bin/python
-              ansible_shell_executable: /bin/bash
-        k8s_worker_remote:
-          hosts:
-            localhost:
-              node_name: vlasti-01
-              ansible_connection: local
-              ansible_python_interpreter: /usr/bin/python
+              ansible_python_interpreter: /usr/bin/python3
               ansible_shell_executable: /bin/bash
 EOF
 [[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
