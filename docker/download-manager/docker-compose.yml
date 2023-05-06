@@ -93,38 +93,38 @@ services:
   # access to index sites, to use Privoxy please point your application at
   # http://<host ip>:8118.
 
-  sabnzbd-vpn:
-    image: binhex/arch-sabnzbdvpn:latest
-    container_name: sabnzbd-vpn
-    volumes:
-      - ${DIR_SABNZBD:-./sabnzbd-vpn}/logs:/config/logs
-      - ${DIR_SABNZBD:-./sabnzbd-vpn}/wireguard:/config/wireguard
-      - ${DIR_SABNZBD:-./sabnzbd-vpn}/sabnzbd.ini:/config/sabnzbd.ini
-      - ${DIR_DOWNLOADS_USENET}:/data
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.13
-    environment:
-      DEBUG: false # Options: true|false
-      ENABLE_PRIVOXY: yes # Options: yes|no
-      LAN_NETWORK: ${HOST_CIDR:-192.168.1.0/24}
-      NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      STRICT_PORT_FORWARD: yes # Options: yes|no
-      UMASK: ${UMASK:-000}
-      VPN_ENABLED: yes # Options: yes|no
-      VPN_USER: ${VPN_USER:-}
-      VPN_PASS: ${VPN_PASS:-}
-      VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
-      VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
-      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS:-}
-      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS:-}
-    privileged: true
-    sysctls:
-      net.ipv4.conf.all.src_valid_mark: 1
-    restart: unless-stopped
+  # sabnzbd-vpn:
+  #   image: binhex/arch-sabnzbdvpn:latest
+  #   container_name: sabnzbd-vpn
+  #   volumes:
+  #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/logs:/config/logs
+  #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/wireguard:/config/wireguard
+  #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/sabnzbd.ini:/config/sabnzbd.ini
+  #     - ${DIR_DOWNLOADS_USENET}:/data
+  #     - /etc/localtime:/etc/localtime:ro
+  #   networks:
+  #     internal_net:
+  #       ipv4_address: 10.81.12.13
+  #   environment:
+  #     DEBUG: false # Options: true|false
+  #     ENABLE_PRIVOXY: yes # Options: yes|no
+  #     LAN_NETWORK: ${HOST_CIDR:-192.168.1.0/24}
+  #     NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
+  #     PUID: ${PUID:-1000}
+  #     PGID: ${PGID:-1000}
+  #     STRICT_PORT_FORWARD: yes # Options: yes|no
+  #     UMASK: ${UMASK:-000}
+  #     VPN_ENABLED: yes # Options: yes|no
+  #     VPN_USER: ${VPN_USER:-}
+  #     VPN_PASS: ${VPN_PASS:-}
+  #     VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
+  #     VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
+  #     VPN_INPUT_PORTS: ${VPN_INPUT_PORTS:-}
+  #     VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS:-}
+  #   privileged: true
+  #   sysctls:
+  #     net.ipv4.conf.all.src_valid_mark: 1
+  #   restart: unless-stopped
 
   # *** Deemix ***
   # deemix (lowercase) is a barebone deezer downloader library built from the
@@ -322,18 +322,18 @@ services:
 
   # A Prometheus exporter for SABNzbd.
 
-  sabnzbd-monitor:
-    image: msroest/sabnzbd_exporter:latest
-    container_name: sabnzbd-monitor
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.14
-    environment:
-      SABNZBD_BASEURLS: http://10.81.12.13:8080
-      SABNZBD_APIKEYS: ${SABNZBD_API_KEY}
-    restart: unless-stopped
-    depends_on:
-      - sabnzbd-vpn
+  # sabnzbd-monitor:
+  #   image: msroest/sabnzbd_exporter:latest
+  #   container_name: sabnzbd-monitor
+  #   networks:
+  #     internal_net:
+  #       ipv4_address: 10.81.12.14
+  #   environment:
+  #     SABNZBD_BASEURLS: http://10.81.12.13:8080
+  #     SABNZBD_APIKEYS: ${SABNZBD_API_KEY}
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - sabnzbd-vpn
 
   # *** Prowlarr ***
   # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
