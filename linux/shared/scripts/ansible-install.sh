@@ -33,15 +33,15 @@ k8s_cluster:
         k8s_master_primary:
           hosts:
             regia-01.local:
-              node_name: regia-01
-              ansible_connection: local
+              ansible_connection: ssh
+              ansible_user: sebas
               ansible_python_interpreter: /usr/bin/python3
               ansible_shell_executable: /bin/bash
         k8s_master_redundant:
           hosts:
             regia-02.local:
-              node_name: regia-02
-              ansible_connection: local
+              ansible_connection: ssh
+              ansible_user: sebas
               ansible_python_interpreter: /usr/bin/python3
               ansible_shell_executable: /bin/bash
 EOF

@@ -13,7 +13,7 @@ curl -sfL "https://raw.githubusercontent.com/jmadoremos/os-first-install-new/mai
 Install and configure pre-requisites
 
 ```sh
-ansible-playbook "kubernetes/ansible/first-install.ansible.yml" --extra-vars "ansible_user=$(whoami)"
+ansible-playbook "kubernetes/ansible/first-install.ansible.yml"
 ```
 
 ### Install and Setup Cluster Nodes
