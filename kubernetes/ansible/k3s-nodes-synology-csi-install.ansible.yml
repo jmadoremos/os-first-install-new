@@ -57,7 +57,7 @@
 
     - name: Copy k3s-synology-client-info.yml to ~/.kube/tmp/synology-csi/config folder
       ansible.builtin.copy:
-        src: ../namespaces/synology-csi/synology-client-info.yml
+        src: ../namespaces/synology-csi/client-info.yml
         dest: ~/.kube/tmp/synology-csi/config/client-info.yml
         mode: 0644
 

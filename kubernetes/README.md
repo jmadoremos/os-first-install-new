@@ -108,6 +108,12 @@ kubectl delete svc nginx
 kubectl get all
 ```
 
+* Clean up everything
+
+```sh
+kubectl delete -f "kubernetes/namespaces/metallb-system/k3s-server-pool.yml"
+```
+
 ### Setup Synology CSI
 
 1. Build and install Synology CSI driver
@@ -129,15 +135,41 @@ kubectl get pods --namespace synology-csi
 ```sh
 kubectl get secrets -n synology-csi
 
-kubectl create secret -n synology-csi generic client-info-secret -f kubernetes/namespaces/synology-csi/synology-client-info.yml
+kubectl create secret -n synology-csi generic client-info-secret --from-file="kubernetes/namespaces/synology-csi/client-info.yml"
+
+kubectl describe Secret client-info-secret -n synology-csi
+
+kubectl get secret client-info-secret -n synology-csi -o json | jq -r '.data."client-info.yml"' | base64 --decode
 ```
 
-4. Create the desired storage class
+4. Create the desired storage class. Step #1 already creates a temp storage class which must be removed to properly configure the resource.
 
 ```sh
 kubectl delete -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
 
 kubectl apply -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
+
+kubectl describe StorageClass synology-iscsi-storage -n synology-csi
+```
+
+5. Create a PVC to test the storage configuration
+
+```sh
+kubectl apply -f "kubernetes/namespaces/synology-csi/test-persistent-volume-claim.yml"
+
+kubectl describe PersistentVolumeClaim test-persistent-volume-claim
+```
+
+6. Clean up testing resources
+
+```sh
+kubectl delete -f "kubernetes/namespaces/synology-csi/test-persistent-volume-claim.yml"
+```
+
+* Clean up everything
+
+```sh
+ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-uninstall.ansible.yml"
 ```
 
 ## Pods Deployment
