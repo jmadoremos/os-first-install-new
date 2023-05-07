@@ -61,6 +61,9 @@ EOF
 # Set permissions for ~/.ansible.cfg
 sudo chmod 640 ${HOME}/.ansible.cfg
 
+# Install collections from Ansible Galaxy
+ansible-galaxy collection install kubernetes.core
+
 # Add host inventory to environment variable
 export ANSIBLE_INVENTORY=${HOME}/.ansible/hosts/
 
