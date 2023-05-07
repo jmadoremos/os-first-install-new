@@ -130,13 +130,15 @@ kubectl get pods --namespace synology-csi
 ```sh
 kubectl get secrets -n synology-csi
 
-kubectl create secret -n synology-csi generic client-info-secret -f kubernetes/res/k3s-synology-client-info.yml
+kubectl create secret -n synology-csi generic client-info-secret -f kubernetes/namespaces/synology-csi/synology-client-info.yml
 ```
 
 4. Create the desired storage class
 
 ```sh
-kubectl apply -f "kubernetes/res/k3s-synology-storage-iscsi.yml"
+kubectl delete -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
+
+kubectl apply -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
 ```
 
 ## Pods Deployment
