@@ -1,0 +1,40 @@
+########################################################################
+# Extra variables:
+# - k3s_datastore_edp (string)
+# - k3s_token (string)
+# 
+# Host inventory variables:
+# - ansible_host (builtin)
+########################################################################
+- name: Install Kubernetes master nodes
+  hosts: k8s_masters
+  tasks:
+    - name: Check if k3s is installed
+      ansible.builtin.shell: k3s --version
+      register: k3s_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install k3s as master node
+      when: k3s_installed.rc != 0
+      ansible.builtin.shell: >-
+        curl -sfL https://get.k3s.io | sh -s - server \
+          --datastore-endpoint "{{ k3s_datastore_edp }}" \
+          --disable servicelb \
+          --token "{{ k3s_token }}" \
+          --write-kubeconfig-mode 644
+      args:
+        warn: false
+      changed_when: false
+
+    - name: Create ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+      
+    - name: Copy kube config to ~/.kube folder
+      ansible.builtin.copy:
+        remote_src: true 
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: ~/.kube/config
+        mode: 0644

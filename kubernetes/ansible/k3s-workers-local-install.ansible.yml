@@ -1,0 +1,39 @@
+########################################################################
+# Extra variables:
+# - k3s_fixed_reg_addr (string)
+# - k3s_token (string)
+# 
+# Host inventory variables:
+# None
+########################################################################
+- name: Install Kubernetes worker nodes - local
+  hosts: k8s_workers_local
+  tasks:
+    - name: Check if k3s is installed
+      ansible.builtin.shell: k3s --version
+      register: k3s_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install k3s as worker node
+      when: k3s_installed.rc != 0
+      ansible.builtin.shell: >-
+        curl -sfL https://get.k3s.io | sh -s - agent \
+          --server "{{ k3s_fixed_reg_addr }}"
+          --token "{{ k3s_token }}" \
+          --write-kubeconfig-mode 644
+      args:
+        warn: false
+      changed_when: false
+
+    - name: Create ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+      
+    - name: Copy kube config to ~/.kube folder
+      ansible.builtin.copy:
+        remote_src: true 
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: ~/.kube/config
+        mode: 0644

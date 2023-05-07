@@ -1,0 +1,39 @@
+########################################################################
+# Extra variables:
+# None
+# 
+# Host inventory variables:
+# None
+########################################################################
+- name: Uninstall Kubernetes master nodes
+  hosts: k8s_masters
+  tasks:
+    - name: Check if k3s is installed
+      ansible.builtin.shell: k3s --version
+      register: k3s_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Uninstall k3s master node
+      when: k3s_installed.rc == 0
+      ansible.builtin.shell: >-
+        /usr/local/bin/k3s-uninstall.sh
+      changed_when: false
+      failed_when: false
+
+    - name: Remove ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: absent
+
+    - name: Remove /etc/rancher folder
+      become: yes
+      ansible.builtin.file:
+        path: /etc/rancher
+        state: absent
+
+    - name: Remove /var/lib/rancher folder
+      become: yes
+      ansible.builtin.file:
+        path: /var/lib/rancher
+        state: absent
