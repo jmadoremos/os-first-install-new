@@ -85,7 +85,7 @@ kubectl get pods --namespace metallb-system | grep "ContainerCreating"
 > Replace the range `127.0.0.1-127.0.0.2` with the IP addresses of the master node
 
 ```sh
-kubectl apply -f "kubernetes/res/k3s-server-pool.yml"
+kubectl apply -f "kubernetes/namespaces/metallb-system/k3s-server-pool.yml"
 ```
 
 7. Test a web deployment.
