@@ -110,7 +110,6 @@ kubectl get all
 
 ### Setup Synology CSI
 
-
 1. Build and install Synology CSI driver
 
 ```sh
