@@ -5,6 +5,7 @@ version: '3'
 #
 # Environment Variables:
 # - DIR_AGENT (default: ./k3s-agent)
+# - DIR_NGINX (default: ./nginx)
 # - DIR_SERVER (default: ./k3s-server)
 # - K3S_TOKEN
 # - K3S_VERSION (default: latest)
@@ -42,6 +43,52 @@ services:
       start_period: 5m
     restart: unless-stopped
 
+  server_2:
+    image: rancher/k3s:${K3S_VERSION:-latest}
+    container_name: k3s-server-2
+    command: 
+      - server
+    ports:
+      - '6443:6443/tcp'
+    privileged: true
+    volumes:
+      - ${DIR_SERVER:-./k3s-server}:/output
+    tmpfs:
+      - /run
+      - /var/run
+    networks:
+      internal_net:
+        ipv4_address: 10.64.43.20
+        ipv6_address: 2001:3984:3989::20
+    environment:
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=644
+      - K3S_TOKEN=${K3S_TOKEN}
+    healthcheck:
+      test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 5m
+    restart: unless-stopped
+
+  # *** k3s server load balancer ***
+
+  server_lb:
+    image: nginx:mainline-alpine
+    container_name: k3s-server-lb
+    volumes:
+      - ${DIR_NGINX:-./nginx}/logs:/etc/nginx/logs
+      - ${DIR_NGINX:-./nginx}/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      internal_net:
+        ipv4_address: 10.64.43.100
+        ipv6_address: 2001:3984:3989::100
+    restart: unless-stopped
+    depends_on:
+      - server_1
+      - server_2
+
   # *** k3s nodes with agent role ***
 
   agent_1:
@@ -57,11 +104,11 @@ services:
       - /var/run
     networks:
       internal_net:
-        ipv4_address: 10.64.43.11
-        ipv6_address: 2001:3984:3989::11
+        ipv4_address: 10.64.43.101
+        ipv6_address: 2001:3984:3989::101
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.10:6443
+      - K3S_URL=https://10.64.43.100:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -70,7 +117,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server_1
+      - server_lb
 
   agent_2:
     image: rancher/k3s:${K3S_VERSION:-latest}
@@ -85,11 +132,11 @@ services:
       - /var/run
     networks:
       internal_net:
-        ipv4_address: 10.64.43.12
-        ipv6_address: 2001:3984:3989::12
+        ipv4_address: 10.64.43.102
+        ipv6_address: 2001:3984:3989::102
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.10:6443
+      - K3S_URL=https://10.64.43.100:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -98,7 +145,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server_1
+      - server_lb
 
   agent_3:
     image: rancher/k3s:${K3S_VERSION:-latest}
@@ -113,11 +160,11 @@ services:
       - /var/run
     networks:
       internal_net:
-        ipv4_address: 10.64.43.13
-        ipv6_address: 2001:3984:3989::13
+        ipv4_address: 10.64.43.103
+        ipv6_address: 2001:3984:3989::103
     environment:
       - K3S_TOKEN=${K3S_TOKEN}
-      - K3S_URL=https://10.64.43.10:6443
+      - K3S_URL=https://10.64.43.100:6443
     healthcheck:
       test: kubectl get nodes | grep $$(hostname) | grep ' Ready' || exit 1
       interval: 1m
@@ -126,7 +173,7 @@ services:
       start_period: 5m
     restart: unless-stopped
     depends_on:
-      - server_1
+      - server_lb
 
 ################################################
 # DEFINE NETWORKS
