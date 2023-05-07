@@ -1,0 +1,34 @@
+########################################################################
+# Extra variables:
+# - driver_version (string)
+# 
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Install Kubernetes CSI to the Kubernetes cluster
+  hosts: k8s_cluster
+  tasks:
+    - name: Create ~/.kube/tmp folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp
+        state: directory
+
+    - name: Install pre-requisite packages
+      become: yes
+      ansible.builtin.apt:
+        state: present
+        pkg:
+          - git
+      register: prerequisite_install
+
+    - name: Clone Kubernetes CSI repository
+      ansible.builtin.git:
+        repo: 'https://github.com/kubernetes-csi/csi-driver-smb.git'
+        dest: ~/.kube/tmp/csi-driver-smb
+        version: "{{ driver_version }}"
+
+    - name: Install Kubernetes CSI driver
+      ansible.builtin.shell:
+        chdir: ~/.kube/tmp/csi-driver-smb
+        cmd: ./deploy/install-driver.sh {{ driver_version }} local
+      changed_when: false

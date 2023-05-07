@@ -172,6 +172,70 @@ kubectl delete -f "kubernetes/namespaces/synology-csi/test-persistent-volume-cla
 ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-uninstall.ansible.yml"
 ```
 
+### Setup Kubernetes CSI
+
+1. Build and install Synology CSI driver
+
+```sh
+DRIVER_VERSION="v1.10.0"
+
+ansible-playbook "kubernetes/ansible/k3s-nodes-kubernetes-csi-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+
+kubectl -n kube-system get pod -o wide -l app=csi-smb-controller
+
+kubectl -n kube-system get pod -o wide -l app=csi-smb-node
+```
+
+2. Create secrets
+
+```sh
+SMB_USERNAME="username" # Modify
+
+SMB_PASSWORD="password" # Modify
+
+kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
+
+kubectl describe Secret csi-smb-credentials
+
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
+
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
+```
+
+3. Create storage class
+
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+
+kubectl describe StorageClass csi-smb-storage
+```
+
+4. Create a PVC to test the storage configuration
+
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+
+kubectl describe PersistentVolumeClaim csi-smb-test-pvc
+```
+
+5. Clean up testing resources
+
+```sh
+kubectl delete -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+```
+
+* Clean up everything
+
+```sh
+kubectl delete -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+
+kubectl delete secret csi-smb-credentials
+
+DRIVER_VERSION="v1.10.0"
+
+ansible-playbook "kubernetes/ansible/k3s-nodes-kubernetes-csi-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
+
 ## Pods Deployment
 
 The pods deployment are handled by namespace:
