@@ -5,7 +5,7 @@
 # Host inventory variables:
 # - ansible_user (builtin)
 ########################################################################
-- name: Install Synology Container Storage Interface (CSI) to the Kubernetes cluster
+- name: Uninstall Synology Container Storage Interface (CSI) from the Kubernetes cluster
   hosts: k8s_cluster
   tasks:
     - name: Uninstall Synology CSI driver
