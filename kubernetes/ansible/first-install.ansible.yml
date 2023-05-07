@@ -5,7 +5,7 @@
 # Host inventory variables:
 # NONE
 ########################################################################
-- name: Initialize kubernetes cluster
+- name: Initialize Kubernetes cluster
   hosts: k8s_cluster
   tasks:
     - name: Add dedicated sudoer file for "{{ ansible_user }}"
