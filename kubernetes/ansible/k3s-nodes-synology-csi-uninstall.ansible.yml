@@ -1,0 +1,21 @@
+########################################################################
+# Extra variables:
+# None
+# 
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Install Synology Container Storage Interface (CSI) to the Kubernetes cluster
+  hosts: k8s_cluster
+  tasks:
+    - name: Uninstall Synology CSI driver
+      become: yes
+      become_user: "{{ ansible_user }}"
+      ansible.builtin.shell: >-
+        ~/.kube/tmp/synology-csi/scripts/uninstall.sh
+      changed_when: false
+
+    - name: Remove ~/.kube/tmp/synology-csi folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp/synology-csi
+        state: absent

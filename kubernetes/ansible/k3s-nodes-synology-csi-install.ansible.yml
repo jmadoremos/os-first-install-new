@@ -1,0 +1,69 @@
+########################################################################
+# Extra variables:
+# - driver_version (string)
+# 
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Install Synology Container Storage Interface (CSI) to the Kubernetes cluster
+  hosts: k8s_cluster
+  tasks:
+    - name: Create ~/.kube/tmp folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp
+        state: directory
+
+    - name: Install pre-requisite packages
+      become: yes
+      ansible.builtin.apt:
+        state: present
+        pkg:
+          - docker.io
+          - git
+      register: prerequisite_install
+
+    - name: Ensure "docker" group exists with correct gid
+      become: true
+      ansible.builtin.group:
+        name: docker
+        state: present
+        gid: 1750
+      register: docker_group_create
+
+    - name: Add current user to "docker" group
+      become: true
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      register: current_user_add
+
+    - name: Reboot if there are changes to docker
+      become: yes
+      when: prerequisite_install.changed or docker_group_create.changed or current_user_add.changed
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible due to docker changes"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+
+    - name: Clone Synology CSI repository
+      ansible.builtin.git:
+        repo: 'https://github.com/SynologyOpenSource/synology-csi.git'
+        dest: ~/.kube/tmp/synology-csi
+        version: "{{ driver_version }}"
+
+    - name: Copy k3s-synology-client-info.yml to ~/.kube/tmp/synology-csi/config folder
+      ansible.builtin.copy:
+        src: ../res/k3s-synology-client-info.yml
+        dest: ~/.kube/tmp/synology-csi/config/client-info.yml
+        mode: 0644
+
+    - name: Install Synology CSI driver using basic deployment (without snapshotter)
+      become: yes
+      become_user: "{{ ansible_user }}"
+      ansible.builtin.shell: >-
+        ~/.kube/tmp/synology-csi/scripts/deploy.sh install --basic
+      changed_when: false

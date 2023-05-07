@@ -108,6 +108,37 @@ kubectl delete svc nginx
 kubectl get all
 ```
 
+### Setup Synology CSI
+
+
+1. Build and install Synology CSI driver
+
+```sh
+DRIVER_VERSION="release-v1.1.1"
+
+ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
+
+2. Check the status of all pods
+
+```sh
+kubectl get pods --namespace synology-csi
+```
+
+3. Create secret, if needed as it is usually done by step #1 already
+
+```sh
+kubectl get secrets -n synology-csi
+
+kubectl create secret -n synology-csi generic client-info-secret -f kubernetes/res/k3s-synology-client-info.yml
+```
+
+4. Create the desired storage class
+
+```sh
+kubectl apply -f "kubernetes/res/k3s-synology-storage-iscsi.yml"
+```
+
 ## Pods Deployment
 
 The pods deployment are handled by namespace:
