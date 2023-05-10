@@ -245,3 +245,56 @@ The pods deployment are handled by namespace:
 * [Network Services](./namespaces/network-services/README.md)
 
 * [Cert Manager](./namespaces/cert-manager/README.md)
+
+* DNS-over-HTTPS (DoH)
+
+  Creates a DNS service with DoH enabled using [DNSCrypt](https://dnscrypt.info) and [Pi-hole](https://pi-hole.net).
+
+  > This is deployed to the `default` namespace.
+
+  1. Create the folder where the local copy will be stored.
+
+  ```sh
+  mkdir -p "${HOME}/.k8s/manifests/default"
+  ```
+
+  2. Copy the manifest to the created folder.
+
+  ```sh
+  cat "kubernetes/namespaces/default/dns-over-https.yml" | tee "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+  ```
+
+  3. Replace the placeholders with the desired values.
+
+  ```sh
+  PIHOLE_CIDR="192.168.1.0/24" # Modify
+
+  PIHOLE_GATEWAY="192.168.1.1" # Modify
+
+  PIHOLE_TIMEZONE="Asia/Manila" # Modify
+
+  PIHOLE_PASSWORD="SUPER_SECURE_PASSWORD_FOR_WEB_UI" # Modify
+
+  sed -i "s|\[PIHOLE_CIDR\]|${PIHOLE_CIDR}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+
+  sed -i "s|\[PIHOLE_GATEWAY\]|${PIHOLE_GATEWAY}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+
+  sed -i "s|\[PIHOLE_TIMEZONE\]|${PIHOLE_TIMEZONE}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+
+  sed -i "s|\[PIHOLE_PASSWORD\]|${PIHOLE_PASSWORD}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+
+  cat "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+  ```
+
+  4. Run the deployment.
+
+  ```sh
+  kubectl apply -f "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+  ```
+
+  Remove the deployment.
+
+  ```sh
+  kubectl delete --ignore-not-found=true -f "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
+  ```
+
