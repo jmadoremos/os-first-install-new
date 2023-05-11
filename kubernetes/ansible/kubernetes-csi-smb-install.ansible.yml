@@ -5,7 +5,7 @@
 # Host inventory variables:
 # - ansible_user (builtin)
 ########################################################################
-- name: Install Kubernetes CSI to the Kubernetes cluster
+- name: Install Kubernetes CSI for SMB/CIFS Share
   hosts: k8s_cluster
   tasks:
     - name: Create ~/.kube/tmp folder
