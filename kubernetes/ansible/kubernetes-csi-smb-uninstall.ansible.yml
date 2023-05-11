@@ -5,7 +5,7 @@
 # Host inventory variables:
 # - ansible_user (builtin)
 ########################################################################
-- name: Uninstall Kubernetes CSI for SMB/CIFS Share
+- name: Uninstall Kubernetes CSI for SMB/CIFS share
   hosts: k8s_cluster
   tasks:
     - name: Uninstall Kubernetes CSI driver
@@ -15,3 +15,8 @@
         chdir: ~/.kube/tmp/csi-driver-smb
         cmd: ./deploy/uninstall-driver.sh {{ driver_version }} local
       changed_when: false
+
+    - name: Remove ~/.kube/tmp/csi-driver-smb folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp/csi-driver-smb
+        state: absent
