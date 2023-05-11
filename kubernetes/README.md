@@ -174,67 +174,69 @@ ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-uninstall.ansible.ym
 
 ### Setup Kubernetes CSI
 
-1. Build and install Synology CSI driver
+* SMB/CIFS
 
-```sh
-DRIVER_VERSION="v1.10.0"
+  1. Build and install Kubernetes CSI driver for SMB/CIFS
 
-ansible-playbook "kubernetes/ansible/k3s-nodes-kubernetes-csi-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+  ```sh
+  DRIVER_VERSION="v1.10.0"
 
-kubectl -n kube-system get pod -o wide -l app=csi-smb-controller
+  ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 
-kubectl -n kube-system get pod -o wide -l app=csi-smb-node
-```
+  kubectl -n kube-system get pod -o wide -l app=csi-smb-controller
 
-2. Create secrets
+  kubectl -n kube-system get pod -o wide -l app=csi-smb-node
+  ```
 
-```sh
-SMB_USERNAME="username" # Modify
+  2. Create secrets
 
-SMB_PASSWORD="password" # Modify
+  ```sh
+  SMB_USERNAME="username" # Modify
 
-kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
+  SMB_PASSWORD="password" # Modify
 
-kubectl describe Secret csi-smb-credentials
+  kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
 
-kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
+  kubectl describe Secret csi-smb-credentials
 
-kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
-```
+  kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
 
-3. Create storage class
+  kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
+  ```
 
-```sh
-kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+  3. Create storage class
 
-kubectl describe StorageClass csi-smb-storage
-```
+  ```sh
+  kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
 
-4. Create a PVC to test the storage configuration
+  kubectl describe StorageClass csi-smb-storage
+  ```
 
-```sh
-kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+  4. Create a PVC to test the storage configuration
 
-kubectl describe PersistentVolumeClaim csi-smb-test-pvc
-```
+  ```sh
+  kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
 
-5. Clean up testing resources
+  kubectl describe PersistentVolumeClaim csi-smb-test-pvc
+  ```
 
-```sh
-kubectl delete -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
-```
+  5. Clean up testing resources
 
-* Clean up everything
+  ```sh
+  kubectl delete -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+  ```
 
-```sh
-kubectl delete -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+  * Clean up everything
 
-kubectl delete secret csi-smb-credentials
+  ```sh
+  kubectl delete -f "kubernetes/namespaces/default/csi-smb-storage.yml"
 
-DRIVER_VERSION="v1.10.0"
+  kubectl delete secret csi-smb-credentials
 
-ansible-playbook "kubernetes/ansible/k3s-nodes-kubernetes-csi-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-```
+  DRIVER_VERSION="v1.10.0"
+
+  ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+  ```
 
 ## Pods Deployment
 

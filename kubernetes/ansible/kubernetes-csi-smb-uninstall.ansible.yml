@@ -15,8 +15,3 @@
         chdir: ~/.kube/tmp/csi-driver-smb
         cmd: ./deploy/uninstall-driver.sh {{ driver_version }} local
       changed_when: false
-
-    - name: Remove ~/.kube/tmp/csi-driver-smb folder
-      ansible.builtin.file:
-        path: ~/.kube/tmp/csi-driver-smb
-        state: absent
