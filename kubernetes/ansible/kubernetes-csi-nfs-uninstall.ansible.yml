@@ -1,0 +1,22 @@
+########################################################################
+# Extra variables:
+# - driver_version (string)
+#
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Uninstall Kubernetes CSI for NFS share
+  hosts: k8s_cluster
+  tasks:
+    - name: Uninstall Kubernetes CSI driver
+      become: yes
+      become_user: "{{ ansible_user }}"
+      ansible.builtin.shell:
+        chdir: ~/.kube/tmp/csi-driver-nfs
+        cmd: ./deploy/uninstall-driver.sh {{ driver_version }} local
+      changed_when: false
+
+    - name: Remove ~/.kube/tmp/csi-driver-nfs folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp/csi-driver-nfs
+        state: absent
