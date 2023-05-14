@@ -18,6 +18,8 @@ PIHOLE_TIMEZONE="Asia/Manila" # Modify
 
 PIHOLE_PASSWORD="SUPER_SECURE_PASSWORD_FOR_WEB_UI" # Modify
 
+PIHOLE_DOMAIN="pihole.example.com" # Modify
+
 sed -i "s|\[PIHOLE_CIDR\]|${PIHOLE_CIDR}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 sed -i "s|\[PIHOLE_GATEWAY\]|${PIHOLE_GATEWAY}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
@@ -25,6 +27,8 @@ sed -i "s|\[PIHOLE_GATEWAY\]|${PIHOLE_GATEWAY}|g" "${HOME}/.kube/manifests/defau
 sed -i "s|\[PIHOLE_TIMEZONE\]|${PIHOLE_TIMEZONE}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 sed -i "s|\[PIHOLE_PASSWORD\]|${PIHOLE_PASSWORD}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
+
+sed -i "s|\[PIHOLE_DOMAIN\]|${PIHOLE_DOMAIN}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 cat "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 

@@ -1071,9 +1071,35 @@ spec:
     app.kubernetes.io/component: dns
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
-  type: NodePort
+  type: ClusterIP
   ports:
     - name: pihole
       protocol: TCP
-      port: 8053
-      targetPort: 80
+      port: 80
+###############################################################################
+# Ingress configuration for Pi-Hole
+#
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dns-over-https
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: dns-over-https
+    # The component within the architecture
+    app.kubernetes.io/component: dns
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  rules:
+  - host: '[PIHOLE_DOMAIN]'
+    http:
+      paths:
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: dns-over-https-np
+            port:
+              name: pihole
