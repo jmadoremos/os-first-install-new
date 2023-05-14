@@ -843,35 +843,11 @@ type: Opaque
 stringData:
   WEB_PASSWORD: '[PIHOLE_PASSWORD]' # Modify
 ###############################################################################
-# Persistent volume for DNS-over-HTTPS service
-#
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: dns-over-https
-  annotations:
-    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: dns-over-https
-    # The component within the architecture
-    app.kubernetes.io/component: dns
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: csi-smb-storage
-  resources:
-    requests:
-      storage: 500Mi
-###############################################################################
 # Deployment specifications for DNS-over-HTTPS service
 #
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: dns-over-https
   labels:
@@ -964,10 +940,10 @@ spec:
               protocol: UDP
           volumeMounts:
             - mountPath: /etc/dnsmasq.d
-              name: pv
+              name: pvc
               subPath: pihole/dnsmasq.d
             - mountPath: /etc/pihole
-              name: pv
+              name: pvc
               subPath: pihole/config
           envFrom:
             - configMapRef:
@@ -1026,15 +1002,21 @@ spec:
       # *** Volume specifications ***
       #
       volumes:
-        - name: pv
-          persistentVolumeClaim:
-            claimName: dns-over-https
         - name: dnscrypt-proxy-config
           configMap:
             name: dnscrypt-proxy
         - name: ssl-certs
           hostPath:
             path: /etc/ssl/certs
+  volumeClaimTemplates:
+    - metadata:
+        name: pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 256Mi
 ###############################################################################
 # Load balancer configuration for the entire service
 #
@@ -1042,7 +1024,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dns-over-https
+  name: dns-over-https-lb
   labels:
     # The name of the application
     app.kubernetes.io/name: dns-over-https
@@ -1060,17 +1042,38 @@ spec:
     app.kubernetes.io/part-of: network-services
   type: LoadBalancer
   ports:
-    - name: pihole-exporter
-      protocol: TCP
-      port: 9617
-      targetPort: 9617
-    - name: pihole-web
-      protocol: TCP
-      port: 8053
-      targetPort: 80
     - name: dns1
       protocol: TCP
       port: 53
     - name: dns2
       protocol: UDP
       port: 53
+###############################################################################
+# Node port configuration for the entire service
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-over-https-np
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: dns-over-https
+    # The component within the architecture
+    app.kubernetes.io/component: dns
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: dns-over-https
+    # The component within the architecture
+    app.kubernetes.io/component: dns
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+  type: NodePort
+  ports:
+    - name: pihole
+      protocol: TCP
+      port: 8053
+      targetPort: 80

@@ -62,31 +62,46 @@ kubectl get nodes
 
 4. Apply the MetalLB manifest.
 
-> This uses MetalLB v0.13.9. Update to the latest config when possible.
-
 ```sh
-mkdir -p ~/.kube/manifests
+mkdir -p "${HOME}/.kube/manifests/metallb-system"
 
-curl https://raw.githubusercontent.com/metallb/metallb/v0.13.9/config/manifests/metallb-native.yaml --output ~/.kube/manifests/metallb-native.yaml
+METALLB_VERSION="v0.13.9" # Modify
 
-kubectl apply -f ~/.kube/manifests/metallb-native.yaml
+curl "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml" --output "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
+
+kubectl apply -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
+
+# Check status
+kubectl get pods --namespace metallb-system
 ```
 
-5. Wait for the MetalLB pods to be created.
-
-> There should be no output for the command below.
+5. Apply the MetalLB pool.
 
 ```sh
-kubectl get pods --namespace metallb-system | grep "ContainerCreating"
+# Create local copy of the manifest
+cat "kubernetes/namespaces/metallb-system/ip-address-pools.yml" | tee "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+
+# Apply customizations to the local copy
+DEDICATED_IP_CIDR="192.168.2.0/24" # Modify
+
+CORE_IP_CIDR="192.168.3.2/32" # Modify
+
+sed -i "s|\[DEDICATED_IP_CIDR\]|${DEDICATED_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+
+sed -i "s|\[CORE_IP_CIDR\]|${CORE_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+
+cat "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+
+# Apply the manifest using the local copy
+kubectl apply -f "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+
+# Check status
+kubectl describe IPAddressPool general-pool --namespace metallb-system
+
+kubectl describe IPAddressPool core-pool --namespace metallb-system
 ```
 
-6. Apply the MetalLB pool.
-
-> Replace the range `127.0.0.1-127.0.0.2` with the IP addresses of the master node
-
-```sh
-kubectl apply -f "kubernetes/namespaces/metallb-system/k3s-server-pool.yml"
-```
+6. Configure the network router with static route from the master nodes to the values set in `DEDICATED_IP_CIDR` and `CORE_IP_CIDR` using next hop type.
 
 7. Test a web deployment.
 
@@ -96,80 +111,23 @@ kubectl create deploy nginx --image=nginx
 kubectl expose deploy nginx --port=80 --target-port=80 --type=LoadBalancer
 
 kubectl get all
-```
 
-8. Clean up the web deployment.
+# Clean up
+kubectl delete --ignore-not-found=true deploy nginx
 
-```sh
-kubectl delete deploy nginx
-
-kubectl delete svc nginx
+kubectl delete --ignore-not-found=true svc nginx
 
 kubectl get all
 ```
 
 * Clean up everything
 
-```sh
-kubectl delete -f "kubernetes/namespaces/metallb-system/k3s-server-pool.yml"
-```
-
-### Setup Synology CSI
-
-1. Build and install Synology CSI driver
+> Always drop both `ip-address-pools.yml` and `metallb-native.yaml` to reconfigure MetalLB.
 
 ```sh
-DRIVER_VERSION="release-v1.1.1"
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 
-ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-```
-
-2. Check the status of all pods
-
-```sh
-kubectl get pods --namespace synology-csi
-```
-
-3. Create secret, if needed as it is usually done by step #1 already
-
-```sh
-kubectl get secrets -n synology-csi
-
-kubectl create secret -n synology-csi generic client-info-secret --from-file="kubernetes/namespaces/synology-csi/client-info.yml"
-
-kubectl describe Secret client-info-secret -n synology-csi
-
-kubectl get secret client-info-secret -n synology-csi -o json | jq -r '.data."client-info.yml"' | base64 --decode
-```
-
-4. Create the desired storage class. Step #1 already creates a temp storage class which must be removed to properly configure the resource.
-
-```sh
-kubectl delete -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
-
-kubectl apply -f "kubernetes/namespaces/synology-csi/synology-iscsi-storage.yml"
-
-kubectl describe StorageClass synology-iscsi-storage -n synology-csi
-```
-
-5. Create a PVC to test the storage configuration
-
-```sh
-kubectl apply -f "kubernetes/namespaces/synology-csi/test-persistent-volume-claim.yml"
-
-kubectl describe PersistentVolumeClaim test-persistent-volume-claim
-```
-
-6. Clean up testing resources
-
-```sh
-kubectl delete -f "kubernetes/namespaces/synology-csi/test-persistent-volume-claim.yml"
-```
-
-* Clean up everything
-
-```sh
-ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-uninstall.ansible.yml"
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 ```
 
 ### Setup Kubernetes CSI
@@ -180,123 +138,132 @@ ansible-playbook "kubernetes/ansible/k3s-nodes-synology-csi-uninstall.ansible.ym
 
   > When there is a `failed` status in `Install Kubernetes CSI driver` step, as long as one of the nodes reported `ok` then continue. Otherwise, try again.
 
-  ```sh
-  DRIVER_VERSION="v4.2.0"
+```sh
+DRIVER_VERSION="v4.2.0"
 
-  ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 
-  kubectl -n kube-system get pod -o wide -l app=csi-nfs-controller
-  
-  kubectl -n kube-system get pod -o wide -l app=csi-nfs-node
-  ```
+# Check status
+kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-controller
+
+kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
+```
 
   2. Create the storage class
 
-  ```sh
-  mkdir -p "${HOME}/.k8s/manifests/default"
+```sh
+mkdir -p "${HOME}/.k8s/manifests/default"
 
-  cat "kubernetes/namespaces/default/csi-nfs-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+cat "kubernetes/namespaces/default/csi-nfs-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
-  NFS_HOST="127.0.0.1" # Modify
+NFS_HOST="127.0.0.1" # Modify
 
-  NFS_SHARE="/volume1/share" # Modify
+NFS_SHARE="/volume1/share" # Modify
 
-  sed -i "s|\[NFS_HOST\]|${NFS_HOST}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+sed -i "s|\[NFS_HOST\]|${NFS_HOST}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
-  sed -i "s|\[NFS_SHARE\]|${NFS_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+sed -i "s|\[NFS_SHARE\]|${NFS_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
-  cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
-  kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
-  kubectl describe StorageClass csi-nfs-storage
-  ```
+# Check status
+kubectl describe StorageClass csi-nfs-storage
+```
 
   3. Test the storage configuration
 
-  ```sh
-  kubectl apply -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
 
-  kubectl describe PersistentVolumeClaim csi-nfs-test-pvc
+# Check status
+kubectl describe PersistentVolumeClaim csi-nfs-test-pvc
 
-  kubectl logs --selector app=csi-nfs-controller -n kube-system -c nfs # Check controller logs for any error
+# Check controller logs for any error
+kubectl logs --selector app=csi-nfs-controller --namespace kube-system -c nfs
 
-  kubectl delete -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
-  ```
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
+```
 
   * Clean up everything
 
-  ```sh
-  kubectl delete -f "kubernetes/namespaces/default/csi-nfs-storage.yml"
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-storage.yml"
 
-  DRIVER_VERSION="v4.2.0"
+DRIVER_VERSION="v4.2.0"
 
-  ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-  ```
+ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
 
 * SMB/CIFS
 
   1. Build and install Kubernetes CSI driver for SMB/CIFS share
 
-  ```sh
-  DRIVER_VERSION="v1.10.0"
+```sh
+DRIVER_VERSION="v1.10.0"
 
-  ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 
-  kubectl -n kube-system get pod -o wide -l app=csi-smb-controller
+# Check status
+kubectl --namespace kube-system get pod -o wide -l app=csi-smb-controller
 
-  kubectl -n kube-system get pod -o wide -l app=csi-smb-node
-  ```
+kubectl --namespace kube-system get pod -o wide -l app=csi-smb-node
+```
 
   2. Create secrets
 
-  ```sh
-  SMB_USERNAME="username" # Modify
+```sh
+SMB_USERNAME="username" # Modify
 
-  SMB_PASSWORD="password" # Modify
+SMB_PASSWORD="password" # Modify
 
-  kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
+kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
 
-  kubectl describe Secret csi-smb-credentials
+# Check status
+kubectl describe Secret csi-smb-credentials
 
-  kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
+# Check secrets value
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
 
-  kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
-  ```
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
+```
 
   3. Create storage class
 
-  ```sh
-  kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
 
-  kubectl describe StorageClass csi-smb-storage
-  ```
+# Check status
+kubectl describe StorageClass csi-smb-storage
+```
 
   4. Create a PVC to test the storage configuration
 
-  ```sh
-  kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
 
-  kubectl describe PersistentVolumeClaim csi-smb-test-pvc
-  ```
+# Check status
+kubectl describe PersistentVolumeClaim csi-smb-test-pvc
+```
 
   5. Clean up testing resources
 
-  ```sh
-  kubectl delete -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
-  ```
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+```
 
   * Clean up everything
 
-  ```sh
-  kubectl delete -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-storage.yml"
 
-  kubectl delete secret csi-smb-credentials
+kubectl delete --ignore-not-found=true secret csi-smb-credentials
 
-  DRIVER_VERSION="v1.10.0"
+DRIVER_VERSION="v1.10.0"
 
-  ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-  ```
+ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
 
 ## Pods Deployment
 
@@ -308,55 +275,4 @@ The pods deployment are handled by namespace:
 
 * [Cert Manager](./namespaces/cert-manager/README.md)
 
-* DNS-over-HTTPS (DoH)
-
-  Creates a DNS service with DoH enabled using [DNSCrypt](https://dnscrypt.info) and [Pi-hole](https://pi-hole.net).
-
-  > This is deployed to the `default` namespace.
-
-  1. Create the folder where the local copy will be stored.
-
-  ```sh
-  mkdir -p "${HOME}/.k8s/manifests/default"
-  ```
-
-  2. Copy the manifest to the created folder.
-
-  ```sh
-  cat "kubernetes/namespaces/default/dns-over-https.yml" | tee "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-  ```
-
-  3. Replace the placeholders with the desired values.
-
-  ```sh
-  PIHOLE_CIDR="192.168.1.0/24" # Modify
-
-  PIHOLE_GATEWAY="192.168.1.1" # Modify
-
-  PIHOLE_TIMEZONE="Asia/Manila" # Modify
-
-  PIHOLE_PASSWORD="SUPER_SECURE_PASSWORD_FOR_WEB_UI" # Modify
-
-  sed -i "s|\[PIHOLE_CIDR\]|${PIHOLE_CIDR}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-
-  sed -i "s|\[PIHOLE_GATEWAY\]|${PIHOLE_GATEWAY}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-
-  sed -i "s|\[PIHOLE_TIMEZONE\]|${PIHOLE_TIMEZONE}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-
-  sed -i "s|\[PIHOLE_PASSWORD\]|${PIHOLE_PASSWORD}|g" "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-
-  cat "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-  ```
-
-  4. Run the deployment.
-
-  ```sh
-  kubectl apply -f "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-  ```
-
-  Remove the deployment.
-
-  ```sh
-  kubectl delete --ignore-not-found=true -f "${HOME}/.k8s/manifests/default/dns-over-https.yaml"
-  ```
-
+* [DNS-over-HTTPS (DoH) service](./namespaces/default/dns-over-https/README.md)

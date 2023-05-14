@@ -1,0 +1,34 @@
+###############################################################################
+# General IP address pool for MetalLB
+#
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: general-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - [DEDICATED_IP_CIDR]
+  avoidBuggyIPs: true
+###############################################################################
+# Core IP address pool for MetalLB
+#
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: core-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - [CORE_IP_CIDR]
+  avoidBuggyIPs: true
+  serviceAllocation:
+    priority: 1
+    serviceSelectors:
+      - matchExpressions:
+        - key: app.kubernetes.io/part-of
+          operator: In
+          values:
+            - network-services
