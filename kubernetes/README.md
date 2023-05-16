@@ -130,6 +130,78 @@ kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-syste
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 ```
 
+### Setup Traefik 2
+
+> This assumes you have installed [helm](../linux/shared/scripts/helm-install.sh).
+
+1. Add `traefik` helm repo and update.
+
+```sh
+helm repo add traefik https://helm.traefik.io/traefik
+
+helm repo update
+```
+
+2. Setup Traefik pre-requisites.
+
+```sh
+mkdir -p "${HOME}/.kube/manifests/kube-system/traefik2"
+
+# Create local copy of the manifest
+cat "kubernetes/namespaces/kube-system/traefik2.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+# Apply customizations to the local copy
+PORKBUN_API_KEY="api_key" # Modify
+
+PORKBUN_SECRET_KEY="secret_key" # Modify
+
+sed -i "s|\[PORKBUN_API_KEY\]|${PORKBUN_API_KEY}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+sed -i "s|\[PORKBUN_SECRET_KEY\]|${PORKBUN_SECRET_KEY}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+cat "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+# Apply the manifest using the local copy
+kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+# Check status
+kubectl get --namespace kube-system Secret porkbun-apikey
+
+kubectl get --namespace kube-system ConfigMap traefik2
+
+kubectl get --namespace kube-system PersistentVolumeClaim acme-json-certs
+```
+
+3. Setup Traefik helm chart.
+
+```sh
+# Create local copy of the manifest
+cat "kubernetes/namespaces/kube-system/traefik2-chart-values.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+
+# Apply customizations to the local copy
+REGISTERED_DOMAIN="example.com" # Modify
+
+LOAD_BALANCER_IP="192.168.1.2" # Modify
+
+sed -i "s|\[REGISTERED_DOMAIN\]|${REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+
+sed -i "s|\[LOAD_BALANCER_IP\]|${LOAD_BALANCER_IP}|g" "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+
+cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+
+# Apply the helm chart values using the local copy
+helm upgrade -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml" traefik traefik/traefik --namespace=kube-system 
+
+# Check status
+kubectl -n kube-system logs $(kubectl -n kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name) | grep "Configuration loaded from flags."
+```
+
+* Clean up everything.
+
+```sh
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+```
+
 ### Setup Traefik Dashboard
 
 1. Install `apache2-utils` package.

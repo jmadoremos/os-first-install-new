@@ -1,0 +1,78 @@
+###############################################################################
+# Credentials for Porkbun DNS registrar
+#
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: porkbun-apikey
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik2
+    # The component within the architecture
+    app.kubernetes.io/component: reverse-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+type: Opaque
+stringData:
+  apiKey: [PORKBUN_API_KEY]
+  secretKey: [PORKBUN_SECRET_KEY]
+###############################################################################
+# Configuration file for Traefik 2
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik2
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik2
+    # The component within the architecture
+    app.kubernetes.io/component: reverse-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+data:
+  traefik-config.yaml: |
+    http:
+      middlewares:
+        headers-default:
+          headers:
+            sslRedirect: true
+            browserXssFilter: true
+            contentTypeNosniff: true
+            forceSTSHeader: true
+            stsIncludeSubdomains: true
+            stsPreload: true
+            stsSeconds: 15552000
+            customFrameOptionsValue: SAMEORIGIN
+            customRequestHeaders:
+              X-Forwarded-Proto: https
+###############################################################################
+# Persistent volume for ACME certificates
+#
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: acme-json-certs
+  namespace: kube-system
+  annotations:
+    pv.kubernetes.io/provisioned-by: nfs.csi.k8s.io
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik2
+    # The component within the architecture
+    app.kubernetes.io/component: reverse-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+  storageClassName: csi-nfs-storage
+  resources:
+    requests:
+      storage: 128Mi    
