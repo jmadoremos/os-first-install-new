@@ -1,0 +1,114 @@
+###############################################################################
+# Sensitive credentials for Traefik dashboard
+#
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik-dashboard
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik
+type: Opaque
+data:
+  users: [TRAEFIK_DASHBOARD_SECRET]
+###############################################################################
+# Basic auth configuration for Traefik dashboard
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-dashboard-basicauth
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik-dashboard
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik
+spec:
+  basicAuth:
+    secret: traefik-dashboard
+###############################################################################
+# Service configuration for Traefik dashboard
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik-dashboard
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: traefik
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik-kube-system
+  type: ClusterIP
+  ports:
+    - name: traefik
+      protocol: TCP
+      port: 9000
+###############################################################################
+# Route configuration for Traefik dashboard
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik-dashboard
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik
+spec:
+  entryPoints:
+    - traefik
+    # - web
+    # - websecure
+  routes:
+    - match: PathPrefix(`/dashboard`) || PathPrefix(`/api`)
+      kind: Rule
+      # middlewares:
+      #   - name: traefik-dashboard-basicauth
+      services:
+        - name: api@internal
+          kind: TraefikService
+###############################################################################
+# Route configuration for Traefik dashboard
+#
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik-dashboard
+    # A unique name identifying the instance of an application
+    app.kubernetes.io/instance: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    # traefik.ingress.kubernetes.io/router.middlewares: kube-system-traefik-dashboard-basicauth@kubernetescrd
+spec:
+  rules:
+  - host: '[TRAEFIK_DASHBOARD_DOMAIN]'
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik-dashboard
+            port:
+              name: traefik

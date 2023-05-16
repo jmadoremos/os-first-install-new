@@ -130,6 +130,57 @@ kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-syste
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 ```
 
+### Setup Traefik Dashboard
+
+1. Install `apache2-utils` package.
+
+```sh
+sudo apt-get update
+
+sudo apt-get install -y apache2-utils
+```
+
+2. Setup Traefik dashboard
+
+```sh
+mkdir -p "${HOME}/.kube/manifests/kube-system/traefik-dashboard"
+
+# Create local copy of the manifest
+cat "kubernetes/namespaces/kube-system/traefik-dashboard.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+
+# Apply customizations to the local copy
+TRAEFIK_DASHBOARD_USER="admin" # Modify
+
+TRAEFIK_DASHBOARD_PASS="password" # Modify
+
+TRAEFIK_DASHBOARD_SECRET=$(htpasswd -nb $TRAEFIK_DASHBOARD_USER $TRAEFIK_DASHBOARD_PASS | openssl base64)
+
+TRAEFIK_DASHBOARD_DOMAIN="traefik.example.com" # Modify
+
+sed -i "s|\[TRAEFIK_DASHBOARD_SECRET\]|${TRAEFIK_DASHBOARD_SECRET}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+
+sed -i "s|\[TRAEFIK_DASHBOARD_DOMAIN\]|${TRAEFIK_DASHBOARD_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+
+cat "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+
+# Apply the manifest using the local copy
+kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+```
+
+* Clean up everything
+
+> There is a need to preserve the `traefik-dashboard` resource with `IngressRoute` kind under `kube-system` namespace. This resource is automatically created when `k3s` is installed.
+
+```sh
+kubectl delete --ignore-not-found=true --namespace kube-system Ingress traefik-dashboard
+
+kubectl delete --ignore-not-found=true --namespace kube-system Service traefik-dashboard
+
+kubectl delete --ignore-not-found=true --namespace kube-system Middleware traefik-dashboard-basicauth
+
+kubectl delete --ignore-not-found=true --namespace kube-system Secret traefik-dashboard
+```
+
 ### Setup Kubernetes CSI
 
 * NFS
