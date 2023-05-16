@@ -28,15 +28,15 @@ deployment:
   # Additional containers (e.g. for metric offloading sidecars)
   additionalContainers: []
   # Additional initContainers (e.g. for setting file permission as shown below)
-  initContainers:
+  # initContainers:
     # The "volume-permissions" init container is required if you run into permission issues.
     # Related issue: https://github.com/containous/traefik/issues/6972
-    - name: volume-permissions
-      image: busybox:1.31.1
-      command: ["sh", "-c", "chmod -Rv 600 /certs/*"]
-      volumeMounts:
-        - name: data
-          mountPath: /certs
+    # - name: volume-permissions
+    #   image: busybox:1.31.1
+    #   command: ["sh", "-c", "chmod -Rv 600 /certs/*"]
+    #   volumeMounts:
+    #     - mountPath: /certs
+    #       name: data
   # Custom pod DNS policy. Apply if `hostNetwork: true`
   # dnsPolicy: ClusterFirstWithHostNet
 
