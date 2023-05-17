@@ -1,0 +1,34 @@
+###############################################################################
+# Namespace configuration for the test resource
+#
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager-test
+###############################################################################
+# Issuer configuration for the test resource
+#
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: test-selfsigned
+  namespace: cert-manager-test
+spec:
+  selfSigned: {}
+###############################################################################
+# Certificate specification for the test resource
+#
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: selfsigned-cert
+  namespace: cert-manager-test
+spec:
+  dnsNames:
+    - example.com
+  secretName: selfsigned-cert-tls
+  issuerRef:
+    name: test-selfsigned
