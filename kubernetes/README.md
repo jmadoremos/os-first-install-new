@@ -202,10 +202,11 @@ sed -i "s|\[LOAD_BALANCER_IP\]|${LOAD_BALANCER_IP}|g" "${HOME}/.kube/manifests/k
 cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Apply the helm chart values using the local copy
-helm upgrade -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml" traefik traefik/traefik --namespace=kube-system 
+helm upgrade --namespace=kube-system  -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml" traefik traefik/traefik
 
 # Check status
-kubectl --namespace kube-system logs $(kubectl -n kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name) | grep "Configuration loaded from flags."
+TRAEFIK_POD_NAME=$(kubectl --namespace kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name)
+kubectl logs --namespace kube-system $TRAEFIK_POD_NAME
 ```
 
 * Clean up everything.
