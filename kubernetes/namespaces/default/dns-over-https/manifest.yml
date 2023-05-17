@@ -807,24 +807,6 @@ data:
   REV_SERVER_TARGET: '[PIHOLE_GATEWAY]' # Modify
   TZ: '[PIHOLE_TIMEZONE]' # Modify
 ###############################################################################
-# General configurations for Pi-hole Exporter
-#
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pihole-exporter
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: dns-over-https
-    # The component within the architecture
-    app.kubernetes.io/component: dns
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-data:
-  PIHOLE_HOSTNAME: '127.0.0.1'
-  PORT: '9617'
-###############################################################################
 # Sensitive credentials for Pi-hole
 #
 ---
@@ -967,37 +949,6 @@ spec:
             requests:
               cpu: 100m
               memory: 50Mi
-        #
-        # *** Pi-hole Exporter ***
-        #
-        # This is a Prometheus exporter for PI-Hole's Raspberry PI ad blocker.
-        #
-        - name: pihole-exporter
-          image: ekofr/pihole-exporter:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 9617
-              protocol: TCP
-          volumeMounts:
-            - mountPath: /etc/ssl/certs
-              name: ssl-certs
-              readOnly: true
-          envFrom:
-            - configMapRef:
-                name: pihole-exporter
-          env:
-            - name: PIHOLE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: pihole
-                  key: WEB_PASSWORD
-          resources:
-            limits:
-              cpu: 250m
-              memory: 300Mi
-            requests:
-              cpu: 100m
-              memory: 50Mi
       #
       # *** Volume specifications ***
       #
@@ -1005,9 +956,6 @@ spec:
         - name: dnscrypt-proxy-config
           configMap:
             name: dnscrypt-proxy
-        - name: ssl-certs
-          hostPath:
-            path: /etc/ssl/certs
   volumeClaimTemplates:
     - metadata:
         name: pvc
