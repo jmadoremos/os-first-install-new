@@ -6,8 +6,7 @@ additionalArguments:
   - --entrypoints.websecure.http.tls.certresolver=porkbun
   - --entrypoints.websecure.http.tls.domains[0].main=[REGISTERED_DOMAIN]
   - --entrypoints.websecure.http.tls.domains[0].sans=*.[REGISTERED_DOMAIN]
-  - --certificatesresolvers.porkbun.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-  # comment the line above when going to production
+  - --certificatesresolvers.porkbun.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory # comment the line when going to production
   - --certificatesresolvers.porkbun.acme.dnschallenge.provider=porkbun
   - --certificatesresolvers.porkbun.acme.dnschallenge.resolvers=173.245.58.37:53,162.159.8.140:53,162.159.11.180:53,162.159.10.150:53
   - --certificatesresolvers.porkbun.acme.storage=/certs/acme.json
