@@ -172,7 +172,19 @@ kubectl get --namespace kube-system ConfigMap traefik2
 kubectl get --namespace kube-system PersistentVolumeClaim acme-json-certs
 ```
 
-3. Setup Traefik helm chart.
+3. Setup Traefik CRDs.
+
+```sh
+TRAEFIK_VERSION="v2.10"
+
+# Install Traefik Resource Definitions
+kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+
+# Install RBAC for Traefik:
+kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml"
+```
+
+4. Setup Traefik helm chart.
 
 ```sh
 # Create local copy of the manifest
@@ -193,12 +205,18 @@ cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 helm upgrade -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml" traefik traefik/traefik --namespace=kube-system 
 
 # Check status
-kubectl -n kube-system logs $(kubectl -n kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name) | grep "Configuration loaded from flags."
+kubectl --namespace kube-system logs $(kubectl -n kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name) | grep "Configuration loaded from flags."
 ```
 
 * Clean up everything.
 
 ```sh
+TRAEFIK_VERSION="v2.10"
+
+kubectl delete --ignore-not-found=true -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+
+kubectl delete --ignore-not-found=true -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml"
+
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 ```
 
