@@ -1,24 +1,4 @@
 ###############################################################################
-# Credentials for Porkbun DNS registrar
-#
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: porkbun-apikey
-  namespace: kube-system
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: traefik2
-    # The component within the architecture
-    app.kubernetes.io/component: reverse-proxy
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-type: Opaque
-stringData:
-  apiKey: [PORKBUN_API_KEY]
-  secretKey: [PORKBUN_SECRET_KEY]
-###############################################################################
 # Configuration file for Traefik 2
 #
 ---

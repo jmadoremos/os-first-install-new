@@ -285,17 +285,6 @@ mkdir -p "${HOME}/.kube/manifests/kube-system/traefik2"
 # Create local copy of the manifest
 cat "kubernetes/namespaces/kube-system/traefik2.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
-# Apply customizations to the local copy
-PORKBUN_API_KEY="api_key" # Modify
-
-PORKBUN_SECRET_KEY="secret_key" # Modify
-
-sed -i "s|\[PORKBUN_API_KEY\]|${PORKBUN_API_KEY}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
-
-sed -i "s|\[PORKBUN_SECRET_KEY\]|${PORKBUN_SECRET_KEY}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
-
-cat "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
-
 # Apply the manifest using the local copy
 kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
