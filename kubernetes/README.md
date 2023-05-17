@@ -48,6 +48,141 @@ K3S_TOKEN=$(cat ~/.kube/token)
 ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR} k3s_token=${K3S_TOKEN}"
 ```
 
+### Setup Kubernetes CSI
+
+* NFS
+
+  1. Build and install Kubernetes CSI driver for NFS share
+
+  > When there is a `failed` status in `Install Kubernetes CSI driver` step, as long as one of the nodes reported `ok` then continue. Otherwise, try again.
+
+```sh
+DRIVER_VERSION="v4.2.0"
+
+ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+
+# Check status
+kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-controller
+
+kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
+```
+
+  2. Create the storage class
+
+```sh
+mkdir -p "${HOME}/.k8s/manifests/default"
+
+cat "kubernetes/namespaces/default/csi-nfs-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+
+NFS_HOST="127.0.0.1" # Modify
+
+NFS_SHARE="/volume1/share" # Modify
+
+sed -i "s|\[NFS_HOST\]|${NFS_HOST}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+
+sed -i "s|\[NFS_SHARE\]|${NFS_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+
+cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+
+kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+
+# Check status
+kubectl describe StorageClass csi-nfs-storage
+```
+
+  3. Test the storage configuration
+
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
+
+# Check status
+kubectl describe PersistentVolumeClaim csi-nfs-test-pvc
+
+# Check controller logs for any error
+kubectl logs --selector app=csi-nfs-controller --namespace kube-system -c nfs
+
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
+```
+
+  * Clean up everything
+
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-storage.yml"
+
+DRIVER_VERSION="v4.2.0"
+
+ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
+
+* SMB/CIFS
+
+  1. Build and install Kubernetes CSI driver for SMB/CIFS share
+
+```sh
+DRIVER_VERSION="v1.10.0"
+
+ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+
+# Check status
+kubectl --namespace kube-system get pod -o wide -l app=csi-smb-controller
+
+kubectl --namespace kube-system get pod -o wide -l app=csi-smb-node
+```
+
+  2. Create secrets
+
+```sh
+SMB_USERNAME="username" # Modify
+
+SMB_PASSWORD="password" # Modify
+
+kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
+
+# Check status
+kubectl describe Secret csi-smb-credentials
+
+# Check secrets value
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
+
+kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
+```
+
+  3. Create storage class
+
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+
+# Check status
+kubectl describe StorageClass csi-smb-storage
+```
+
+  4. Create a PVC to test the storage configuration
+
+```sh
+kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+
+# Check status
+kubectl describe PersistentVolumeClaim csi-smb-test-pvc
+```
+
+  5. Clean up testing resources
+
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
+```
+
+  * Clean up everything
+
+```sh
+kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-storage.yml"
+
+kubectl delete --ignore-not-found=true secret csi-smb-credentials
+
+DRIVER_VERSION="v1.10.0"
+
+ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
+```
+
 ### Setup MetalLB
 
 1. Copy the /etc/rancher/k3s/k3s.yaml file from one of the master nodes to ~/.kube/config of the host.
@@ -270,141 +405,6 @@ kubectl delete --ignore-not-found=true --namespace kube-system Service traefik-d
 kubectl delete --ignore-not-found=true --namespace kube-system Middleware traefik-dashboard-basicauth
 
 kubectl delete --ignore-not-found=true --namespace kube-system Secret traefik-dashboard
-```
-
-### Setup Kubernetes CSI
-
-* NFS
-
-  1. Build and install Kubernetes CSI driver for NFS share
-
-  > When there is a `failed` status in `Install Kubernetes CSI driver` step, as long as one of the nodes reported `ok` then continue. Otherwise, try again.
-
-```sh
-DRIVER_VERSION="v4.2.0"
-
-ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-
-# Check status
-kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-controller
-
-kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
-```
-
-  2. Create the storage class
-
-```sh
-mkdir -p "${HOME}/.k8s/manifests/default"
-
-cat "kubernetes/namespaces/default/csi-nfs-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-NFS_HOST="127.0.0.1" # Modify
-
-NFS_SHARE="/volume1/share" # Modify
-
-sed -i "s|\[NFS_HOST\]|${NFS_HOST}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-sed -i "s|\[NFS_SHARE\]|${NFS_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-# Check status
-kubectl describe StorageClass csi-nfs-storage
-```
-
-  3. Test the storage configuration
-
-```sh
-kubectl apply -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
-
-# Check status
-kubectl describe PersistentVolumeClaim csi-nfs-test-pvc
-
-# Check controller logs for any error
-kubectl logs --selector app=csi-nfs-controller --namespace kube-system -c nfs
-
-kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-test-pvc.yml"
-```
-
-  * Clean up everything
-
-```sh
-kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-nfs-storage.yml"
-
-DRIVER_VERSION="v4.2.0"
-
-ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-```
-
-* SMB/CIFS
-
-  1. Build and install Kubernetes CSI driver for SMB/CIFS share
-
-```sh
-DRIVER_VERSION="v1.10.0"
-
-ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
-
-# Check status
-kubectl --namespace kube-system get pod -o wide -l app=csi-smb-controller
-
-kubectl --namespace kube-system get pod -o wide -l app=csi-smb-node
-```
-
-  2. Create secrets
-
-```sh
-SMB_USERNAME="username" # Modify
-
-SMB_PASSWORD="password" # Modify
-
-kubectl create secret generic csi-smb-credentials --from-literal username=$SMB_USERNAME --from-literal password="$SMB_PASSWORD"
-
-# Check status
-kubectl describe Secret csi-smb-credentials
-
-# Check secrets value
-kubectl get secret csi-smb-credentials -o json | jq -r '.data.username' | base64 --decode
-
-kubectl get secret csi-smb-credentials -o json | jq -r '.data.password' | base64 --decode
-```
-
-  3. Create storage class
-
-```sh
-kubectl apply -f "kubernetes/namespaces/default/csi-smb-storage.yml"
-
-# Check status
-kubectl describe StorageClass csi-smb-storage
-```
-
-  4. Create a PVC to test the storage configuration
-
-```sh
-kubectl apply -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
-
-# Check status
-kubectl describe PersistentVolumeClaim csi-smb-test-pvc
-```
-
-  5. Clean up testing resources
-
-```sh
-kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-test-pvc.yml"
-```
-
-  * Clean up everything
-
-```sh
-kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/csi-smb-storage.yml"
-
-kubectl delete --ignore-not-found=true secret csi-smb-credentials
-
-DRIVER_VERSION="v1.10.0"
-
-ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 ```
 
 ## Pods Deployment
