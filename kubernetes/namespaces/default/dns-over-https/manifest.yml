@@ -1031,14 +1031,16 @@ spec:
       protocol: TCP
       port: 80
 ###############################################################################
-# Ingress configuration for Pi-Hole
+# Ingress route configuration for Pi-Hole
 #
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
   name: dns-over-https
   namespace: default
+  annotations: 
+    kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
     app.kubernetes.io/name: dns-over-https
@@ -1047,14 +1049,18 @@ metadata:
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
 spec:
-  rules:
-  - host: '[PIHOLE_DOMAIN]'
-    http:
-      paths:
-      - path: /admin
-        pathType: Prefix
-        backend:
-          service:
-            name: dns-over-https-np
-            port:
-              name: pihole
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`[PIHOLE_DOMAIN]`) && PathPrefix(`/admin`)
+      kind: Rule
+      services:
+        - name: dns-over-https-np
+          namespace: default
+          port: pihole
+          sticky:
+            cookie:
+              httpOnly: true
+              name: cookie
+              secure: true
+              sameSite: none
