@@ -28,11 +28,7 @@ cat "kubernetes/namespaces/kube-system/traefik/traefik2.yml" | tee "${HOME}/.kub
 kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
 # Check status
-kubectl get --namespace kube-system Secret porkbun-apikey
-
 kubectl get --namespace kube-system ConfigMap traefik2
-
-kubectl get --namespace kube-system PersistentVolumeClaim acme-json-certs
 ```
 
 3. Setup Traefik CRDs.

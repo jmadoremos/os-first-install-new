@@ -30,29 +30,3 @@ data:
             customFrameOptionsValue: SAMEORIGIN
             customRequestHeaders:
               X-Forwarded-Proto: https
-###############################################################################
-# Persistent volume for ACME certificates
-#
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: acme-json-certs
-  namespace: kube-system
-  annotations:
-    pv.kubernetes.io/provisioned-by: nfs.csi.k8s.io
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: traefik2
-    # The component within the architecture
-    app.kubernetes.io/component: reverse-proxy
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-spec:
-  accessModes:
-    - ReadWriteOnce
-    - ReadWriteMany
-  storageClassName: csi-nfs-storage
-  resources:
-    requests:
-      storage: 128Mi    
