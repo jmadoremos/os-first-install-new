@@ -127,9 +127,7 @@ kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest
 > There is a need to preserve the `traefik-dashboard` resource with `IngressRoute` kind under `kube-system` namespace. This resource is automatically created when `k3s` is installed.
 
 ```sh
-kubectl delete --ignore-not-found=true --namespace kube-system Ingress traefik-dashboard
-
-kubectl delete --ignore-not-found=true --namespace kube-system Service traefik-dashboard
+kubectl delete --ignore-not-found=true --namespace kube-system IngressRoute traefik-dashboard
 
 kubectl delete --ignore-not-found=true --namespace kube-system Middleware traefik-dashboard-basicauth
 
