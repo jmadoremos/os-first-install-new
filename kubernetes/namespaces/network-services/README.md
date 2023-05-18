@@ -11,8 +11,6 @@ POD_NAMESPACE="network-services"
 kubectl create namespace $POD_NAMESPACE
 
 # Create pods
-kubectl apply -n $POD_NAMESPACE -f "kubernetes/namespaces/network-services/manifests/pihole.yaml"
-
 kubectl apply -n $POD_NAMESPACE -f "kubernetes/namespaces/network-services/manifests/wireguard.yaml"
 ```
 
@@ -22,8 +20,6 @@ kubectl apply -n $POD_NAMESPACE -f "kubernetes/namespaces/network-services/manif
 POD_NAMESPACE="network-services"
 
 # Remove pods
-kubectl delete --ignore-not-found=true -n $POD_NAMESPACE -f "kubernetes/namespaces/network-services/manifests/pihole.yaml"
-
 kubectl delete --ignore-not-found=true -n $POD_NAMESPACE -f "kubernetes/namespaces/network-services/manifests/wireguard.yaml"
 
 # Remove namespace
