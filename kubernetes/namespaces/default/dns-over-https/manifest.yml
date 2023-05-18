@@ -976,7 +976,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dns-over-https-lb
+  name: dns-over-https
   namespace: default
   labels:
     # The name of the application
@@ -1008,7 +1008,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: dns-over-https-np
+  name: pihole
   namespace: default
   labels:
     # The name of the application
@@ -1037,7 +1037,7 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: dns-over-https
+  name: pihole
   namespace: default
   annotations: 
     kubernetes.io/ingress.class: traefik-external
@@ -1055,7 +1055,7 @@ spec:
     - match: Host(`[PIHOLE_DOMAIN]`) && PathPrefix(`/admin`)
       kind: Rule
       services:
-        - name: dns-over-https-np
+        - name: pihole
           namespace: default
           port: pihole
           sticky:
