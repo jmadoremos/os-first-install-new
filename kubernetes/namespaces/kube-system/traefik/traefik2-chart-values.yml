@@ -7,7 +7,7 @@ globalArguments:
 additionalArguments:
   - --providers.file.filename=/data/traefik-config.yaml
   - --serversTransport.insecureSkipVerify=true
-  - --log.level=DEBUG
+  # - --log.level=DEBUG
 
 deployment:
   enabled: true
