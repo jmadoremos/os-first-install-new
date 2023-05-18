@@ -1,0 +1,37 @@
+version: '3'
+
+################################################
+# DEFINE SERVICES
+#
+# Environment variables:
+# - PIHOLE_PRIMARY_URL
+# - PIHOLE_PRIMARY_PATH (default: /admin)
+# - PIHOLE_PRIMARY_PASSWORD
+# - PIHOLE_SECONDARY_URL
+# - PIHOLE_SECONDARY_PATH (default: /admin)
+# - PIHOLE_SECONDARY_PASSWORD
+# - SYNC_INTERVAL_MINUTES (default: 30)
+################################################
+services:
+  
+  # *** Orbital Sync ***
+  # Orbital Sync synchronizes multiple Pi-hole instances for high availability
+  # (HA) using the built-in "teleporter". In other words, it performs a
+  # "backup" in the Pi-hole admin interface of your primary Pi-hole instance,
+  # and then "restores" that backup to any number of "secondary" Pi-holes also
+  # via their admin interface. As a result, it supports the synchronization of
+  # anything currently supported by Pi-hole's "teleporter".
+
+  orbitalSync:
+    image: mattwebbio/orbital-sync:latest
+    container_name: orbital-sync
+    network_mode: host
+    environment:
+      PRIMARY_HOST_BASE_URL: ${PIHOLE_PRIMARY_URL}
+      PRIMARY_HOST_PATH: ${PIHOLE_PRIMARY_PATH:-/admin}
+      PRIMARY_HOST_PASSWORD: ${PIHOLE_PRIMARY_PASSWORD}
+      SECONDARY_HOST_1_BASE_URL: ${PIHOLE_SECONDARY_URL}
+      SECONDARY_HOST_1_PATH: ${PIHOLE_SECONDARY_PATH:-/admin}
+      SECONDARY_HOST_1_PASSWORD: ${PIHOLE_SECONDARY_PASSWORD}
+      INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-30}
+    restart: always
