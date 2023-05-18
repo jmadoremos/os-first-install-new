@@ -54,11 +54,7 @@ kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VE
 cat "kubernetes/namespaces/kube-system/traefik/traefik2-chart-values.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Apply customizations to the local copy
-REGISTERED_DOMAIN="example.com" # Modify
-
 LOAD_BALANCER_IP="192.168.1.2" # Modify
-
-sed -i "s|\[REGISTERED_DOMAIN\]|${REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 sed -i "s|\[LOAD_BALANCER_IP\]|${LOAD_BALANCER_IP}|g" "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
