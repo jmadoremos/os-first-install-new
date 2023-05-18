@@ -478,7 +478,7 @@ CLOUDFLARE_API_TOKEN="API_TOKEN_FROM_CLOUDFLARE" # Modify
 
 CLOUDFLARE_EMAIL="john.doe@example.com" # Modify
 
-CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
+WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
 
 sed -i "s|\[CLOUDFLARE_API_TOKEN\]|${CLOUDFLARE_API_TOKEN}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
@@ -486,35 +486,15 @@ sed -i "s|\[CLOUDFLARE_EMAIL\]|${CLOUDFLARE_EMAIL}|g" "${HOME}/.kube/manifests/c
 
 sed -i "s|\[CLOUDFLARE_REGISTERED_DOMAIN\]|${CLOUDFLARE_REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
+sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
+
 cat "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
 # Apply the manifest using the local copy
 kubectl apply -f "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
-```
-
-5. Test ACME Production by issuing a certificate.
-
-```sh
-# Create local copy of the manifest
-cat "kubernetes/namespaces/cert-manager/acme-test-certificate.yml" | tee "${HOME}/.kube/manifests/cert-manager/acme-production/acme-test-certificate.yaml"
-
-# Apply customizations to the local copy
-CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
-
-sed -i "s|\[CLOUDFLARE_REGISTERED_DOMAIN\]|${CLOUDFLARE_REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/acme-test-certificate.yaml"
-
-cat "${HOME}/.kube/manifests/cert-manager/acme-production/acme-test-certificate.yaml"
-
-# Apply the manifest using the local copy
-kubectl apply -f "${HOME}/.kube/manifests/cert-manager/acme-production/acme-test-certificate.yaml"
 
 # Check status
-kubectl get challenges
-
-kubectl get certificates
-
-# Clean up staging
-kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/cert-manager/acme-production/acme-test-certificate.yaml"
+kubectl get challenges && kubectl get certificates
 ```
 
 * Clean up everything

@@ -49,3 +49,27 @@ spec:
         selector:
           dnsZones:
             - "[CLOUDFLARE_REGISTERED_DOMAIN]"
+###############################################################################
+# Wildcard certificate for all local services
+#
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: [WILDCARD_CERTIFICATE_NAME]
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: letsencrypt
+    # The component within the architecture
+    app.kubernetes.io/component: certificates
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  secretName: [WILDCARD_CERTIFICATE_NAME]-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
+  dnsNames:
+  - "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
