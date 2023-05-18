@@ -48,6 +48,18 @@ K3S_TOKEN=$(cat ~/.kube/token)
 ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR} k3s_token=${K3S_TOKEN}"
 ```
 
+### Setup host
+
+1. Copy the /etc/rancher/k3s/k3s.yaml file from one of the master nodes to ~/.kube/config of the host.
+
+2. Edit ~/.kube/config and replace `127.0.0.1` with the IP address of the load balancer of the master nodes or the IP address of one of the master nodes.
+
+3. Check if all master nodes will appear.
+
+```sh
+kubectl get nodes
+```
+
 ### Setup Kubernetes CSI
 
 * NFS
@@ -185,85 +197,7 @@ ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-uninstall.ansible.yml" -
 
 ### Setup MetalLB
 
-1. Copy the /etc/rancher/k3s/k3s.yaml file from one of the master nodes to ~/.kube/config of the host.
-
-2. Edit ~/.kube/config and replace `127.0.0.1` with the IP address of the load balancer of the master nodes or the IP address of one of the master nodes.
-
-3. Check if all master nodes will appear.
-
-```sh
-kubectl get nodes
-```
-
-4. Apply the MetalLB manifest.
-
-```sh
-mkdir -p "${HOME}/.kube/manifests/metallb-system"
-
-METALLB_VERSION="v0.13.9" # Modify
-
-curl "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml" --output "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
-
-kubectl apply -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
-
-# Check status
-kubectl get pods --namespace metallb-system
-```
-
-5. Apply the MetalLB pool.
-
-```sh
-# Create local copy of the manifest
-cat "kubernetes/namespaces/metallb-system/ip-address-pools.yml" | tee "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-# Apply customizations to the local copy
-DEDICATED_IP_CIDR="192.168.2.0/24" # Modify
-
-CORE_IP_CIDR="192.168.3.2/32" # Modify
-
-sed -i "s|\[DEDICATED_IP_CIDR\]|${DEDICATED_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-sed -i "s|\[CORE_IP_CIDR\]|${CORE_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-cat "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-# Apply the manifest using the local copy
-kubectl apply -f "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-# Check status
-kubectl describe IPAddressPool general-pool --namespace metallb-system
-
-kubectl describe IPAddressPool core-pool --namespace metallb-system
-```
-
-6. Configure the network router with static route from the master nodes to the values set in `DEDICATED_IP_CIDR` and `CORE_IP_CIDR` using next hop type.
-
-7. Test a web deployment.
-
-```sh
-kubectl create deploy nginx --image=nginx
-
-kubectl expose deploy nginx --port=80 --target-port=80 --type=LoadBalancer
-
-kubectl get all
-
-# Clean up
-kubectl delete --ignore-not-found=true deploy nginx
-
-kubectl delete --ignore-not-found=true svc nginx
-
-kubectl get all
-```
-
-* Clean up everything
-
-> Always drop both `ip-address-pools.yml` and `metallb-native.yaml` to reconfigure MetalLB.
-
-```sh
-kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
-```
+Refer to [MetalLB](./namespaces/metallb-system/README.md) for the instructions.
 
 ### Setup Traefik
 
