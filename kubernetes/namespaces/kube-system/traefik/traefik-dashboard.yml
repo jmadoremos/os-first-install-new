@@ -51,6 +51,7 @@ metadata:
   namespace: kube-system
   annotations: 
     kubernetes.io/ingress.class: traefik-external
+    cert-manager.io/cluster-issuer: letsencrypt-production
   labels:
     # The name of the application
     app.kubernetes.io/name: traefik-dashboard
@@ -63,6 +64,10 @@ metadata:
 spec:
   entryPoints:
     - websecure
+  tls:
+    secretName: [WILDCARD_CERTIFICATE_NAME]-tls
+    # domains:
+    #   - main: [TRAEFIK_DASHBOARD_DOMAIN]
   routes:
     - match: Host(`[TRAEFIK_DASHBOARD_DOMAIN]`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
       kind: Rule

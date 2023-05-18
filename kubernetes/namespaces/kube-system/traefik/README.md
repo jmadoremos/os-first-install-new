@@ -108,9 +108,13 @@ TRAEFIK_DASHBOARD_SECRET=$(htpasswd -nb $TRAEFIK_DASHBOARD_USER $TRAEFIK_DASHBOA
 
 TRAEFIK_DASHBOARD_DOMAIN="traefik.example.com" # Modify
 
+WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
+
 sed -i "s|\[TRAEFIK_DASHBOARD_SECRET\]|${TRAEFIK_DASHBOARD_SECRET}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
 sed -i "s|\[TRAEFIK_DASHBOARD_DOMAIN\]|${TRAEFIK_DASHBOARD_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+
+sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
