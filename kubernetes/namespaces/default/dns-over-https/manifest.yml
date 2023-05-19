@@ -994,6 +994,7 @@ spec:
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
   type: LoadBalancer
+  externalTrafficPolicy: Local # required to keep track of client source IP
   ports:
     - name: dns1
       protocol: TCP
