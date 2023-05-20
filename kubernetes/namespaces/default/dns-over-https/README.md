@@ -11,6 +11,7 @@ mkdir -p "${HOME}/.kube/manifests/default"
 cat "kubernetes/namespaces/default/dns-over-https/manifest.yml" | tee "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 # Apply customizations to the local copy
+PIHOLE_CIDR="192.168.1.0/24" # Modify
 
 PIHOLE_GATEWAY="192.168.1.1" # Modify
 
@@ -18,7 +19,9 @@ PIHOLE_TIMEZONE="Asia/Manila" # Modify
 
 PIHOLE_PASSWORD="SUPER_SECURE_PASSWORD_FOR_WEB_UI" # Modify
 
-WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
+PIHOLE_DOMAIN="pihole.example.com" # Modify
+
+METALLB_PIHOLE_IP_ADDR="192.168.3.2" # Modify
 
 sed -i "s|\[PIHOLE_CIDR\]|${PIHOLE_CIDR}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
@@ -30,7 +33,7 @@ sed -i "s|\[PIHOLE_PASSWORD\]|${PIHOLE_PASSWORD}|g" "${HOME}/.kube/manifests/def
 
 sed -i "s|\[PIHOLE_DOMAIN\]|${PIHOLE_DOMAIN}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
-sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
+sed -i "s|\[METALLB_PIHOLE_IP_ADDR\]|${METALLB_PIHOLE_IP_ADDR}|g" "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 cat "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 

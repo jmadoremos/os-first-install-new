@@ -994,6 +994,7 @@ spec:
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
   type: LoadBalancer
+  loadBalancerIP: [METALLB_PIHOLE_IP_ADDR]
   externalTrafficPolicy: Local # required to keep track of client source IP
   ports:
     - name: dns1
@@ -1052,10 +1053,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-  tls:
-    secretName: [WILDCARD_CERTIFICATE_NAME]-tls
-    domains:
-      - main: [PIHOLE_DOMAIN]
   routes:
     - match: Host(`[PIHOLE_DOMAIN]`) && PathPrefix(`/admin`)
       kind: Rule
