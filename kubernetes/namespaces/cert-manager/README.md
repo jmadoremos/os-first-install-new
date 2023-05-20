@@ -98,7 +98,7 @@ cat "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 kubectl apply -f "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
 # Check status
-kubectl get challenges && kubectl get certificates
+kubectl get --namespace kube-system challenges && kubectl get --namespace kube-system certificates
 ```
 
 * Clean up everything
