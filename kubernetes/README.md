@@ -88,10 +88,6 @@ The pods deployment are handled by namespace:
 
 * [Portainer](./namespaces/portainer/README.md)
 
-* [Network Services](./namespaces/network-services/README.md)
-
-* [Cert Manager](./namespaces/cert-manager/README.md)
-
 * [DNS-over-HTTPS (DoH) service](./namespaces/default/dns-over-https/README.md)
 
 * [Virtual Private Network (VPN) service](./namespaces/default/virtual-private-network/README.md)
