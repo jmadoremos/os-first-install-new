@@ -30,3 +30,22 @@ data:
             customFrameOptionsValue: SAMEORIGIN
             customRequestHeaders:
               X-Forwarded-Proto: https
+###############################################################################
+# Default Configuration file for Traefik 2
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik2
+    # The component within the architecture
+    app.kubernetes.io/component: reverse-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  defaultCertificate:
+    secretName: [WILDCARD_CERTIFICATE_NAME]-tls

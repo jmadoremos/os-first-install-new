@@ -24,11 +24,20 @@ mkdir -p "${HOME}/.kube/manifests/kube-system/traefik2"
 # Create local copy of the manifest
 cat "kubernetes/namespaces/kube-system/traefik/traefik2.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
+# Apply customizations to the local copy
+WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
+
+sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
+cat "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+
 # Apply the manifest using the local copy
 kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
 # Check status
 kubectl get --namespace kube-system ConfigMap traefik2
+
+kubectl get --namespace kube-system TLSStore default
 ```
 
 3. Setup Traefik CRDs.

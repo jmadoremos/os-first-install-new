@@ -74,13 +74,13 @@ kubectl get nodes
 
 Refer to [MetalLB](./namespaces/metallb-system/README.md) for the instructions.
 
-### Setup Traefik
-
-Refer to [Traefik](./namespaces/kube-system/traefik/README.md) for the instructions.
-
 ### Setup Cert Manager
 
 Refer to [Cert Manager](./namespaces/cert-manager/README.md) for the instructions.
+
+### Setup Traefik
+
+Refer to [Traefik](./namespaces/kube-system/traefik/README.md) for the instructions.
 
 ## Pods Deployment
 
