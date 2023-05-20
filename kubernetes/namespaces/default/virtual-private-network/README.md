@@ -15,6 +15,7 @@ METALLB_PIHOLE_IP_ADDR="192.168.3.2" # Modify
 
 METALLB_WIREGUARD_IP_ADDR="192.168.3.3" # Modify
 
+WIREGUARD_CLIENT_NAMES="Client0,Client1,Client2" # Modify
 
 WIREGUARD_TIMEZONE="Asia/Manila" # Modify
 
