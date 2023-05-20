@@ -1053,6 +1053,7 @@ metadata:
 spec:
   entryPoints:
     - websecure
+  tls: {}
   routes:
     - match: Host(`[PIHOLE_DOMAIN]`) && PathPrefix(`/admin`)
       kind: Rule
