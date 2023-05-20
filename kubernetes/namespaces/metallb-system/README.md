@@ -26,7 +26,7 @@ cat "kubernetes/namespaces/metallb-system/ip-address-pools.yml" | tee "${HOME}/.
 # Apply customizations to the local copy
 DEDICATED_IP_CIDR="192.168.2.0/24" # Modify
 
-CORE_IP_CIDR="192.168.3.2/32" # Modify
+CORE_IP_CIDR="192.168.3.0/29" # Modify
 
 sed -i "s|\[DEDICATED_IP_CIDR\]|${DEDICATED_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 
