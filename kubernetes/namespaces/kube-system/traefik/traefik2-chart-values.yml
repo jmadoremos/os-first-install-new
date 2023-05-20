@@ -5,7 +5,6 @@ globalArguments:
   - "--global.checknewversion=false"
 
 additionalArguments:
-  - --providers.file.filename=/data/traefik-config.yaml
   - --serversTransport.insecureSkipVerify=true
   # - --log.level=DEBUG
 
@@ -34,11 +33,6 @@ ports:
 ingressRoute:
   dashboard:
     enabled: false
-
-volumes:
-  - mountPath: /data
-    name: traefik2 # make sure this is existing under ConfigMap type
-    type: configMap
 
 providers:
   kubernetesCRD:

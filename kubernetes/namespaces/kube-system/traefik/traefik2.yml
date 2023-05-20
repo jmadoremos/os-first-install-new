@@ -1,37 +1,5 @@
 ###############################################################################
-# Configuration file for Traefik 2
-#
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: traefik2
-  namespace: kube-system
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: traefik2
-    # The component within the architecture
-    app.kubernetes.io/component: reverse-proxy
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-data:
-  traefik-config.yaml: |
-    http:
-      middlewares:
-        headers-default:
-          headers:
-            sslRedirect: true
-            browserXssFilter: true
-            contentTypeNosniff: true
-            forceSTSHeader: true
-            stsIncludeSubdomains: true
-            stsPreload: true
-            stsSeconds: 15552000
-            customFrameOptionsValue: SAMEORIGIN
-            customRequestHeaders:
-              X-Forwarded-Proto: https
-###############################################################################
-# Default Configuration file for Traefik 2
+# Default TLS store for Traefik 2 ingress routes
 #
 ---
 apiVersion: traefik.containo.us/v1alpha1
@@ -49,3 +17,30 @@ metadata:
 spec:
   defaultCertificate:
     secretName: [WILDCARD_CERTIFICATE_NAME]-tls
+###############################################################################
+# Middleware specification for default HTTP headers of Traefik 2 ingress routes
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: headers-default
+  namespace: kube-system
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: traefik2
+    # The component within the architecture
+    app.kubernetes.io/component: reverse-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  headers:
+    browserXssFilter: true
+    contentTypeNosniff: true
+    forceSTSHeader: true
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 15552000
+    customFrameOptionsValue: SAMEORIGIN
+    customRequestHeaders:
+      X-Forwarded-Proto: https

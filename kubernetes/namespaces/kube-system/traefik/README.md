@@ -35,9 +35,9 @@ cat "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
 # Check status
-kubectl get --namespace kube-system ConfigMap traefik2
-
 kubectl get --namespace kube-system TLSStore default
+
+kubectl get Middleware default-headers
 ```
 
 3. Setup Traefik CRDs.
@@ -66,7 +66,9 @@ sed -i "s|\[LOAD_BALANCER_IP\]|${LOAD_BALANCER_IP}|g" "${HOME}/.kube/manifests/k
 cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Apply the helm chart values using the local copy
-helm upgrade --namespace=kube-system  -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml" traefik traefik/traefik
+helm uninstall traefik --namespace kube-system
+
+helm install traefik traefik/traefik --namespace kube-system -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Check status
 TRAEFIK_POD_NAME=$(kubectl --namespace kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name)
@@ -113,13 +115,9 @@ TRAEFIK_DASHBOARD_SECRET=$(htpasswd -nb $TRAEFIK_DASHBOARD_USER $TRAEFIK_DASHBOA
 
 TRAEFIK_DASHBOARD_DOMAIN="traefik.example.com" # Modify
 
-WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
-
 sed -i "s|\[TRAEFIK_DASHBOARD_SECRET\]|${TRAEFIK_DASHBOARD_SECRET}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
 sed -i "s|\[TRAEFIK_DASHBOARD_DOMAIN\]|${TRAEFIK_DASHBOARD_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
-
-sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
@@ -129,12 +127,6 @@ kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest
 
 * Clean up everything
 
-> There is a need to preserve the `traefik-dashboard` resource with `IngressRoute` kind under `kube-system` namespace. This resource is automatically created when `k3s` is installed.
-
 ```sh
-kubectl delete --ignore-not-found=true --namespace kube-system IngressRoute traefik-dashboard
-
-kubectl delete --ignore-not-found=true --namespace kube-system Middleware traefik-dashboard-basicauth
-
-kubectl delete --ignore-not-found=true --namespace kube-system Secret traefik-dashboard
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 ```
