@@ -1,0 +1,150 @@
+###############################################################################
+# General configurations for Wireguard
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wireguard
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: virtual-private-network
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+data:
+  PEERDNS: [METALLB_PIHOLE_IP_ADDR]
+  PEERS: [WIREGUARD_CLIENT_NAMES]
+  SERVERURL: [METALLB_WIREGUARD_IP_ADDR]
+  TZ: [WIREGUARD_TIMEZONE]
+###############################################################################
+# Persistent volume claim configurations for Virtual Private Network service
+#
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: virtual-private-network
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: virtual-private-network
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-nfs-storage
+  resources:
+    requests:
+      storage: 50Mi
+###############################################################################
+# Deployment specifications for Virtual Private Network service
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: virtual-private-network
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: virtual-private-network
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: virtual-private-network
+      # The component within the architecture
+      app.kubernetes.io/component: vpn
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: network-services
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: virtual-private-network
+        # The component within the architecture
+        app.kubernetes.io/component: vpn
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: network-services
+    spec:
+
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        - name: wireguard
+          image: linuxserver/wireguard:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 51820
+              protocol: UDP
+          volumeMounts:
+            - name: pvc
+              mountPath: /config
+              subPath: wireguard
+            - name: wireguard-modules
+              mountPath: /lib/modules
+          envFrom:
+            - configMapRef:
+                name: wireguard
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+          resources:
+            limits:
+              cpu: 250m
+              memory: 300Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: virtual-private-network
+        - name: wireguard-modules
+          hostPath:
+            path: /var/modules
+###############################################################################
+# Load balancer configuration for the entire service
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: virtual-private-network
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: virtual-private-network
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: virtual-private-network
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: network-services
+  type: LoadBalancer
+  loadBalancerIP: [METALLB_WIREGUARD_IP_ADDR]
+  externalTrafficPolicy: Local # required to keep track of client source IP
+  ports:
+    - name: wireguard
+      protocol: UDP
+      port: 51820
