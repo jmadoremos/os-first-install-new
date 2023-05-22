@@ -86,8 +86,6 @@ Refer to [Traefik](./namespaces/kube-system/traefik/README.md) for the instructi
 
 The pods deployment are handled by namespace:
 
-* [Portainer](./namespaces/portainer/README.md)
-
 * [DNS-over-HTTPS (DoH) service](./namespaces/default/dns-over-https/README.md)
 
 * [Virtual Private Network (VPN) service](./namespaces/default/virtual-private-network/README.md)
