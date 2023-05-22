@@ -60,6 +60,12 @@ ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --e
 kubectl get nodes
 ```
 
+4. [Optional] Install k9s to manage pods visually in the terminal.
+
+```sh
+curl -sS https://webinstall.dev/k9s | bash
+```
+
 ### Setup Kubernetes CSI
 
 * NFS
