@@ -17,7 +17,10 @@ metadata:
 data:
   PEERDNS: [METALLB_PIHOLE_IP_ADDR]
   PEERS: [WIREGUARD_CLIENT_NAMES]
+  PUID: '1000'
+  PGID: '1000'
   SERVERURL: [METALLB_WIREGUARD_IP_ADDR]
+  SERVERPORT: '51820'
   TZ: [WIREGUARD_TIMEZONE]
 ###############################################################################
 # Persistent volume claim configurations for Virtual Private Network service
