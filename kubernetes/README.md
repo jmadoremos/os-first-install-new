@@ -95,3 +95,5 @@ The pods deployment are handled by namespace:
 * [DNS-over-HTTPS (DoH) service](./namespaces/default/dns-over-https/README.md)
 
 * [Virtual Private Network (VPN) service](./namespaces/default/virtual-private-network/README.md)
+
+* [Download Manager service](./namespaces/default/download-manager/README.md)
