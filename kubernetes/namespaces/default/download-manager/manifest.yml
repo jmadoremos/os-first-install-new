@@ -221,7 +221,7 @@ spec:
                 - key: "kubernetes.io/arch"
                   operator: In
                   values:
-                    - amd64  
+                    - amd64
       #
       # *** Containers specifications ***
       #
@@ -752,7 +752,7 @@ kind: IngressRoute
 metadata:
   name: deluge-vpn
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -781,7 +781,7 @@ kind: IngressRoute
 metadata:
   name: deemix
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -810,7 +810,7 @@ kind: IngressRoute
 metadata:
   name: radarr-1080p
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -839,7 +839,7 @@ kind: IngressRoute
 metadata:
   name: radarr-4k
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -868,7 +868,7 @@ kind: IngressRoute
 metadata:
   name: sonarr-tv
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -897,7 +897,7 @@ kind: IngressRoute
 metadata:
   name: sonarr-anime
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -926,7 +926,7 @@ kind: IngressRoute
 metadata:
   name: overseerr
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -955,7 +955,7 @@ kind: IngressRoute
 metadata:
   name: flaresolverr
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
@@ -984,7 +984,7 @@ kind: IngressRoute
 metadata:
   name: prowlarr
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application

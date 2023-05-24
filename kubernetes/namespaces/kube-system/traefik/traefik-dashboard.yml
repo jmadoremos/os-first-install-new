@@ -49,7 +49,7 @@ kind: IngressRoute
 metadata:
   name: traefik-dashboard
   namespace: kube-system
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
