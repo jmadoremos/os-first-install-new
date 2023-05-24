@@ -1,0 +1,300 @@
+###############################################################################
+# Configuration file for Quant UX (Backend)
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quant-ux-be
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+data:
+  # The authentication provider. Quant-UX currently supports it's own IAM(qux)
+  # and Keycloak.
+  QUX_AUTH_SERVICE: qux
+  # This is the URL and port included in the mails, e.g. password resets.
+  # Change to the same domain that the external dns server is resolving to the
+  # external Ingress IP.
+  QUX_HTTP_HOST: https://[QUX_DOMAIN]
+  QUX_HTTP_PORT: '8080'
+  # These folders should mapped in the volume
+  QUX_IMAGE_FOLDER_APPS: /app-data/qux-image-apps
+  QUX_IMAGE_FOLDER_USER: /app-data/qux-images
+  # SMTP details for mail handling
+  QUX_MAIL_HOST: [SMTP_HOST]
+  # MongoDB configurations
+  QUX_MONGO_CONNECTION_STRING: mongodb://127.0.0.1:27017
+  QUX_MONGO_DB_NAME: quantux
+  QUX_MONGO_TABLE_PREFIX: qux
+  # Comma separated list of domains, e.g. 'my-server.com' or '*' for all
+  QUX_USER_ALLOWED_DOMAINS: '*'
+  QUX_USER_ALLOW_SIGNUP: 'true'
+  # Host timezone
+  TZ: [TIMEZONE]
+###############################################################################
+# Sensitive information for Quant UX (Backend)
+#
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quant-ux-be
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+type: Opaque
+stringData:
+  QUX_JWT_PASSWORD: [QUX_JWT_PASSWORD]
+  QUX_MAIL_USER: [SMTP_USER]
+  QUX_MAIL_PASSWORD: [SMTP_PASSWORD]
+###############################################################################
+# Configuration file for Quant UX (WebSocket)
+#
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: quant-ux-ws
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+data:
+  # Quant UX backend host
+  QUX_SERVER: http://127.0.0.1:8080/
+  # Websocket port
+  QUX_SERVER_PORT: '8086'
+###############################################################################
+# Configuration file for Quant UX (Frontend)
+#
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: quant-ux-fe
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+data:
+  # The authentication provider. Quant-UX currently supports it's own IAM(qux)
+  # and Keycloak.
+  QUX_AUTH: qux
+  # Quant UX backend host
+  QUX_PROXY_URL: http:/127.0.0.1:8080
+  # The domain that the external dns server is resolving to the external Ingress IP
+  QUX_WS_URL: ws://[QUX_DOMAIN]/ws
+###############################################################################
+# Persistent volume claim configurations for Quant UX
+#
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quant-ux
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-nfs-storage
+  resources:
+    requests:
+      storage: 2Gi
+###############################################################################
+# Deployment specifications for the entire service
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quant-ux
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: quant-ux
+      # The component within the architecture
+      app.kubernetes.io/component: uiux
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: development-services
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: quant-ux
+        # The component within the architecture
+        app.kubernetes.io/component: uiux
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: development-services
+    spec:
+      #
+      # *** Pods distribution strategy ***
+      #
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "kubernetes.io/arch"
+                  operator: In
+                  values:
+                    - amd64
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        - name: mongodb
+          image: mongo:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data/db
+              name: pvc
+              subPath: mongodb
+        - name: quant-ux-be
+          image: klausenschaefersinho/quant-ux-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app-data
+              name: pvc
+              subPath: quant-ux-be
+          envFrom:
+            - configMapRef:
+                name: quant-ux-be
+            - secretRef:
+                name: quant-ux-be
+        - name: quant-ux-ws
+          image: klausenschaefersinho/quant-ux-websocket:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8086
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: quant-ux-ws
+        - name: quant-ux-fe
+          image: klausenschaefersinho/quant-ux:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: quant-ux-fe
+      #
+      # *** Volume specifications ***
+      #
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: quant-ux
+      #
+      # *** Restart policy ***
+      #
+      restartPolicy: Always
+###############################################################################
+# Cluster IP configuration for the entire service
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quant-ux
+  namespace: default
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+  type: ClusterIP
+  ports:
+    - name: mongodb
+      protocol: TCP
+      port: 27017
+    - name: quant-ux-web
+      protocol: TCP
+      port: 8082
+###############################################################################
+# Ingress route configuration for the entire service
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: quant-ux
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: quant-ux
+    # The component within the architecture
+    app.kubernetes.io/component: uiux
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: development-services
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`[QUX_DOMAIN]`)
+      kind: Rule
+      services:
+        - name: quant-ux
+          namespace: default
+          port: quant-ux-web

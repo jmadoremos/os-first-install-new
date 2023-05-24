@@ -97,3 +97,5 @@ The pods deployment are handled by namespace:
 * [Virtual Private Network (VPN) service](./namespaces/default/virtual-private-network/README.md)
 
 * [Download Manager service](./namespaces/default/download-manager/README.md)
+
+* [Quant UX](./namespaces/default/quant-ux/README.md)
