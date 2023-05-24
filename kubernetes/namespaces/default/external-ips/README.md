@@ -11,11 +11,11 @@ export ServicePort="8080" # Modify
 
 export ServiceDomain="service.example.com" # Modify
 
-cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl apply -f --
+cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl apply -f -
 ```
 
 Delete the service created.
 
 ```sh
-cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl delete --ignore-not-found=true -f --
+cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl delete --ignore-not-found=true -f -
 ```
