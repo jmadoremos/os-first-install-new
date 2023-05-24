@@ -785,7 +785,7 @@ data:
       # [static.'myserver']
       # stamp = 'sdns://AQcAAAAAAAAAAAAQMi5kbnNjcnlwdC1jZXJ0Lg'
 ###############################################################################
-# General configurations for Pi-hole
+# General configurations for Pi-Hole
 #
 ---
 apiVersion: v1
@@ -805,11 +805,11 @@ data:
   DNS_FQDN_REQUIRED: 'true'
   PIHOLE_DNS_: '127.0.0.1#5353'
   REV_SERVER: 'true'
-  REV_SERVER_CIDR: '[PIHOLE_CIDR]' # Modify
-  REV_SERVER_TARGET: '[PIHOLE_GATEWAY]' # Modify
-  TZ: '[PIHOLE_TIMEZONE]' # Modify
+  REV_SERVER_CIDR: '[PIHOLE_CIDR]'
+  REV_SERVER_TARGET: '[PIHOLE_GATEWAY]'
+  TZ: '[PIHOLE_TIMEZONE]'
 ###############################################################################
-# Sensitive credentials for Pi-hole
+# Sensitive credentials for Pi-Hole
 #
 ---
 apiVersion: v1
@@ -826,9 +826,9 @@ metadata:
     app.kubernetes.io/part-of: network-services
 type: Opaque
 stringData:
-  WEB_PASSWORD: '[PIHOLE_PASSWORD]' # Modify
+  WEB_PASSWORD: '[PIHOLE_PASSWORD]'
 ###############################################################################
-# Deployment specifications for DNS-over-HTTPS service
+# Deployment specifications for the entire service
 #
 ---
 apiVersion: apps/v1
@@ -886,7 +886,7 @@ spec:
         # *** dnscrypt-proxy ***
         #
         # A flexible DNS proxy, with support for modern encrypted DNS protocols
-        # such as DNSCrypt v2, DNS-over-HTTPS, Anonymized DNSCrypt and ODoH 
+        # such as DNSCrypt v2, DNS-over-HTTPS, Anonymized DNSCrypt and ODoH
         # (Oblivious DoH).
         #
         - name: dnscrypt-proxy
@@ -901,6 +901,16 @@ spec:
             - mountPath: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
               name: dnscrypt-proxy-config
               subPath: dnscrypt-proxy.toml
+          livenessProbe:
+            exec:
+              command:
+                - nslookup
+                - -po=5353
+                - cloudflare.com
+                - '127.0.0.1'
+            initialDelaySeconds: 120
+            timeoutSeconds: 5
+            failureThreshold: 10
           resources:
             limits:
               cpu: 250m
@@ -942,10 +952,22 @@ spec:
                 secretKeyRef:
                   name: pihole
                   key: WEB_PASSWORD
-          securityContext:
-            capabilities:
-              add:
-                - NET_ADMIN
+          livenessProbe:
+            httpGet:
+              path: /admin/index.php
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /admin/index.php
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             limits:
               cpu: 250m
@@ -966,6 +988,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
+        storageClassName: csi-nfs-storage
         resources:
           requests:
             storage: 256Mi
@@ -1004,7 +1027,7 @@ spec:
       protocol: UDP
       port: 53
 ###############################################################################
-# Node port configuration for the entire service
+# Cluster IP configuration for Pi-Hole
 #
 ---
 apiVersion: v1
@@ -1041,7 +1064,7 @@ kind: IngressRoute
 metadata:
   name: pihole
   namespace: default
-  annotations: 
+  annotations:
     kubernetes.io/ingress.class: traefik-external
   labels:
     # The name of the application
