@@ -1,0 +1,34 @@
+###############################################################################
+# External name configuration for the service
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${ServiceNameLowerCased}
+spec:
+  type: ExternalName
+  externalName: ${ServiceIP}
+  ports:
+    - name: service-port
+      port: ${ServicePort}
+###############################################################################
+# Ingress route configuration for the service
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ${ServiceNameLowerCased}
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`${ServiceDomain}`)
+      kind: Rule
+      services:
+        - name: ${ServiceNameLowerCased}
+          port: service-port

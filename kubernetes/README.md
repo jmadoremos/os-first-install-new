@@ -99,3 +99,7 @@ The pods deployment are handled by namespace:
 * [Download Manager service](./namespaces/default/download-manager/README.md)
 
 * [Quant UX](./namespaces/default/quant-ux/README.md)
+
+For domain redirection to an IP address outside of the Kubernetes cluster:
+
+* [External IP](./namespaces/default/external-ips/README.md)
