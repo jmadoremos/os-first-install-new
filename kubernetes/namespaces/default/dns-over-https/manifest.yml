@@ -805,9 +805,9 @@ data:
   DNS_FQDN_REQUIRED: 'true'
   PIHOLE_DNS_: '127.0.0.1#5353'
   REV_SERVER: 'true'
-  REV_SERVER_CIDR: '[PIHOLE_CIDR]'
-  REV_SERVER_TARGET: '[PIHOLE_GATEWAY]'
-  TZ: '[PIHOLE_TIMEZONE]'
+  REV_SERVER_CIDR: '${PIHOLE_CIDR}'
+  REV_SERVER_TARGET: '${PIHOLE_GATEWAY}'
+  TZ: ${TIMEZONE}
 ###############################################################################
 # Sensitive credentials for Pi-Hole
 #
@@ -826,7 +826,7 @@ metadata:
     app.kubernetes.io/part-of: network-services
 type: Opaque
 stringData:
-  WEB_PASSWORD: '[PIHOLE_PASSWORD]'
+  WEB_PASSWORD: ${PIHOLE_PASSWORD}
 ###############################################################################
 # Deployment specifications for the entire service
 #
@@ -1017,7 +1017,7 @@ spec:
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
   type: LoadBalancer
-  loadBalancerIP: [METALLB_PIHOLE_IP_ADDR]
+  loadBalancerIP: ${METALLB_PIHOLE_IP_ADDR}
   externalTrafficPolicy: Local # required to keep track of client source IP
   ports:
     - name: dns1
@@ -1078,7 +1078,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[PIHOLE_DOMAIN]`) && PathPrefix(`/admin`)
+    - match: Host(`${PIHOLE_DOMAIN}`) && PathPrefix(`/admin`)
       kind: Rule
       services:
         - name: pihole
