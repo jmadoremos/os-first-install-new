@@ -1,20 +1,34 @@
 # External IPs
 
-Update the variables to create the service.
+1. Create `external` namespace to store all external services.
 
 ```sh
-export ServiceNameLowerCased="sample-service" # Modify
+kubectl create namespace external
+```
 
-export ServiceIP="192.168.1.100" # Modify
+2. Update the variables to create the service.
 
-export ServicePort="8080" # Modify
+```sh
+export SERVICE_NAME_LOWERCASED="sample-service" # Modify
 
-export ServiceDomain="service.example.com" # Modify
+export SERVICE_IP_ADDR="192.168.1.100" # Modify
+
+export SERVICE_PORT="8080" # Modify
+
+export SERVICE_DOMAIN="service.example.com" # Modify
+
+export SERVICE_PATH_PREFIX="/" # Modify
 
 cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl apply -f -
 ```
 
-Delete the service created.
+3. Check the status of the service.
+
+```sh
+watch kubectl get --namespace external svc,ingressroute
+```
+
+* Delete the service created.
 
 ```sh
 cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl delete --ignore-not-found=true -f -
