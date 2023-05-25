@@ -31,5 +31,7 @@ watch kubectl get --namespace external svc,ingressroute
 * Delete the service created.
 
 ```sh
+export SERVICE_NAME_LOWERCASED="sample-service" # Modify
+
 cat ./kubernetes/namespaces/default/external-ips/manifest.yml | envsubst | kubectl delete --ignore-not-found=true -f -
 ```

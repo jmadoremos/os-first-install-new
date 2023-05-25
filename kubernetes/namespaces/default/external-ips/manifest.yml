@@ -26,9 +26,9 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: ${SERVICE_NAME_LOWERCASED}
+  namespace: external
   annotations:
     kubernetes.io/ingress.class: traefik-external
-  namespace: external
   labels:
     # The name of the application
     app.kubernetes.io/name: ${SERVICE_NAME_LOWERCASED}
