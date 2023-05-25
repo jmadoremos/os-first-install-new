@@ -20,8 +20,8 @@ data:
   DELUGE_WEB_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
   DELUGE_ENABLE_WEBUI_PASSWORD: 'no' # Options: yes|no
   ENABLE_PRIVOXY: 'yes' # Options: yes|no
-  LAN_NETWORK: [HOST_CIDR]
-  NAME_SERVERS: [METALLB_PIHOLE_IP_ADDR]
+  LAN_NETWORK: ${HOST_CIDR}
+  NAME_SERVERS: ${METALLB_PIHOLE_IP_ADDR}
   PUID: '1000'
   PGID: '1000'
   STRICT_PORT_FORWARD: 'yes' # Options: yes|no
@@ -130,7 +130,7 @@ data:
   LOG_LEVEL: 'info'
   LOG_HTML: 'false'
   CAPTCHA_SOLVER: 'none'
-  TZ: [TIMEZONE]
+  TZ: ${TIMEZONE}
 ###############################################################################
 # General configurations for Prowlarr
 #
@@ -469,16 +469,16 @@ spec:
             claimName: download-manager
         - name: nfs-downloads
           nfs:
-            server: [NFS_IP_ADDR]
-            path: [NFS_DOWNLOADS_PATH]
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_DOWNLOADS_PATH}
         - name: nfs-deemix
           nfs:
-            server: [NFS_IP_ADDR]
-            path: [NFS_DEEMIX_PATH]
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_DEEMIX_PATH}
         - name: nfs-media
           nfs:
-            server: [NFS_IP_ADDR]
-            path: [NFS_MEDIA_PATH]
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_MEDIA_PATH}
         - name: localtime
           hostPath:
             path: /etc/localtime
@@ -766,7 +766,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[DELUGE_VPN_DOMAIN]`)
+    - match: Host(`${DELUGE_VPN_DOMAIN}`)
       kind: Rule
       services:
         - name: deluge-vpn
@@ -795,7 +795,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[DEEMIX_DOMAIN]`)
+    - match: Host(`${DEEMIX_DOMAIN}`)
       kind: Rule
       services:
         - name: deemix
@@ -824,7 +824,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[RADARR_1080P_DOMAIN]`)
+    - match: Host(`${RADARR_1080P_DOMAIN}`)
       kind: Rule
       services:
         - name: radarr-1080p
@@ -853,7 +853,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[RADARR_4K_DOMAIN]`)
+    - match: Host(`${RADARR_4K_DOMAIN}`)
       kind: Rule
       services:
         - name: radarr-4k
@@ -882,7 +882,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[SONARR_TV_DOMAIN]`)
+    - match: Host(`${SONARR_TV_DOMAIN}`)
       kind: Rule
       services:
         - name: sonarr-tv
@@ -911,7 +911,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[SONARR_ANIME_DOMAIN]`)
+    - match: Host(`${SONARR_ANIME_DOMAIN}`)
       kind: Rule
       services:
         - name: sonarr-anime
@@ -940,7 +940,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[OVERSEERR_DOMAIN]`)
+    - match: Host(`${OVERSEERR_DOMAIN}`)
       kind: Rule
       services:
         - name: overseerr
@@ -969,7 +969,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[FLAMESOLVERR_DOMAIN]`)
+    - match: Host(`${FLAMESOLVERR_DOMAIN}`)
       kind: Rule
       services:
         - name: flaresolverr
@@ -998,7 +998,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[PROWLARR_DOMAIN]`)
+    - match: Host(`${PROWLARR_DOMAIN}`)
       kind: Rule
       services:
         - name: prowlarr

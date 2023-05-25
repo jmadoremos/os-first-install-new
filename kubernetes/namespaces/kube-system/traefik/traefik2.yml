@@ -16,7 +16,7 @@ metadata:
     app.kubernetes.io/part-of: network-services
 spec:
   defaultCertificate:
-    secretName: [WILDCARD_CERTIFICATE_NAME]-tls
+    secretName: ${WILDCARD_CERTIFICATE_NAME}-tls
 ###############################################################################
 # Middleware specification for default HTTP headers of Traefik 2 ingress routes
 #

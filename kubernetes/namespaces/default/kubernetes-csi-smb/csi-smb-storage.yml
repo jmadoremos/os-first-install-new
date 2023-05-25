@@ -8,8 +8,8 @@ metadata:
   name: csi-smb-credentials
 type: Opaque
 stringData:
-  username: '[SMB_USERNAME]'
-  password: '[SMB_PASSWORD]'
+  username: ${SMB_USERNAME}
+  password: '${SMB_PASSWORD}'
 ###############################################################################
 # Storage class configuration
 #
@@ -21,7 +21,7 @@ metadata:
 provisioner: smb.csi.k8s.io
 parameters:
   # On Windows, "*.default.svc.cluster.local" could not be recognized by csi-proxy
-  source: '[SMB_SHARE]'
+  source: '${SMB_SHARE}'
   # if csi.storage.k8s.io/provisioner-secret is provided, will create a sub directory
   # with PV name under source
   csi.storage.k8s.io/provisioner-secret-name: "csi-smb-credentials"

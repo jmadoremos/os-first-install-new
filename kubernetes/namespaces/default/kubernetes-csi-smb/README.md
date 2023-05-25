@@ -18,21 +18,15 @@ kubectl --namespace kube-system get pod -o wide -l app=csi-smb-node
 ```sh
 mkdir -p "${HOME}/.kube/manifests/default"
 
+# Set customizations for the local copy
+export SMB_SHARE="//smb-server.default.svc.cluster.local/share" # Modify
+
+export SMB_USERNAME="username" # Modify
+
+export SMB_PASSWORD="password" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/default/kubernetes-csi-smb/csi-smb-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
-
-# Apply customizations to the local copy
-SMB_SHARE="//smb-server.default.svc.cluster.local/share" # Modify
-
-SMB_USERNAME="username" # Modify
-
-SMB_PASSWORD="password" # Modify
-
-sed -i "s|\[SMB_SHARE\]|${SMB_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
-
-sed -i "s|\[SMB_USERNAME\]|${SMB_USERNAME}|g" "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
-
-sed -i "s|\[SMB_PASSWORD\]|${SMB_PASSWORD}|g" "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
+envsubst < "kubernetes/namespaces/default/kubernetes-csi-smb/csi-smb-storage.yml" > "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
 
 cat "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
 

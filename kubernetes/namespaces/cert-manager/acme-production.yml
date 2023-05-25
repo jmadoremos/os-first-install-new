@@ -16,7 +16,7 @@ metadata:
     app.kubernetes.io/part-of: network-services
 type: Opaque
 stringData:
-  apiToken: [CLOUDFLARE_API_TOKEN]
+  apiToken: ${CLOUDFLARE_API_TOKEN}
 ###############################################################################
 # Cluster issuer configuration
 #
@@ -36,19 +36,19 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: [CLOUDFLARE_EMAIL]
+    email: ${CLOUDFLARE_EMAIL}
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
       - dns01:
           cloudflare:
-            email: [CLOUDFLARE_EMAIL]
+            email: ${CLOUDFLARE_EMAIL}
             apiTokenSecretRef:
               name: cert-manager-cloudflare
               key: apiToken
         selector:
           dnsZones:
-            - "[CLOUDFLARE_REGISTERED_DOMAIN]"
+            - '${CLOUDFLARE_REGISTERED_DOMAIN}'
 ###############################################################################
 # Wildcard certificate for all local services
 #
@@ -56,7 +56,7 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: [WILDCARD_CERTIFICATE_NAME]
+  name: ${WILDCARD_CERTIFICATE_NAME}
   namespace: kube-system
   labels:
     # The name of the application
@@ -66,11 +66,11 @@ metadata:
     # The name of a higher level application this one is part of
     app.kubernetes.io/part-of: network-services
 spec:
-  secretName: [WILDCARD_CERTIFICATE_NAME]-tls
+  secretName: ${WILDCARD_CERTIFICATE_NAME}-tls
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
+  commonName: '*.${CLOUDFLARE_REGISTERED_DOMAIN}'
   dnsNames:
-  - "[CLOUDFLARE_REGISTERED_DOMAIN]"
-  - "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
+  - '${CLOUDFLARE_REGISTERED_DOMAIN}'
+  - '*.${CLOUDFLARE_REGISTERED_DOMAIN}'

@@ -21,13 +21,11 @@ helm repo update
 ```sh
 mkdir -p "${HOME}/.kube/manifests/kube-system/traefik2"
 
+# Set customizations for the local copy
+export WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/kube-system/traefik/traefik2.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
-
-# Apply customizations to the local copy
-WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
-
-sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
+envsubst < "kubernetes/namespaces/kube-system/traefik/traefik2.yml" > "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 
@@ -55,13 +53,11 @@ kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VE
 4. Setup Traefik helm chart.
 
 ```sh
+# Set customizations for the local copy
+export METALLB_TRAEFIK_IP_ADDR="192.168.3.1" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/kube-system/traefik/traefik2-chart-values.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
-
-# Apply customizations to the local copy
-LOAD_BALANCER_IP="192.168.1.2" # Modify
-
-sed -i "s|\[LOAD_BALANCER_IP\]|${LOAD_BALANCER_IP}|g" "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+envsubst < "kubernetes/namespaces/kube-system/traefik/traefik2-chart-values.yml" > "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
@@ -103,21 +99,17 @@ sudo apt install -y apache2-utils
 ```sh
 mkdir -p "${HOME}/.kube/manifests/kube-system/traefik-dashboard"
 
-# Create local copy of the manifest
-cat "kubernetes/namespaces/kube-system/traefik/traefik-dashboard.yml" | tee "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
-
-# Apply customizations to the local copy
+# Set customizations for the local copy
 TRAEFIK_DASHBOARD_USER="admin" # Modify
 
 TRAEFIK_DASHBOARD_PASS="password" # Modify
 
-TRAEFIK_DASHBOARD_SECRET=$(htpasswd -nb $TRAEFIK_DASHBOARD_USER $TRAEFIK_DASHBOARD_PASS | openssl base64)
+export TRAEFIK_DASHBOARD_SECRET=$(htpasswd -nb $TRAEFIK_DASHBOARD_USER $TRAEFIK_DASHBOARD_PASS | openssl base64)
 
-TRAEFIK_DASHBOARD_DOMAIN="traefik.example.com" # Modify
+export TRAEFIK_DASHBOARD_DOMAIN="traefik.example.com" # Modify
 
-sed -i "s|\[TRAEFIK_DASHBOARD_SECRET\]|${TRAEFIK_DASHBOARD_SECRET}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
-
-sed -i "s|\[TRAEFIK_DASHBOARD_DOMAIN\]|${TRAEFIK_DASHBOARD_DOMAIN}|g" "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
+# Create local copy of the manifest
+envsubst < "kubernetes/namespaces/kube-system/traefik/traefik-dashboard.yml" > "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/kube-system/traefik-dashboard/manifest.yaml"
 

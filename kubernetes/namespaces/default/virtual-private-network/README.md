@@ -7,25 +7,17 @@ Creates a VPN service using [Wireguard](https://www.wireguard.com/).
 ```sh
 mkdir -p "${HOME}/.kube/manifests/default"
 
+# Set customizations for the local copy
+export METALLB_PIHOLE_IP_ADDR="192.168.3.2" # Modify
+
+export METALLB_WIREGUARD_IP_ADDR="192.168.3.3" # Modify
+
+export WIREGUARD_CLIENT_NAMES="Client0,Client1,Client2" # Modify
+
+export TIMEZONE="Asia/Manila" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/default/virtual-private-network/manifest.yml" | tee "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
-
-# Apply customizations to the local copy
-METALLB_PIHOLE_IP_ADDR="192.168.3.2" # Modify
-
-METALLB_WIREGUARD_IP_ADDR="192.168.3.3" # Modify
-
-WIREGUARD_CLIENT_NAMES="Client0,Client1,Client2" # Modify
-
-WIREGUARD_TIMEZONE="Asia/Manila" # Modify
-
-sed -i "s|\[METALLB_PIHOLE_IP_ADDR\]|${METALLB_PIHOLE_IP_ADDR}|g" "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
-
-sed -i "s|\[METALLB_WIREGUARD_IP_ADDR\]|${METALLB_WIREGUARD_IP_ADDR}|g" "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
-
-sed -i "s|\[WIREGUARD_CLIENT_NAMES\]|${WIREGUARD_CLIENT_NAMES}|g" "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
-
-sed -i "s|\[WIREGUARD_TIMEZONE\]|${WIREGUARD_TIMEZONE}|g" "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
+envsubst < "kubernetes/namespaces/default/virtual-private-network/manifest.yml" > "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
 
 cat "${HOME}/.kube/manifests/default/virtual-private-network.yaml"
 

@@ -20,17 +20,13 @@ kubectl get --namespace metallb-system pods
 2. Apply the MetalLB pool.
 
 ```sh
+# Set customizations for the local copy
+export METALLB_DEDICATED_CIDR="192.168.2.0/24" # Modify
+
+export METALLB_CORE_CIDR="192.168.3.0/29" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/metallb-system/ip-address-pools.yml" | tee "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-# Apply customizations to the local copy
-DEDICATED_IP_CIDR="192.168.2.0/24" # Modify
-
-CORE_IP_CIDR="192.168.3.0/29" # Modify
-
-sed -i "s|\[DEDICATED_IP_CIDR\]|${DEDICATED_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
-
-sed -i "s|\[CORE_IP_CIDR\]|${CORE_IP_CIDR}|g" "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
+envsubst < "kubernetes/namespaces/metallb-system/ip-address-pools.yml" > "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 
 cat "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 

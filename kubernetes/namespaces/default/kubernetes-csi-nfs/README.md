@@ -20,18 +20,17 @@ kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
 ```sh
 mkdir -p "${HOME}/.k8s/manifests/default"
 
-cat "kubernetes/namespaces/default/kubernetes-csi-nfs/csi-nfs-storage.yml" | tee "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+# Set customizations for the local copy
+export NFS_HOST="127.0.0.1" # Modify
 
-NFS_HOST="127.0.0.1" # Modify
+export NFS_SHARE="/volume1/share" # Modify
 
-NFS_SHARE="/volume1/share" # Modify
-
-sed -i "s|\[NFS_HOST\]|${NFS_HOST}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
-
-sed -i "s|\[NFS_SHARE\]|${NFS_SHARE}|g" "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+# Create local copy of the manifest
+envsubst < "kubernetes/namespaces/default/kubernetes-csi-nfs/csi-nfs-storage.yml" > "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
 cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
+# Apply the manifest using the local copy
 kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
 
 # Check status

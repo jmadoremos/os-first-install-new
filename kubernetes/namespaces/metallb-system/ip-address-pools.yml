@@ -9,7 +9,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - [DEDICATED_IP_CIDR]
+    - ${METALLB_DEDICATED_CIDR}
   avoidBuggyIPs: true
 ###############################################################################
 # Core IP address pool for MetalLB
@@ -22,7 +22,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - [CORE_IP_CIDR]
+    - ${METALLB_CORE_CIDR}
   avoidBuggyIPs: true
   serviceAllocation:
     priority: 1

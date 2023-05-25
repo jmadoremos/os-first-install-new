@@ -16,7 +16,7 @@ metadata:
     app.kubernetes.io/part-of: network-services
 type: Opaque
 stringData:
-  apiToken: [CLOUDFLARE_API_TOKEN]
+  apiToken: ${CLOUDFLARE_API_TOKEN}
 ###############################################################################
 # Cluster issuer configuration
 #
@@ -36,19 +36,19 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: [CLOUDFLARE_EMAIL]
+    email: ${CLOUDFLARE_EMAIL}
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
       - dns01:
           cloudflare:
-            email: [CLOUDFLARE_EMAIL]
+            email: ${CLOUDFLARE_EMAIL}
             apiTokenSecretRef:
               name: cert-manager-cloudflare
               key: apiToken
         selector:
           dnsZones:
-            - "[CLOUDFLARE_REGISTERED_DOMAIN]"
+            - '${CLOUDFLARE_REGISTERED_DOMAIN}'
 ###############################################################################
 # Test certificate for verification
 #
@@ -70,7 +70,7 @@ spec:
   issuerRef:
     name: letsencrypt-staging
     kind: ClusterIssuer
-  commonName: "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
+  commonName: '*.${CLOUDFLARE_REGISTERED_DOMAIN}'
   dnsNames:
-  - "[CLOUDFLARE_REGISTERED_DOMAIN]"
-  - "*.[CLOUDFLARE_REGISTERED_DOMAIN]"
+  - '${CLOUDFLARE_REGISTERED_DOMAIN}'
+  - '*.${CLOUDFLARE_REGISTERED_DOMAIN}'

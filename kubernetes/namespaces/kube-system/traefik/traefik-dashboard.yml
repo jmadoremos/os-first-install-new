@@ -19,7 +19,7 @@ metadata:
 type: Opaque
 data:
   users: |2
-    [TRAEFIK_DASHBOARD_SECRET]
+    ${TRAEFIK_DASHBOARD_SECRET}
 ###############################################################################
 # Basic auth configuration for Traefik dashboard
 ---
@@ -65,7 +65,7 @@ spec:
     - websecure
   tls: {}
   routes:
-    - match: Host(`[TRAEFIK_DASHBOARD_DOMAIN]`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+    - match: Host(`${TRAEFIK_DASHBOARD_DOMAIN}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
       kind: Rule
       middlewares:
         - name: traefik-dashboard-basicauth

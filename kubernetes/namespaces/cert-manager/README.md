@@ -31,21 +31,15 @@ kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/cert-manager/ce
 ```sh
 mkdir -p "${HOME}/.kube/manifests/cert-manager/acme-staging"
 
+# Set customizations for the local copy
+export CLOUDFLARE_API_TOKEN="API_TOKEN_FROM_CLOUDFLARE" # Modify
+
+export CLOUDFLARE_EMAIL="john.doe@example.com" # Modify
+
+export CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/cert-manager/acme-staging.yml" | tee "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
-
-# Apply customizations to the local copy
-CLOUDFLARE_API_TOKEN="API_TOKEN_FROM_CLOUDFLARE" # Modify
-
-CLOUDFLARE_EMAIL="john.doe@example.com" # Modify
-
-CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
-
-sed -i "s|\[CLOUDFLARE_API_TOKEN\]|${CLOUDFLARE_API_TOKEN}|g" "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
-
-sed -i "s|\[CLOUDFLARE_EMAIL\]|${CLOUDFLARE_EMAIL}|g" "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
-
-sed -i "s|\[CLOUDFLARE_REGISTERED_DOMAIN\]|${CLOUDFLARE_REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
+envsubst < "kubernetes/namespaces/cert-manager/acme-staging.yml" > "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
 
@@ -72,25 +66,17 @@ kubectl delete --ignore-not-found=true --namespace cert-manager secret letsencry
 ```sh
 mkdir -p "${HOME}/.kube/manifests/cert-manager/acme-production"
 
+# Set customizations for the local copy
+export CLOUDFLARE_API_TOKEN="API_TOKEN_FROM_CLOUDFLARE" # Modify
+
+export CLOUDFLARE_EMAIL="john.doe@example.com" # Modify
+
+export CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
+
+export WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
+
 # Create local copy of the manifest
-cat "kubernetes/namespaces/cert-manager/acme-production.yml" | tee "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
-
-# Apply customizations to the local copy
-CLOUDFLARE_API_TOKEN="API_TOKEN_FROM_CLOUDFLARE" # Modify
-
-CLOUDFLARE_EMAIL="john.doe@example.com" # Modify
-
-CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
-
-WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
-
-sed -i "s|\[CLOUDFLARE_API_TOKEN\]|${CLOUDFLARE_API_TOKEN}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
-
-sed -i "s|\[CLOUDFLARE_EMAIL\]|${CLOUDFLARE_EMAIL}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
-
-sed -i "s|\[CLOUDFLARE_REGISTERED_DOMAIN\]|${CLOUDFLARE_REGISTERED_DOMAIN}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
-
-sed -i "s|\[WILDCARD_CERTIFICATE_NAME\]|${WILDCARD_CERTIFICATE_NAME}|g" "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
+envsubst < "kubernetes/namespaces/cert-manager/acme-production.yml" > "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
 cat "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 

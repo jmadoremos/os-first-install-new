@@ -59,7 +59,7 @@ service:
   # type, selector or ports entries.
   spec:
     # externalTrafficPolicy: Cluster
-    loadBalancerIP: [LOAD_BALANCER_IP] # this should be your Metal LB IP
+    loadBalancerIP: ${METALLB_TRAEFIK_IP_ADDR}
     # clusterIP: "2.3.4.5"
   loadBalancerSourceRanges: []
   externalIPs: []
