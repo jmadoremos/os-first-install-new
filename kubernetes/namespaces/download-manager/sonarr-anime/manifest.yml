@@ -1,0 +1,139 @@
+###############################################################################
+# Deployment specifications for Sonarr (Anime)
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-anime
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: sonarr-anime
+    # The component within the architecture
+    app.kubernetes.io/component: series-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: sonarr-anime
+      # The component within the architecture
+      app.kubernetes.io/component: series-manager
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: media-management-services
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: sonarr-anime
+        # The component within the architecture
+        app.kubernetes.io/component: series-manager
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: media-management-services
+    spec:
+      # *** Pods distribution strategy ***
+      #
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - ${METALLB_PIHOLE_IP_ADDR}
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        #
+        # *** Sonarr ***
+        #
+        # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor
+        # multiple RSS feeds for new episodes of your favorite shows and will
+        # grab, sort and rename them. It can also be configured to
+        # automatically upgrade the quality of files already downloaded when a
+        # better quality format becomes available.
+        #
+        - name: sonarr
+          image: lscr.io/linuxserver/sonarr:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8989
+              protocol: TCP
+          volumeMounts:
+            - name: pvc
+              subPath: sonarr-anime
+              mountPath: /config
+            - name: nfs-media
+              mountPath: /tv
+          envFrom:
+            - configMapRef:
+                name: shared-config
+      #
+      # *** Volume specifications ***
+      #
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: download-manager
+        - name: nfs-media
+          nfs:
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_ANIME_PATH}
+###############################################################################
+# Cluster IP configuration for Sonarr (Anime)
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-anime
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: sonarr-anime
+    # The component within the architecture
+    app.kubernetes.io/component: series-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: sonarr-anime
+    # The component within the architecture
+    app.kubernetes.io/component: series-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 8989
+###############################################################################
+# Ingress route configuration for Sonarr (Anime)
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr-anime
+  namespace: download-manager
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: sonarr-anime
+    # The component within the architecture
+    app.kubernetes.io/component: series-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`${SONARR_ANIME_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: sonarr-anime
+          namespace: download-manager
+          port: web

@@ -1,0 +1,196 @@
+###############################################################################
+# General configurations for Wireguard
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deluge-wireguard
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: wireguard
+    # The component within the architecture
+    app.kubernetes.io/component: vpn
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+data:
+  SERVERURL: '${METALLB_WIREGUARD_IP_ADDR}'
+  SERVERPORT: '51820'
+###############################################################################
+# Deployment specifications for Deluge
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deluge
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: deluge
+    # The component within the architecture
+    app.kubernetes.io/component: torrent-client
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: deluge
+      # The component within the architecture
+      app.kubernetes.io/component: torrent-client
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: media-management-services
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: deluge
+        # The component within the architecture
+        app.kubernetes.io/component: torrent-client
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: media-management-services
+    spec:
+      # *** Pods distribution strategy ***
+      #
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - ${METALLB_PIHOLE_IP_ADDR}
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        #
+        # *** Wireguard ***
+        #
+        # WireGuard® is an extremely simple yet fast and modern VPN that
+        # utilizes state-of-the-art cryptography. It aims to be faster,
+        # simpler, leaner, and more useful than IPsec, while avoiding the
+        # massive headache. It intends to be considerably more performant than
+        # OpenVPN. WireGuard is designed as a general purpose VPN for running
+        # on embedded interfaces and super computers alike, fit for many
+        # different circumstances. Initially released for the Linux kernel, it
+        # is now cross-platform (Windows, macOS, BSD, iOS, Android) and widely
+        # deployable. It is currently under heavy development, but already it
+        # might be regarded as the most secure, easiest to use, and simplest
+        # VPN solution in the industry.
+        #
+        - name: wireguard
+          image: lscr.io/linuxserver/wireguard:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 51820
+              protocol: UDP
+          volumeMounts:
+            - name: pvc
+              subPath: deluge-wireguard
+              mountPath: /config
+              readOnly: true
+            - name: wireguard-modules
+              mountPath: /lib/modules
+          envFrom:
+            - configMapRef:
+                name: shared-config
+            - configMapRef:
+                name: deluge-wireguard
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+        #
+        # *** Deluge ***
+        #
+        # Deluge is a full-featured ​BitTorrent client for Linux, OS X, Unix
+        # and Windows.
+        #
+        - name: deluge
+          image: lscr.io/linuxserver/deluge:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8112
+              protocol: TCP
+          volumeMounts:
+            - name: pvc
+              subPath: deluge
+              mountPath: /config
+            - name: nfs-downloads
+              mountPath: /data
+          envFrom:
+            - configMapRef:
+                name: shared-config
+      #
+      # *** Volume specifications ***
+      #
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: download-manager
+        - name: nfs-downloads
+          nfs:
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_DOWNLOADS_PATH}
+        - name: wireguard-modules
+          hostPath:
+            path: /var/modules
+###############################################################################
+# Cluster IP configuration for Deluge
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deluge
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: deluge
+    # The component within the architecture
+    app.kubernetes.io/component: torrent-client
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: deluge
+    # The component within the architecture
+    app.kubernetes.io/component: torrent-client
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 8112
+###############################################################################
+# Ingress route configuration for Deluge
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: deluge
+  namespace: download-manager
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: deluge
+    # The component within the architecture
+    app.kubernetes.io/component: torrent-client
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`${DELUGE_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: deluge
+          namespace: download-manager
+          port: web

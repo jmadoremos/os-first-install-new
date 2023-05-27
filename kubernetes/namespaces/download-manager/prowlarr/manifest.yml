@@ -1,0 +1,205 @@
+###############################################################################
+# General configurations for FlareSolverr
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flaresolverr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: flaresolverr
+    # The component within the architecture
+    app.kubernetes.io/component: indexer-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+data:
+  LOG_LEVEL: info
+  LOG_HTML: 'false'
+  CAPTCHA_SOLVER: none
+  TZ: ${TIMEZONE}
+###############################################################################
+# Deployment specifications for Prowlarr
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: prowlarr
+    # The component within the architecture
+    app.kubernetes.io/component: index-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: prowlarr
+      # The component within the architecture
+      app.kubernetes.io/component: index-manager
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: media-management-services
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: prowlarr
+        # The component within the architecture
+        app.kubernetes.io/component: index-manager
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: media-management-services
+    spec:
+      # *** Pods distribution strategy ***
+      #
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - ${METALLB_PIHOLE_IP_ADDR}
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        # *** FlareSolverr ***
+        #
+        # FlareSolverr is a proxy server to bypass Cloudflare and DDoS-GUARD
+        # protection.
+        #
+        - name: flaresolverr
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8191
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: flaresolverr
+        #
+        # *** Prowlarr ***
+        #
+        # Prowlarr is a indexer manager/proxy built on the popular arr
+        # .net/reactjs base stack to integrate with your various PVR apps.
+        # Prowlarr supports both Torrent Trackers and Usenet Indexers. It
+        # integrates seamlessly with Sonarr, Radarr, Lidarr, and Readarr
+        # offering complete management of your indexers with no per app Indexer
+        # setup required (we do it all).
+        #
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9696
+              protocol: TCP
+          volumeMounts:
+            - name: pvc
+              subPath: prowlarr
+              mountPath: /config
+          envFrom:
+            - configMapRef:
+                name: shared-config
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 250Mi
+      #
+      # *** Volume specifications ***
+      #
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: download-manager
+###############################################################################
+# Cluster IP configuration for FlareSolverr
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: flaresolverr
+    # The component within the architecture
+    app.kubernetes.io/component: indexer-proxy
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: prowlarr
+    # The component within the architecture
+    app.kubernetes.io/component: index-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 8191
+###############################################################################
+# Cluster IP configuration for Prowlarr
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: prowlarr
+    # The component within the architecture
+    app.kubernetes.io/component: index-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: prowlarr
+    # The component within the architecture
+    app.kubernetes.io/component: index-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 9696
+###############################################################################
+# Ingress route configuration for Prowlarr
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prowlarr
+  namespace: download-manager
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: prowlarr
+    # The component within the architecture
+    app.kubernetes.io/component: index-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`${PROWLARR_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: prowlarr
+          namespace: download-manager
+          port: web

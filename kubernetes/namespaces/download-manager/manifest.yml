@@ -1,0 +1,54 @@
+###############################################################################
+# Namespace specification for Download Manager
+#
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: download-manager
+  labels:
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+###############################################################################
+# Shared configurations for Download Manager
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-config
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: download-manager
+    # The component within the architecture
+    app.kubernetes.io/component: media-management
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+data:
+  PUID: '1000'
+  PGID: '1000'
+  TZ: ${TIMEZONE}
+###############################################################################
+# Persistent volume claim configurations for Download Manager
+#
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: download-manager
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: download-manager
+    # The component within the architecture
+    app.kubernetes.io/component: media-management
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-nfs-storage
+  resources:
+    requests:
+      storage: 100Gi

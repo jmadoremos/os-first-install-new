@@ -1,0 +1,133 @@
+###############################################################################
+# Deployment specifications for Overseerr
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overseerr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: overseerr
+    # The component within the architecture
+    app.kubernetes.io/component: request-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # The name of the application
+      app.kubernetes.io/name: overseerr
+      # The component within the architecture
+      app.kubernetes.io/component: request-manager
+      # The name of a higher level application this one is part of
+      app.kubernetes.io/part-of: media-management-services
+  template:
+    metadata:
+      labels:
+        # The name of the application
+        app.kubernetes.io/name: overseerr
+        # The component within the architecture
+        app.kubernetes.io/component: request-manager
+        # The name of a higher level application this one is part of
+        app.kubernetes.io/part-of: media-management-services
+    spec:
+      # *** Pods distribution strategy ***
+      #
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - ${METALLB_PIHOLE_IP_ADDR}
+      #
+      # *** Containers specifications ***
+      #
+      containers:
+        #
+        # *** Overseerr ***
+        #
+        # Overseerr is a request management and media discovery tool built to
+        # work with your existing Plex ecosystem. Overseerr helps you find
+        # media you want to watch. With inline recommendations and
+        # suggestions, you will find yourself deeper and deeper in a rabbit
+        # hole of content you never knew you just had to have.
+        #
+        - name: overseerr
+          image: lscr.io/linuxserver/overseerr:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5055
+              protocol: TCP
+          volumeMounts:
+            - name: pvc
+              subPath: overseerr
+              mountPath: /config
+          envFrom:
+            - configMapRef:
+                name: shared-config
+      #
+      # *** Volume specifications ***
+      #
+      volumes:
+        - name: pvc
+          persistentVolumeClaim:
+            claimName: download-manager
+###############################################################################
+# Cluster IP configuration for Overseerr
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: overseerr
+  namespace: download-manager
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: overseerr
+    # The component within the architecture
+    app.kubernetes.io/component: request-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  selector:
+    # The name of the application
+    app.kubernetes.io/name: overseerr
+    # The component within the architecture
+    app.kubernetes.io/component: request-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+  type: ClusterIP
+  ports:
+    - name: web
+      protocol: TCP
+      port: 5055
+###############################################################################
+# Ingress route configuration for Overseerr
+#
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: overseerr
+  namespace: download-manager
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+  labels:
+    # The name of the application
+    app.kubernetes.io/name: overseerr
+    # The component within the architecture
+    app.kubernetes.io/component: request-manager
+    # The name of a higher level application this one is part of
+    app.kubernetes.io/part-of: media-management-services
+spec:
+  entryPoints:
+    - websecure
+  tls: {}
+  routes:
+    - match: Host(`${OVERSEERR_DOMAIN}`)
+      kind: Rule
+      services:
+        - name: overseerr
+          namespace: download-manager
+          port: web
