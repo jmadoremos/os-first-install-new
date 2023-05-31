@@ -68,6 +68,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: shared-config
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1500Mi
+            requests:
+              cpu: 100m
+              memory: 250Mi
       #
       # *** Volume specifications ***
       #

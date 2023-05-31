@@ -913,11 +913,11 @@ spec:
             failureThreshold: 10
           resources:
             limits:
-              cpu: 250m
-              memory: 100Mi
-            requests:
               cpu: 100m
               memory: 50Mi
+            requests:
+              cpu: 10m
+              memory: 25Mi
         #
         # *** Pi-hole ***
         #
@@ -970,11 +970,11 @@ spec:
             failureThreshold: 3
           resources:
             limits:
-              cpu: 250m
+              cpu: 500m
               memory: 300Mi
             requests:
-              cpu: 100m
-              memory: 50Mi
+              cpu: 50m
+              memory: 150Mi
       #
       # *** Volume specifications ***
       #
