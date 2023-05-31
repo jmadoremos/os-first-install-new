@@ -26,12 +26,12 @@ export SMB_USERNAME="username" # Modify
 export SMB_PASSWORD="password" # Modify
 
 # Create local copy of the manifest
-envsubst < "kubernetes/namespaces/default/kubernetes-csi-smb/csi-smb-storage.yml" > "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
+envsubst < "kubernetes/namespaces/default/kubernetes-csi-smb/csi-smb-storage.yml" > "${HOME}/.kube/manifests/default/csi-smb-storage.yml"
 
-cat "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
+cat "${HOME}/.kube/manifests/default/csi-smb-storage.yml"
 
 # Apply the manifest using the local copy
-kubectl apply -f "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
+kubectl apply -f "${HOME}/.kube/manifests/default/csi-smb-storage.yml"
 
 # Check status
 kubectl describe Secret csi-smb-credentials
@@ -57,7 +57,7 @@ kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/kuberne
 * Clean up everything
 
 ```sh
-kubectl delete --ignore-not-found=true -f "${HOME}/.k8s/manifests/default/csi-smb-storage.yml"
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/default/csi-smb-storage.yml"
 
 DRIVER_VERSION="v1.10.0"
 

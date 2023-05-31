@@ -18,7 +18,7 @@ kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
 2. Create the storage class
 
 ```sh
-mkdir -p "${HOME}/.k8s/manifests/default"
+mkdir -p "${HOME}/.kube/manifests/default"
 
 # Set customizations for the local copy
 export NFS_HOST="127.0.0.1" # Modify
@@ -26,12 +26,12 @@ export NFS_HOST="127.0.0.1" # Modify
 export NFS_SHARE="/volume1/share" # Modify
 
 # Create local copy of the manifest
-envsubst < "kubernetes/namespaces/default/kubernetes-csi-nfs/csi-nfs-storage.yml" > "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+envsubst < "kubernetes/namespaces/default/kubernetes-csi-nfs/csi-nfs-storage.yml" > "${HOME}/.kube/manifests/default/csi-nfs-storage.yml"
 
-cat "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+cat "${HOME}/.kube/manifests/default/csi-nfs-storage.yml"
 
 # Apply the manifest using the local copy
-kubectl apply -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+kubectl apply -f "${HOME}/.kube/manifests/default/csi-nfs-storage.yml"
 
 # Check status
 kubectl describe StorageClass csi-nfs-storage
@@ -54,7 +54,7 @@ kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/kuberne
 * Clean up everything
 
 ```sh
-kubectl delete --ignore-not-found=true -f "${HOME}/.k8s/manifests/default/csi-nfs-storage.yml"
+kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/default/csi-nfs-storage.yml"
 
 DRIVER_VERSION="v4.2.0"
 
