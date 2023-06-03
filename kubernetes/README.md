@@ -100,6 +100,10 @@ The pods deployment are handled by namespace:
 
 * [Quant UX](./namespaces/default/quant-ux/README.md)
 
+For cluster monitoring:
+
+* [Monitoring](./namespaces/monitoring/README.md)
+
 For domain redirection to an IP address outside of the Kubernetes cluster:
 
 * [External IP](./namespaces/default/external-ips/README.md)
