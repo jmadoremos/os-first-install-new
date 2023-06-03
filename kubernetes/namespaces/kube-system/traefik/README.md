@@ -62,9 +62,12 @@ envsubst < "kubernetes/namespaces/kube-system/traefik/traefik2-chart-values.yml"
 cat "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Apply the helm chart values using the local copy
-helm uninstall traefik --namespace kube-system
+helm install --namespace kube-system traefik traefik/traefik -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
-helm install traefik traefik/traefik --namespace kube-system -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
+# Update the helm chart
+# helm uninstall --namespace kube-system traefik
+#
+# helm install --namespace kube-system traefik traefik/traefik -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Check status
 TRAEFIK_POD_NAME=$(kubectl --namespace kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name)

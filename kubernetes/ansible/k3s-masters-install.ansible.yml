@@ -2,7 +2,7 @@
 # Extra variables:
 # - k3s_datastore_edp (string)
 # - k3s_token (string)
-# 
+#
 # Host inventory variables:
 # - ansible_host (builtin)
 ########################################################################
@@ -21,6 +21,12 @@
         curl -sfL https://get.k3s.io | sh -s - server \
           --datastore-endpoint "{{ k3s_datastore_edp }}" \
           --disable servicelb \
+          --disable traefik \
+          --kube-controller-manager-arg bind-address=0.0.0.0 \
+          --kube-proxy-arg metrics-bind-address=0.0.0.0 \
+          --kube-scheduler-arg bind-address=0.0.0.0 \
+          --etcd-expose-metrics true \
+          --kubelet-arg containerd=/run/k3s/containerd/containerd.sock \
           --token "{{ k3s_token }}" \
           --write-kubeconfig-mode 644
       args:
@@ -31,10 +37,10 @@
       ansible.builtin.file:
         path: ~/.kube
         state: directory
-      
+
     - name: Copy kube config to ~/.kube folder
       ansible.builtin.copy:
-        remote_src: true 
+        remote_src: true
         src: /etc/rancher/k3s/k3s.yaml
         dest: ~/.kube/config
         mode: 0644
