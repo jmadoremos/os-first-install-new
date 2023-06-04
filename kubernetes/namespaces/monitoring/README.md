@@ -53,5 +53,7 @@ helm install --namespace monitoring prometheus prometheus-community/kube-prometh
 * Clean up
 
 ```sh
+helm uninstall --namespace monitoring prometheus
+
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/monitoring/manifest.yaml"
 ```
