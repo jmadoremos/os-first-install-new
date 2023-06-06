@@ -12,6 +12,8 @@ export METALLB_PIHOLE_IP_ADDR="129.168.3.2" # Modify
 
 export NFS_IP_ADDR="127.0.0.1" # Modify
 
+export NFS_DOWNLOADS_PATH="/volume1/share" # Modify
+
 export NFS_ANIME_PATH="/volume1/share" # Modify
 
 export SONARR_ANIME_DOMAIN="sonarr-anime.example.com" # Modify

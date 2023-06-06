@@ -34,12 +34,20 @@ spec:
         # The name of a higher level application this one is part of
         app.kubernetes.io/part-of: media-management-services
     spec:
+      #
       # *** Pods distribution strategy ***
       #
       dnsPolicy: None
       dnsConfig:
         nameservers:
           - ${METALLB_PIHOLE_IP_ADDR}
+      #
+      # *** Security context ***
+      #
+      securityContext:
+        # Ensure seccomp profile is set to docker/default or runtime/default
+        seccompProfile:
+          type: RuntimeDefault
       #
       # *** Containers specifications ***
       #
@@ -63,11 +71,39 @@ spec:
             - name: pvc
               subPath: sonarr-anime
               mountPath: /config
+            - name: nfs-downloads
+              mountPath: /data
             - name: nfs-media
               mountPath: /tv
           envFrom:
             - configMapRef:
                 name: shared-config
+          # Ensure containers and pods have a configured security context
+          securityContext:
+            capabilities:
+              # Prevent the admission of containers with the NET_RAW capability
+              drop:
+                - NET_RAW
+            # Prevent containers from escalating privileges
+            allowPrivilegeEscalation: false
+          # Ensure each container has a configured liveness probe
+          livenessProbe:
+            httpGet:
+              path: /system/status
+              port: 8989
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 10
+          # Ensure each container has a configured readiness probe
+          readinessProbe:
+            httpGet:
+              path: /system/status
+              port: 8989
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             limits:
               cpu: 1000m
@@ -82,6 +118,10 @@ spec:
         - name: pvc
           persistentVolumeClaim:
             claimName: download-manager
+        - name: nfs-downloads
+          nfs:
+            server: ${NFS_IP_ADDR}
+            path: ${NFS_DOWNLOADS_PATH}
         - name: nfs-media
           nfs:
             server: ${NFS_IP_ADDR}
