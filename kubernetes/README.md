@@ -46,19 +46,13 @@ K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
 ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
 ```
 
-### Setup host
-
-1. Copy the /etc/rancher/k3s/k3s.yaml file from one of the master nodes to ~/.kube/config of the host.
-
-2. Edit ~/.kube/config and replace `127.0.0.1` with the IP address of the load balancer of the master nodes or the IP address of one of the master nodes.
-
-3. Check if all master nodes will appear.
+Confirm Kubernetes nodes are responding
 
 ```sh
-kubectl get nodes
+watch kubectl get nodes
 ```
 
-4. [Optional] Install k9s to manage pods visually in the terminal.
+[Optional] Install k9s to manage pods visually in the terminal.
 
 ```sh
 curl -sS https://webinstall.dev/k9s | bash
