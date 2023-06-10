@@ -1,11 +1,11 @@
 ########################################################################
 # Extra variables:
 # None
-# 
+#
 # Host inventory variables:
 # None
 ########################################################################
-- name: Uninstall Kubernetes master nodes
+- name: Uninstall k3s from master nodes
   hosts: k8s_masters
   tasks:
     - name: Check if k3s is installed

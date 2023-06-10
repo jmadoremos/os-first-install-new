@@ -18,34 +18,32 @@ ansible-playbook "kubernetes/ansible/first-install.ansible.yml"
 
 ### Install and Setup Cluster Nodes
 
+> The domain `k8s.example.com` is set in dnsmasq.d with custom conf file containing `address=/k8s.example.com/MASTER_1_IP_ADDR` and `address=/k8s.example.com/MASTER_2_IP_ADDR` to load balance the master nodes.
+
 Master Node
 
 ```sh
 K3S_DATASTORE_EDP="mysql://username:password@tcp(127.0.0.1:3306)/kubernetes" # Modify
 
-K3S_TOKEN=$(cat ~/.kube/token)
+K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
 
-ansible-playbook "kubernetes/ansible/k3s-masters-install.ansible.yml" --extra-vars="k3s_datastore_edp=${K3S_DATASTORE_EDP} k3s_token=${K3S_TOKEN}"
+ansible-playbook "kubernetes/ansible/k3s-masters-install.ansible.yml" --extra-vars="k3s_datastore_edp=${K3S_DATASTORE_EDP} k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
 ```
 
 Local Worker Nodes
 
 ```sh
-K3S_FIXED_REG_ADDR="https://127.0.0.1:6443" # Modify
+K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
 
-K3S_TOKEN=$(cat ~/.kube/token)
-
-ansible-playbook "kubernetes/ansible/k3s-workers-local-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR} k3s_token=${K3S_TOKEN}"
+ansible-playbook "kubernetes/ansible/k3s-workers-local-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
 ```
 
 Remote worker Nodes
 
 ```sh
-K3S_MASTER_URL="https://k3s.example.com:6443" # Modify
+K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
 
-K3S_TOKEN=$(cat ~/.kube/token)
-
-ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR} k3s_token=${K3S_TOKEN}"
+ansible-playbook "kubernetes/ansible/k3s-workers-remote-install.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
 ```
 
 ### Setup host
