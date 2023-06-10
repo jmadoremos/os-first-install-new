@@ -3,14 +3,12 @@
 1. Build and install Kubernetes CSI driver for SMB/CIFS share
 
 ```sh
-DRIVER_VERSION="v1.10.0"
+DRIVER_VERSION="v1.11.0"
 
 ansible-playbook "kubernetes/ansible/kubernetes-csi-smb-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 
 # Check status
-kubectl --namespace kube-system get pod -o wide -l app=csi-smb-controller
-
-kubectl --namespace kube-system get pod -o wide -l app=csi-smb-node
+watch kubectl --namespace kube-system get pods -o wide
 ```
 
 2. Setup the Kubernetes CSI configuration

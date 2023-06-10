@@ -5,14 +5,12 @@
 > When there is a `failed` status in `Install Kubernetes CSI driver` step, as long as one of the nodes reported `ok` then continue. Otherwise, try again.
 
 ```sh
-DRIVER_VERSION="v4.2.0"
+DRIVER_VERSION="v4.4.0"
 
 ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-install.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 
 # Check status
-kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-controller
-
-kubectl --namespace kube-system get pod -o wide -l app=csi-nfs-node
+watch kubectl --namespace kube-system get pods -o wide
 ```
 
 2. Create the storage class

@@ -16,7 +16,19 @@ helm repo add traefik https://helm.traefik.io/traefik
 helm repo update
 ```
 
-2. Setup Traefik pre-requisites.
+2. Setup Traefik CRDs.
+
+```sh
+TRAEFIK_VERSION="v2.10.1"
+
+# Install Traefik Resource Definitions
+kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+
+# Install RBAC for Traefik:
+kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml"
+```
+
+3. Setup Traefik pre-requisites.
 
 ```sh
 mkdir -p "${HOME}/.kube/manifests/kube-system/traefik2"
@@ -35,19 +47,7 @@ kubectl apply -f "${HOME}/.kube/manifests/kube-system/traefik2/manifest.yaml"
 # Check status
 kubectl get --namespace kube-system TLSStore default
 
-kubectl get Middleware default-headers
-```
-
-3. Setup Traefik CRDs.
-
-```sh
-TRAEFIK_VERSION="v2.10"
-
-# Install Traefik Resource Definitions
-kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
-
-# Install RBAC for Traefik:
-kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml"
+kubectl get --namespace kube-system Middleware headers-default
 ```
 
 4. Setup Traefik helm chart.

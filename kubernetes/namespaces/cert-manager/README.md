@@ -6,7 +6,7 @@ cert-manager adds certificates and certificate issuers as resource types in Kube
 
 ```sh
 # Apply the manifest
-CERT_MANAGER_VERSION="v1.11.2"
+CERT_MANAGER_VERSION="v1.12.1"
 
 kubectl apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 

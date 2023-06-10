@@ -7,14 +7,14 @@ MetalLB is a load-balancer implementation for bare metal Kubernetes clusters, us
 ```sh
 mkdir -p "${HOME}/.kube/manifests/metallb-system"
 
-METALLB_VERSION="v0.13.9" # Modify
+METALLB_VERSION="v0.13.10" # Modify
 
 curl "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml" --output "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 
 kubectl apply -f "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 
 # Check status
-kubectl get --namespace metallb-system pods
+watch kubectl get --namespace metallb-system pods -o wide
 ```
 
 2. Apply the MetalLB pool.
@@ -34,9 +34,7 @@ cat "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 kubectl apply -f "${HOME}/.kube/manifests/metallb-system/ip-address-pools.yaml"
 
 # Check status
-kubectl describe --namespace metallb-system IPAddressPool general-pool
-
-kubectl describe --namespace metallb-system IPAddressPool core-pool
+watch kubectl get --namespace metallb-system IPAddressPool -o wide
 ```
 
 3. Configure the network router with static route from the master nodes to the values set in `DEDICATED_IP_CIDR` and `CORE_IP_CIDR` using next hop type.
