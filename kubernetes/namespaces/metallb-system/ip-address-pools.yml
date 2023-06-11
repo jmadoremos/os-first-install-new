@@ -24,11 +24,4 @@ spec:
   addresses:
     - ${METALLB_CORE_CIDR}
   avoidBuggyIPs: true
-  serviceAllocation:
-    priority: 1
-    serviceSelectors:
-      - matchExpressions:
-        - key: app.kubernetes.io/part-of
-          operator: In
-          values:
-            - network-services
+  autoAssign: false
