@@ -12,5 +12,13 @@ parameters:
 reclaimPolicy: Delete  # available values: Delete, Retain
 volumeBindingMode: Immediate
 mountOptions:
+  # Maximum number of bytes of data that the NFS client can receive for each network READ request.
+  - rsize=1048576
+  # Maximum number of bytes of data that the NFS client can send for each network WRITE request.
+  - wsize=1048576
+  # Ensure data integrity
   - hard
+  # Tells the NFS client to use a new Transmission Control Protocol (TCP) source port when a network connection is reestablished.
+  - noresvport
+  # NFS protocol version to negotiate
   - nfsvers=4.1
