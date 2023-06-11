@@ -35,7 +35,7 @@ cat "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 kubectl apply -f "${HOME}/.kube/manifests/default/dns-over-https.yaml"
 
 # Check status
-kubectl get all
+watch kubectl get pods
 ```
 
 Remove the deployment.
