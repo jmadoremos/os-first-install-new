@@ -785,25 +785,6 @@ data:
       # [static.'myserver']
       # stamp = 'sdns://AQcAAAAAAAAAAAAQMi5kbnNjcnlwdC1jZXJ0Lg'
 ###############################################################################
-# Configuration file for Pi-Hole (dnsmasq.d)
-#
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pihole-dnsmasqd
-  namespace: default
-  labels:
-    # The name of the application
-    app.kubernetes.io/name: dns-over-https
-    # The component within the architecture
-    app.kubernetes.io/component: dns
-    # The name of a higher level application this one is part of
-    app.kubernetes.io/part-of: network-services
-data:
-  02-wildcard-custom.conf: |
-    address=/${CLOUDFLARE_REGISTERED_DOMAIN}/${METALLB_TRAEFIK_IP_ADDR}
-###############################################################################
 # General configurations for Pi-Hole
 #
 ---
@@ -955,10 +936,9 @@ spec:
             - containerPort: 53
               protocol: UDP
           volumeMounts:
-            - mountPath: /etc/dnsmasq.d/02-wildcard-custom.conf
-              name: pihole-dnsmasqd-config
-              subPath: 02-wildcard-custom.conf
-              readOnly: true
+            - mountPath: /etc/dnsmasq.d
+              name: pvc
+              subPath: dnsmasq.d
             - mountPath: /etc/pihole
               name: pvc
               subPath: pihole

@@ -8,8 +8,6 @@ Creates a DNS service with DoH enabled using [DNSCrypt](https://dnscrypt.info) a
 mkdir -p "${HOME}/.kube/manifests/default"
 
 # Set customizations for the local copy
-export CLOUDFLARE_REGISTERED_DOMAIN="example.com" # Modify
-
 export PIHOLE_CIDR="192.168.1.0/24" # Modify
 
 export PIHOLE_GATEWAY="192.168.1.1" # Modify
@@ -19,8 +17,6 @@ export PIHOLE_PASSWORD="SUPER_SECURE_PASSWORD_FOR_WEB_UI" # Modify
 export PIHOLE_DOMAIN="pihole.example.com" # Modify
 
 export METALLB_PIHOLE_IP_ADDR="192.168.3.2" # Modify
-
-export METALLB_TRAEFIK_IP_ADDR="192.168.3.1" # Modify
 
 export WILDCARD_CERTIFICATE_NAME="wildcard-example-com" # Modify
 
