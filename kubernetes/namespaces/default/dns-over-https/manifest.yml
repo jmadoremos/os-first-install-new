@@ -912,6 +912,16 @@ spec:
             initialDelaySeconds: 120
             timeoutSeconds: 5
             failureThreshold: 10
+          readinessProbe:
+            exec:
+              command:
+                - nslookup
+                - -po=5353
+                - cloudflare.com
+                - '127.0.0.1'
+            initialDelaySeconds: 120
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             limits:
               cpu: 100m
