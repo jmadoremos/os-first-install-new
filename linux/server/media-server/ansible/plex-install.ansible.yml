@@ -4,7 +4,7 @@
 #
 # Extra variables:
 # - None
-# 
+#
 # Host inventory variables:
 # - None
 ###############################################################################
@@ -16,6 +16,7 @@
     plex_home: /var/lib/plexmediaserver/Library/Application Support/Plex Media Server
   tasks:
     - name: Install dependencies
+      become: true
       ansible.builtin.apt:
         pkg:
           - apt-transport-https
@@ -24,17 +25,20 @@
         state: present
 
     - name: Install Plex Media Server GPG key
+      become: true
       ansible.builtin.apt_key:
         url: https://downloads.plex.tv/plex-keys/PlexSign.key
         keyring: /usr/share/keyrings/PlexSign.key
         state: present
 
     - name: Add Plex Media Server repository to apt sources
+      become: true
       ansible.builtin.copy:
         dest: /etc/apt/sources.list.d/plexmediaserver.list
         content: deb [signed-by=/usr/share/keyrings/PlexSign.key] https://downloads.plex.tv/repo/deb public main
 
     - name: Update package repository
+      become: true
       ansible.builtin.apt:
         force_apt_get: yes
         update_cache: yes
@@ -42,11 +46,13 @@
         cache_valid_time: 0 # Do not rely on cache
 
     - name: Install the latest Plex Media Server
+      become: true
       ansible.builtin.apt:
         name: plexmediaserver
         state: latest
 
     - name: Set ownership to "plex"
+      become: true
       ansible.builtin.file:
         path: "{{ item }}"
         owner: plex
@@ -64,10 +70,17 @@
         state: directory
 
     - name: Add "Absolute Series Scanner" scanner
-      register: ass_installed
+      become: true
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/ZeroQI/Absolute-Series-Scanner/master/Scanners/Series/Absolute%20Series%20Scanner.py
         dest: "{{ plex_home }}/Scanners/Series/Absolute Series Scanner.py"
+      register: ass_installed
+
+    - name: Remove old installation of "Hama.bundle" plugin
+      become: true
+      ansible.builtin.file:
+        path: "{{ plex_home }}/Plug-ins/Hama.bundle"
+        state: absent
 
     - name: Add latest "Hama.bundle" plugin
       register: hama_installed
@@ -77,6 +90,12 @@
         version: master
         depth: 1
 
+    - name: Remove old installation of "Lambda.bundle" plugin
+      become: true
+      ansible.builtin.file:
+        path: "{{ plex_home }}/Plug-ins/Lambda.bundle"
+        state: absent
+
     - name: Add latest "Lambda.bundle" plugin
       register: lambda_installed
       ansible.builtin.git:
@@ -85,8 +104,20 @@
         version: master
         depth: 1
 
+    - name: Set plugin ownership to "plex"
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: plex
+        group: plex
+        state: directory
+      with_items:
+        - "{{ plex_home }}/Plug-ins/Hama.bundle"
+        - "{{ plex_home }}/Plug-ins/Lambda.bundle"
+
     - name: Restart Plex Media Server service if a plugin is installed
       when: ass_installed.changed or hama_installed.changed or lambda_installed.changed
+      become: true
       ansible.builtin.service:
         name: plexmediaserver
         state: restarted
