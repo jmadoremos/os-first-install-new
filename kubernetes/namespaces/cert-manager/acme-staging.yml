@@ -16,7 +16,7 @@ metadata:
     app.kubernetes.io/part-of: network-services
 type: Opaque
 stringData:
-  api-key: ${CLOUDFLARE_API_TOKEN}
+  api-token: ${CLOUDFLARE_API_TOKEN}
 ###############################################################################
 # Cluster issuer configuration
 #
@@ -43,9 +43,9 @@ spec:
       - dns01:
           cloudflare:
             email: ${CLOUDFLARE_EMAIL}
-            apiKeySecretRef:
+            apiTokenSecretRef:
               name: cert-manager-cloudflare
-              key: api-key
+              key: api-token
         selector:
           dnsZones:
             - '${CLOUDFLARE_REGISTERED_DOMAIN}'

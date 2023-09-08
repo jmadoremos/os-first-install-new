@@ -6,12 +6,12 @@ cert-manager adds certificates and certificate issuers as resource types in Kube
 
 ```sh
 # Apply the manifest
-CERT_MANAGER_VERSION="v1.12.1"
+CERT_MANAGER_VERSION="v1.12.4"
 
 kubectl apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 
 # Verify installation
-kubectl get --namespace cert-manager pods
+watch kubectl get --namespace cert-manager pods
 ```
 
 2. Test the configuration.
@@ -20,7 +20,7 @@ kubectl get --namespace cert-manager pods
 # Test configuration by creating a self-signed certificate
 kubectl apply -f "kubernetes/namespaces/cert-manager/cert-manager-test.yml"
 
-kubectl get --namespace cert-manager-test certificate
+watch kubectl get --namespace cert-manager-test certificate
 
 # Clean up after testing is complete
 kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/cert-manager/cert-manager-test.yml"
@@ -92,7 +92,7 @@ kubectl get --namespace kube-system challenges && kubectl get --namespace kube-s
 ```sh
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
-CERT_MANAGER_VERSION="v1.11.2"
+CERT_MANAGER_VERSION="v1.12.4"
 
 kubectl delete --ignore-not-found=true -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 ```
