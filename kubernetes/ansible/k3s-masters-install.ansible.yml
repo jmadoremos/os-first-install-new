@@ -19,7 +19,7 @@
     - name: Install k3s as master node
       when: k3s_installed.rc != 0
       ansible.builtin.shell: >-
-        curl -sfL https://get.k3s.io | sh -s - server \
+        curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -s - server \
           --datastore-endpoint "{{ k3s_datastore_edp }}" \
           --disable servicelb \
           --disable traefik \
@@ -95,7 +95,7 @@
     - name: Install k3s as master node
       when: k3s_installed.rc != 0
       ansible.builtin.shell: >-
-        curl -sfL https://get.k3s.io | sh -s - server \
+        curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -s - server \
           --datastore-endpoint "{{ k3s_datastore_edp }}" \
           --disable servicelb \
           --disable traefik \
