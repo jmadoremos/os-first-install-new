@@ -1,0 +1,31 @@
+########################################################################
+# Extra variables:
+# NONE
+#
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Uninstall Synology CSI driver for Kubernetes
+  hosts: localhost
+  tasks:
+    - name: Replace version to v1.20
+      ansible.builtin.replace:
+        path: ~/.kube/tmp/synology-csi/scripts/uninstall.sh
+        regexp: v1\.19
+        replace: v1.20
+
+    - name: Uninstall Synology CSI driver
+      ansible.builtin.shell: >-
+        ./scripts/uninstall.sh install --basic
+      args:
+        chdir: ~/.kube/tmp/synology-csi
+
+    - name: Remove synology-csi folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp/synology-csi
+        state: absent
+
+    - name: Remove synology-csi-client-info.yml
+      ansible.builtin.file:
+        path: ~/.kube/tmp/synology-csi-client-info.yml
+        state: absent

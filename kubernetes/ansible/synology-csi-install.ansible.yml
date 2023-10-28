@@ -1,0 +1,49 @@
+########################################################################
+# Extra variables:
+# NONE
+#
+# Host inventory variables:
+# - ansible_user (builtin)
+########################################################################
+- name: Install Synology CSI driver for Kubernetes
+  hosts: localhost
+  tasks:
+    - name: Create ~/.kube/tmp folder
+      ansible.builtin.file:
+        path: ~/.kube/tmp
+        state: directory
+
+    - name: Clone Synology CSI repository
+      ansible.builtin.git:
+        repo: https://github.com/SynologyOpenSource/synology-csi.git
+        dest: ~/.kube/tmp/synology-csi
+        update: yes
+        force: yes
+
+    - name: Copy synology-csi-client-info.yml to synology-csi/config folder
+      ansible.builtin.copy:
+        src: ~/.kube/tmp/synology-csi-client-info.yml
+        dest: ~/.kube/tmp/synology-csi/config/client-info.yml
+
+    - name: Remove --short flag in kubectl version
+      ansible.builtin.replace:
+        path: ~/.kube/tmp/synology-csi/scripts/deploy.sh
+        regexp: kubectl version --short
+        replace: kubectl version
+
+    - name: Enforce create plugin folder as admin
+      ansible.builtin.replace:
+        path: ~/.kube/tmp/synology-csi/scripts/deploy.sh
+        regexp: mkdir -p \$plugin_dir
+        replace: sudo mkdir -p $plugin_dir
+
+    - name: Basic install Synology CSI driver using docker
+      ansible.builtin.shell: >-
+        ./scripts/deploy.sh install --basic
+      args:
+        chdir: ~/.kube/tmp/synology-csi
+
+    - name: Remove ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: absent
