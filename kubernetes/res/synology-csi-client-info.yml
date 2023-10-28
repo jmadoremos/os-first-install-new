@@ -1,0 +1,7 @@
+---
+clients:
+  - host: ${SYN_DSM_IPV4_OR_DOMAIN}  # ipv4 address or domain of the DSM
+    port: ${SYN_DSM_PORT}  # port for connecting to the DSM
+    https: ${SYN_DSM_HTTPS}  # set this true to use https. you need to specify the port to DSM HTTPS port as well
+    username: ${SYN_DSM_USERNAME}  # username
+    password: ${SYN_DSM_PASSWORD}  # password

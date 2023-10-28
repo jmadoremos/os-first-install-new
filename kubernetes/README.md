@@ -64,6 +64,10 @@ Refer to [Automated System Update](./namespaces/system-upgrade/README.md) for th
 
 ### Setup Kubernetes CSI
 
+* Synology CSI
+
+  Refer to [Synology CSI](./namespaces/synology-csi/README.md) for the instructions.
+
 * NFS
 
   Refer to [Kubernetes CSI (NFS)](./namespaces/default/kubernetes-csi-nfs/README.md) for the instructions.
