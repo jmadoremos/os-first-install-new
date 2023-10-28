@@ -15,7 +15,7 @@ curl "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master
 kubectl apply -f "${HOME}/.kube/manifests/system-upgrade/system-upgrade-controller.yaml"
 
 # Check status
-watch kubectl --namesspace system-upgrade get pods -o yaml
+watch kubectl --namespace system-upgrade get pods -o yaml
 ```
 
 2. Apply the Upgrade Plan manifest.
