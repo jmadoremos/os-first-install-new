@@ -19,7 +19,7 @@ helm repo update
 2. Setup Traefik CRDs.
 
 ```sh
-TRAEFIK_VERSION="v2.10.1"
+TRAEFIK_VERSION="v2.10.5"
 
 # Install Traefik Resource Definitions
 kubectl apply -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
@@ -70,6 +70,8 @@ helm install --namespace kube-system traefik traefik/traefik -f "${HOME}/.kube/m
 # helm install --namespace kube-system traefik traefik/traefik -f "${HOME}/.kube/manifests/kube-system/traefik2/chart-values.yaml"
 
 # Check status
+watch kubectl --namespace kube-system get pods --selector "app.kubernetes.io/name=traefik"
+
 TRAEFIK_POD_NAME=$(kubectl --namespace kube-system get pods --selector "app.kubernetes.io/name=traefik" --output=name)
 
 kubectl logs --namespace kube-system $TRAEFIK_POD_NAME
@@ -78,7 +80,7 @@ kubectl logs --namespace kube-system $TRAEFIK_POD_NAME
 * Clean up everything.
 
 ```sh
-TRAEFIK_VERSION="v2.10"
+TRAEFIK_VERSION="v2.10.5"
 
 kubectl delete --ignore-not-found=true -f "https://raw.githubusercontent.com/traefik/traefik/${TRAEFIK_VERSION}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
 

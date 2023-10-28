@@ -1,0 +1,130 @@
+########################################################################
+# Extra variables:
+# - k3s_fixed_reg_addr (string)
+#
+# Host inventory variables:
+# - ansible_host (builtin)
+# - ansible_user (builtin)
+########################################################################
+- name: Install k3s to primary master node using etcd
+  hosts: k8s_master_primary
+  tasks:
+    - name: Check if k3s is installed
+      ansible.builtin.shell: k3s --version
+      register: k3s_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install k3s as master node
+      when: k3s_installed.rc != 0
+      ansible.builtin.shell: >-
+        curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -s - server \
+          --cluster-init \
+          --disable servicelb \
+          --disable traefik \
+          --kube-apiserver-arg default-not-ready-toleration-seconds=30 \
+          --kube-apiserver-arg default-unreachable-toleration-seconds=30 \
+          --kube-controller-arg node-monitor-period=20s \
+          --kube-controller-arg node-monitor-grace-period=20s \
+          --kube-controller-manager-arg bind-address=0.0.0.0 \
+          --kube-proxy-arg metrics-bind-address=0.0.0.0 \
+          --kube-scheduler-arg bind-address=0.0.0.0 \
+          --kubelet-arg containerd=/run/k3s/containerd/containerd.sock \
+          --kubelet-arg node-status-update-frequency=5s \
+          --tls-san {{ k3s_fixed_reg_addr }} \
+          --write-kubeconfig-mode 644
+      args:
+        warn: false
+      changed_when: false
+
+    - name: Create ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+
+    - name: Copy kube-config to ~/.kube folder
+      become: true
+      ansible.builtin.copy:
+        remote_src: true
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: '/home/{{ ansible_user }}/.kube/config'
+        owner: '{{ ansible_user }}'
+        mode: '0600'
+
+    - name: Replace localhost with fixed registration address in ~/.kube/config
+      ansible.builtin.replace:
+        path: ~/.kube/config
+        regexp: '127\.0\.0\.1'
+        replace: '{{ k3s_fixed_reg_addr }}'
+
+    - name: Fetch modified kube-config to local ~/.kube folder
+      ansible.builtin.fetch:
+        src: '/home/{{ ansible_user }}/.kube/config'
+        dest: ~/.kube/config
+        flat: yes
+
+    - name: Fetch token to local ~/.kube folder
+      become: true
+      ansible.builtin.fetch:
+        src: /var/lib/rancher/k3s/server/node-token
+        dest: ~/.kube/token
+        flat: yes
+
+- name: Install k3s to redundant master nodes
+  hosts: k8s_master_redundant
+  tasks:
+    - name: Create ~/.kube folder
+      ansible.builtin.file:
+        path: ~/.kube
+        state: directory
+
+    - name: Copy local ~/.kube/token to ~/.kube folder
+      ansible.builtin.copy:
+        src: ~/.kube/token
+        dest: '/home/{{ ansible_user }}/.kube/token'
+        owner: '{{ ansible_user }}'
+        mode: '0400'
+
+    - name: Check if k3s is installed
+      ansible.builtin.shell: k3s --version
+      register: k3s_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install k3s as master node
+      when: k3s_installed.rc != 0
+      ansible.builtin.shell: >-
+        curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -s - server \
+          --server "https://{{ hostvars['regia-01']['ansible_facts']['eth0']['ipv4']['address'] }}:6443" \
+          --disable servicelb \
+          --disable traefik \
+          --kube-apiserver-arg default-not-ready-toleration-seconds=30 \
+          --kube-apiserver-arg default-unreachable-toleration-seconds=30 \
+          --kube-controller-arg node-monitor-period=20s \
+          --kube-controller-arg node-monitor-grace-period=20s \
+          --kube-controller-manager-arg bind-address=0.0.0.0 \
+          --kube-proxy-arg metrics-bind-address=0.0.0.0 \
+          --kube-scheduler-arg bind-address=0.0.0.0 \
+          --kubelet-arg containerd=/run/k3s/containerd/containerd.sock \
+          --kubelet-arg node-status-update-frequency=5s \
+          --tls-san {{ k3s_fixed_reg_addr }} \
+          --token-file /home/{{ ansible_user }}/.kube/token \
+          --write-kubeconfig-mode 644
+      args:
+        warn: false
+      changed_when: false
+
+    - name: Copy kube-config to ~/.kube folder
+      become: true
+      ansible.builtin.copy:
+        remote_src: true
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: '/home/{{ ansible_user }}/.kube/config'
+        owner: '{{ ansible_user }}'
+        mode: '0600'
+
+    - name: Replace localhost with fixed registration address in ~/.kube/config
+      ansible.builtin.replace:
+        path: ~/.kube/config
+        regexp: '127\.0\.0\.1'
+        replace: '{{ k3s_fixed_reg_addr }}'

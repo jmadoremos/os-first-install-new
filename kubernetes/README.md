@@ -23,11 +23,17 @@ ansible-playbook "kubernetes/ansible/first-install.ansible.yml"
 Master Node
 
 ```sh
+# For external DB
 K3S_DATASTORE_EDP="mysql://username:password@tcp(127.0.0.1:3306)/kubernetes" # Modify
 
 K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
 
-ansible-playbook "kubernetes/ansible/k3s-masters-install.ansible.yml" --extra-vars="k3s_datastore_edp=${K3S_DATASTORE_EDP} k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
+ansible-playbook "kubernetes/ansible/k3s-masters-install-externaldb.ansible.yml" --extra-vars="k3s_datastore_edp=${K3S_DATASTORE_EDP} k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
+
+# For etcd
+K3S_FIXED_REG_ADDR="k8s.example.com" # Modify
+
+ansible-playbook "kubernetes/ansible/k3s-masters-install-etcd.ansible.yml" --extra-vars="k3s_fixed_reg_addr=${K3S_FIXED_REG_ADDR}"
 ```
 
 Local Worker Nodes
@@ -129,3 +135,28 @@ kubectl rollout restart Deployment <deployment_name>
 # For stateful set
 kubectl rollout restart StatefulSet <stateful_set_name>
 ```
+
+> Q: How to force delete a persistent volume or persistent volume claim?
+
+1. Run this command:
+
+```sh
+# For persistent volume
+kubectl edit pv <pv_name>
+
+# For persistent volume claim
+kubectl edit pvc <pvc_name>
+```
+
+2. Locate the following lines and delete them:
+
+```markdown
+finalizers:
+  - kubernetes.io/pv-protection
+```
+
+3. Press `:` key then type `wq` to save and quit
+
+4. Wait for the message `persistentvolume/<pv_name> edited`.
+
+5. If the command fails, run the command mentioned in the error message to retry.

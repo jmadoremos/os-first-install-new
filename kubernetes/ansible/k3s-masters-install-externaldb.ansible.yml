@@ -7,7 +7,7 @@
 # - ansible_host (builtin)
 # - ansible_user (builtin)
 ########################################################################
-- name: Install k3s to primary master node
+- name: Install k3s to primary master node using external DB
   hosts: k8s_master_primary
   tasks:
     - name: Check if k3s is installed

@@ -7,7 +7,7 @@ MetalLB is a load-balancer implementation for bare metal Kubernetes clusters, us
 ```sh
 mkdir -p "${HOME}/.kube/manifests/metallb-system"
 
-METALLB_VERSION="v0.13.10" # Modify
+METALLB_VERSION="v0.13.12" # Modify
 
 curl "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml" --output "${HOME}/.kube/manifests/metallb-system/metallb-native.yaml"
 

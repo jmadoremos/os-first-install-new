@@ -6,7 +6,7 @@ cert-manager adds certificates and certificate issuers as resource types in Kube
 
 ```sh
 # Apply the manifest
-CERT_MANAGER_VERSION="v1.12.4"
+CERT_MANAGER_VERSION="v1.13.1"
 
 kubectl apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 
@@ -51,7 +51,7 @@ CERT_MANAGER_POD_NAME=$(kubectl get --namespace cert-manager pods --selector "ap
 
 kubectl logs --namespace cert-manager $CERT_MANAGER_POD_NAME
 
-kubectl get challenges && kubectl get certificates
+watch 'kubectl get challenges && echo && kubectl get certificates'
 
 # Clean up staging
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/cert-manager/acme-staging/manifest.yaml"
@@ -84,7 +84,7 @@ cat "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 kubectl apply -f "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
 # Check status
-kubectl get --namespace kube-system challenges && kubectl get --namespace kube-system certificates
+watch 'kubectl get --namespace kube-system challenges && echo && kubectl get --namespace kube-system certificates'
 ```
 
 * Clean up everything
@@ -92,7 +92,7 @@ kubectl get --namespace kube-system challenges && kubectl get --namespace kube-s
 ```sh
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/cert-manager/acme-production/manifest.yaml"
 
-CERT_MANAGER_VERSION="v1.12.4"
+CERT_MANAGER_VERSION="v1.13.1"
 
 kubectl delete --ignore-not-found=true -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 ```
