@@ -4,7 +4,10 @@
     //     "**/ansible/*.yml": "ansible"
     // },
     "yaml.schemas": {
-        "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json": "**/ansible/*.yml"
+        "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json": [
+            "**/ansible/*.yml", "**/ansible/*.yaml",
+            "*.ansible.yml", "*.ansible.yaml"
+        ],
     },
     // Disable ansible-lint
     "ansible.validation.lint.enabled": false,
