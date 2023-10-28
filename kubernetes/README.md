@@ -103,3 +103,13 @@ For cluster monitoring:
 For domain redirection to an IP address outside of the Kubernetes cluster:
 
 * [External IP](./namespaces/default/external-ips/README.md)
+
+## Troubleshooting
+
+> Q: How to delete namespaces stuck in `Terminating` state?
+
+Run this command:
+
+```sh
+NS=`kubectl get ns | grep Terminating | awk 'NR==1 {print $1}'` && kubectl get namespace "$NS" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/$NS/finalize -f -
+```
