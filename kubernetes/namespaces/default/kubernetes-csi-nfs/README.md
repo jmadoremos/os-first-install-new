@@ -54,7 +54,7 @@ kubectl delete --ignore-not-found=true -f "kubernetes/namespaces/default/kuberne
 ```sh
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/default/csi-nfs-storage.yml"
 
-DRIVER_VERSION="v4.2.0"
+DRIVER_VERSION="v4.4.0"
 
 ansible-playbook "kubernetes/ansible/kubernetes-csi-nfs-uninstall.ansible.yml" --extra-vars="driver_version=${DRIVER_VERSION}"
 ```
