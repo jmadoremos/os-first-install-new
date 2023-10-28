@@ -44,7 +44,7 @@
         state: directory
 
     - name: Copy kube-config to ~/.kube folder
-      become: yes
+      become: true
       ansible.builtin.copy:
         remote_src: true
         src: /etc/rancher/k3s/k3s.yaml
@@ -65,7 +65,7 @@
         flat: yes
 
     - name: Fetch token to local ~/.kube folder
-      become: yes
+      become: true
       ansible.builtin.fetch:
         src: /var/lib/rancher/k3s/server/node-token
         dest: ~/.kube/token
@@ -116,7 +116,7 @@
       changed_when: false
 
     - name: Copy kube-config to ~/.kube folder
-      become: yes
+      become: true
       ansible.builtin.copy:
         remote_src: true
         src: /etc/rancher/k3s/k3s.yaml

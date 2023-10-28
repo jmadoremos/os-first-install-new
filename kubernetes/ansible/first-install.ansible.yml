@@ -9,7 +9,7 @@
   hosts: k8s_cluster
   tasks:
     - name: Add dedicated sudoer file for "{{ ansible_user }}"
-      become: yes
+      become: true
       ansible.builtin.copy:
         dest: '/etc/sudoers.d/{{ ansible_user }}'
         content: |
@@ -48,7 +48,7 @@
 
         - name: Add "cgroup_enable=cpuset" flag to cmdline.txt
           when: rpi_cgroup_enable_cpuset.rc == 1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_enable=cpuset/" -i /boot/cmdline.txt
           register: rpi_cgroup_enable_cpuset_added
@@ -58,7 +58,7 @@
 
         - name: Add "cgroup_memory=1" flag to cmdline.txt
           when: rpi_cgroup_memory.rc == 1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_memory=1/" -i /boot/cmdline.txt
           register: rpi_cgroup_memory_1_added
@@ -68,7 +68,7 @@
 
         - name: Add "cgroup_enable=memory" flag to cmdline.txt
           when: rpi_cgroup_enable_memory.rc == 1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_enable=memory/" -i /boot/cmdline.txt
           register: rpi_cgroup_enable_memory_added
@@ -78,7 +78,7 @@
 
         - name: Restart when cmdline.txt is changed
           when: rpi_cgroup_enable_cpuset_added.changed or rpi_cgroup_memory_1_added.changed or rpi_cgroup_enable_memory_added.changed
-          become: yes
+          become: true
           ansible.builtin.reboot:
             msg: "Reboot initiated by Ansible due to changes in cmdline.txt"
             connect_timeout: 5
@@ -89,21 +89,21 @@
 
     # Update system
     - name: Update package repository
-      become: yes
+      become: true
       ansible.builtin.apt:
         update_cache: yes
         update_cache_retries: 3
         cache_valid_time: 3600 # 1 hour
 
     - name: Upgrade all installed packages
-      become: yes
+      become: true
       register: apt_package_upgrade
       ansible.builtin.apt:
         upgrade: safe
 
     # Install common tools
     - name: Install common utilities
-      become: yes
+      become: true
       register: apt_package_install
       ansible.builtin.apt:
         state: present
@@ -117,14 +117,14 @@
           - zsh
 
     - name: Cleanup unused or unneeded packages
-      become: yes
+      become: true
       ansible.builtin.apt:
         autoclean: true
         autoremove: true
 
     # Reboot system
     - name: Reboot if packages are installed or updated
-      become: yes
+      become: true
       when: apt_package_upgrade.changed or apt_package_install.changed
       ansible.builtin.reboot:
         msg: "Reboot initiated by Ansible due to apt packages"

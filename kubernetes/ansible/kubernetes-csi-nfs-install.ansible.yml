@@ -1,7 +1,7 @@
 ########################################################################
 # Extra variables:
 # - driver_version (string)
-# 
+#
 # Host inventory variables:
 # - ansible_user (builtin)
 ########################################################################
@@ -14,7 +14,7 @@
         state: directory
 
     - name: Install pre-requisite packages
-      become: yes
+      become: true
       ansible.builtin.apt:
         state: present
         pkg:

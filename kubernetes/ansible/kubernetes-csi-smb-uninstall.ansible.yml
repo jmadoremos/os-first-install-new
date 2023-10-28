@@ -9,7 +9,7 @@
   hosts: k8s_cluster
   tasks:
     - name: Uninstall Kubernetes CSI driver
-      become: yes
+      become: true
       become_user: "{{ ansible_user }}"
       ansible.builtin.shell:
         chdir: ~/.kube/tmp/csi-driver-smb

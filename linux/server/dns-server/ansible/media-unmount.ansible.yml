@@ -1,7 +1,7 @@
 ########################################################################
 # Extra variables:
 # - None
-# 
+#
 # Host inventory variables:
 # - None
 ########################################################################
@@ -16,14 +16,14 @@
       - dst: /mnt/containers/wireguard
   tasks:
     - name: Unmount NFS share folders
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.posix.mount:
         path: "{{ item.dst }}"
         state: unmounted
       with_items: "{{ nfs_shares }}"
 
     - name: Remove remnant folders
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.builtin.file:
         path: "{{ item.dst }}"
         state: absent

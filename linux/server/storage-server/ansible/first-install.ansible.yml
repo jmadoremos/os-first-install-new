@@ -1,7 +1,7 @@
 ########################################################################
 # Extra variables:
 # - ansible_user (string)
-# 
+#
 # Host inventory variables:
 # - node_name (string)
 ########################################################################
@@ -103,7 +103,7 @@
 
         - name: Add "cgroup_enable=cpuset" flag to cmdline.txt for Raspberry Pi
           when: raspberrypi_cmdline_cgroup_enable_cpuset.rc==1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_enable=cpuset/" -i /boot/cmdline.txt
           register: raspberrypi_cmdline_cgroup_enable_cpuset_added
@@ -113,7 +113,7 @@
 
         - name: Add "cgroup_memory=1" flag to cmdline.txt for Raspberry Pi
           when: raspberrypi_cmdline_cgroup_memory.rc==1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_memory=1/" -i /boot/cmdline.txt
           register: raspberrypi_cmdline_cgroup_memory_1_added
@@ -123,7 +123,7 @@
 
         - name: Add "cgroup_enable=memory" flag to cmdline.txt for Raspberry Pi
           when: raspberrypi_cmdline_cgroup_enable_memory.rc==1
-          become: yes
+          become: true
           ansible.builtin.shell: >-
             sed "1s/$/ cgroup_enable=memory/" -i /boot/cmdline.txt
           register: raspberrypi_cmdline_cgroup_enable_memory_added
@@ -133,7 +133,7 @@
 
         - name: Add "arm_64bit=1" to config.txt for Raspberry Pi
           when: raspberrypi_config_arm_64bit.rc==1
-          become: yes
+          become: true
           ansible.builtin.lineinfile:
             path: /boot/config.txt
             state: present
@@ -143,7 +143,7 @@
 
         - name: Add "arm_freq=2000" to config.txt for Raspberry Pi
           when: raspberrypi_config_arm_freq_all.rc==1
-          become: yes
+          become: true
           ansible.builtin.lineinfile:
             path: /boot/config.txt
             state: present
@@ -153,7 +153,7 @@
 
         - name: Replace "arm_freq=[0-9]*" with "arm_freq=2000" in config.txt for Raspberry Pi
           when: raspberrypi_config_arm_freq_all.rc==0 and raspberrypi_config_arm_freq_2000.rc==1
-          become: yes
+          become: true
           ansible.builtin.replace:
             path: /boot/config.txt
             regexp: ^arm_freq=[0-9]*$
@@ -162,7 +162,7 @@
 
         - name: Add "over_voltage=6" to config.txt for Raspberry Pi
           when: raspberrypi_config_over_voltage_all.rc==1
-          become: yes
+          become: true
           ansible.builtin.lineinfile:
             path: /boot/config.txt
             state: present
@@ -172,7 +172,7 @@
 
         - name: Replace "over_voltage=[0-9]*" with "over_voltage=6" in config.txt for Raspberry Pi
           when: raspberrypi_config_over_voltage_all.rc==0 and raspberrypi_config_over_voltage_6.rc==1
-          become: yes
+          become: true
           ansible.builtin.replace:
             path: /boot/config.txt
             regexp: ^over_voltage=[0-9]*$
@@ -181,7 +181,7 @@
 
         - name: Add "gpu_freq=6" to config.txt for Raspberry Pi
           when: raspberrypi_config_gpu_freq_all.rc==1
-          become: yes
+          become: true
           ansible.builtin.lineinfile:
             path: /boot/config.txt
             state: present
@@ -191,7 +191,7 @@
 
         - name: Replace "gpu_freq=[0-9]*" with "gpu_freq=750" in config.txt for Raspberry Pi
           when:  raspberrypi_config_gpu_freq_all.rc==0 and raspberrypi_config_gpu_freq_750.rc==1
-          become: yes
+          become: true
           ansible.builtin.replace:
             path: /boot/config.txt
             regexp: ^gpu_freq=[0-9]*$
@@ -215,7 +215,7 @@
 
     - name: Update /etc/hosts with the new hostname
       when: current_hostname.stdout != node_name
-      become: yes
+      become: true
       ansible.builtin.shell: >-
         sed "s/{{ current_hostname.stdout }}/{{ node_name }}.jmadoremos.com  {{ node_name }}/g" /etc/hosts
       changed_when: false

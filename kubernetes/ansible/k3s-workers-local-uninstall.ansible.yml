@@ -27,13 +27,13 @@
         state: absent
 
     - name: Remove /etc/rancher folder
-      become: yes
+      become: true
       ansible.builtin.file:
         path: /etc/rancher
         state: absent
 
     - name: Remove /var/lib/rancher folder
-      become: yes
+      become: true
       ansible.builtin.file:
         path: /var/lib/rancher
         state: absent

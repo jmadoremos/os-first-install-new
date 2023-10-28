@@ -1,7 +1,7 @@
 ########################################################################
 # Extra variables:
 # - storage_server_ip (string)
-# 
+#
 # Host inventory variables:
 # - None
 ########################################################################
@@ -33,7 +33,7 @@
         opts: ro,soft,nointr
   tasks:
     - name: Install NFS support
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.builtin.apt:
         name: nfs-common
         state: present
@@ -46,21 +46,21 @@
         group: plex
 
     - name: Unmount NFS share folders
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.posix.mount:
         path: "{{ item.dst }}"
         state: absent
       with_items: "{{ nfs_shares }}"
 
     - name: Remove NFS share folder remnants
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.builtin.file:
         path: "{{ item.dst }}"
         state: absent
       with_items: "{{ nfs_shares }}"
 
     - name: Mount NFS share folders
-      become: yes # Admin privileges required
+      become: true # Admin privileges required
       ansible.posix.mount:
         src: "{{ storage_server_ip }}:{{ item.src }}"
         path: "{{ item.dst }}"
