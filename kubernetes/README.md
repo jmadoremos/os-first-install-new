@@ -58,6 +58,10 @@ watch kubectl get nodes
 curl -sS https://webinstall.dev/k9s | bash
 ```
 
+### Setup Automated System Upgrade
+
+Refer to [Automated System Update](./namespaces/system-upgrade/README.md) for the instructions.
+
 ### Setup Kubernetes CSI
 
 * NFS
