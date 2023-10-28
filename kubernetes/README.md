@@ -113,3 +113,15 @@ Run this command:
 ```sh
 NS=`kubectl get ns | grep Terminating | awk 'NR==1 {print $1}'` && kubectl get namespace "$NS" -o json | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/" | kubectl replace --raw /api/v1/namespaces/$NS/finalize -f -
 ```
+
+> Q: How to force recreate a deployment or stateful set?
+
+Run this command:
+
+```sh
+# For deployment
+kubectl rollout restart Deployment <deployment_name>
+
+# For stateful set
+kubectl rollout restart StatefulSet <stateful_set_name>
+```
