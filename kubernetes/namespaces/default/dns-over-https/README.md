@@ -38,4 +38,7 @@ Remove the deployment.
 
 ```sh
 kubectl delete --ignore-not-found=true -f "${HOME}/.kube/manifests/default/dns-over-https.yaml"
+
+kubectl delete pvc pvc-dns-over-https-1
+kubectl delete pvc pvc-dns-over-https-0
 ```
