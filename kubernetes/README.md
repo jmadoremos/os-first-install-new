@@ -160,3 +160,14 @@ finalizers:
 4. Wait for the message `persistentvolume/<pv_name> edited`.
 
 5. If the command fails, run the command mentioned in the error message to retry.
+
+> Q: How to open a terminal with a container in a pod?
+
+Run this command:
+
+```sh
+kubectl exec <pod_name> --container <container_name> -it -- /bin/bash
+
+# or
+kubectl exec <pod_name> --container <container_name> -it -- /bin/sh
+```
