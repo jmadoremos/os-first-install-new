@@ -53,7 +53,7 @@ services:
     container_name: deluge-vpn
     volumes:
       - ${DIR_DELUGE:-./deluge-vpn}:/config
-      - ${DIR_DOWNLOADS_ARR}:/data
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
       - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
@@ -100,7 +100,7 @@ services:
   #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/logs:/config/logs
   #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/wireguard:/config/wireguard
   #     - ${DIR_SABNZBD:-./sabnzbd-vpn}/sabnzbd.ini:/config/sabnzbd.ini
-  #     - ${DIR_DOWNLOADS_USENET}:/data
+  #     - ${DIR_DOWNLOADS_USENET}:/data/downloading
   #     - /etc/localtime:/etc/localtime:ro
   #   networks:
   #     internal_net:
@@ -179,8 +179,8 @@ services:
     image: binhex/arch-radarr:latest
     container_name: radarr-fhd
     volumes:
-      - ${DIR_DOWNLOADS_ARR}:/data
-      - ${DIR_MEDIA}:/media
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      - ${DIR_MEDIA}:/data/media
       - ${DIR_RADARR_FHD:-./radarr-fhd}:/config
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -198,8 +198,8 @@ services:
     image: binhex/arch-radarr:latest
     container_name: radarr-uhd
     volumes:
-      - ${DIR_DOWNLOADS_ARR}:/data
-      - ${DIR_MEDIA}:/media
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      - ${DIR_MEDIA}:/data/media
       - ${DIR_RADARR_UHD:-./radarr-uhd}:/config
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -242,8 +242,8 @@ services:
     image: binhex/arch-sonarr:latest
     container_name: sonarr-tv
     volumes:
-      - ${DIR_DOWNLOADS_ARR}:/data
-      - ${DIR_MEDIA}:/media
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      - ${DIR_MEDIA}:/data/media
       - ${DIR_SONARR_TV:-./sonarr-tv}:/config
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -305,20 +305,20 @@ services:
   # *** Prometheus Exporter ***
   # A Prometheus exporter for Deluge.
 
-  deluge-monitor:
-    image: tobbez/deluge_exporter:latest
-    container_name: deluge-monitor
-    volumes:
-      - ${DIR_DELUGE:-./deluge-vpn}:/root/.config/deluge/:ro
-    networks:
-      internal_net:
-        ipv4_address: 10.81.12.9
-    environment:
-      DELUGE_HOST: 10.81.12.2
-      DELUGE_PASSWORD: ${DELUGE_PASS}
-    restart: unless-stopped
-    depends_on:
-      - deluge-vpn
+  # deluge-monitor:
+  #   image: tobbez/deluge_exporter:latest
+  #   container_name: deluge-monitor
+  #   volumes:
+  #     - ${DIR_DELUGE:-./deluge-vpn}:/root/.config/deluge/:ro
+  #   networks:
+  #     internal_net:
+  #       ipv4_address: 10.81.12.9
+  #   environment:
+  #     DELUGE_HOST: 10.81.12.2
+  #     DELUGE_PASSWORD: ${DELUGE_PASS}
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - deluge-vpn
 
   # A Prometheus exporter for SABNzbd.
 
