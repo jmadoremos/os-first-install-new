@@ -497,7 +497,39 @@ This stack will not expose the individual ports used by any application apart fr
 
             > Replace `instance_identifier` with the Docker compose service name.
 
-    4. Start the instance to complete the data migration.
+    4. Using **pgAdmin4**, connect to the `instance_identifier` database and run this query to realign the primary key sequences based on the current max record. This will go through all tables.
+
+        ```sql
+        DO $$
+        DECLARE
+            r RECORD;
+        BEGIN
+            FOR r IN
+                -- Find all sequences in the public schema associated with table columns
+                SELECT
+                    table_schema,
+                    table_name,
+                    column_name,
+                    pg_get_serial_sequence(concat(table_schema,'.','"',table_name,'"'), column_name) AS seq_name
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                AND column_default LIKE 'nextval%'
+            LOOP
+                -- Only attempt update if a sequence is actually found for that column
+                IF r.seq_name IS NOT NULL THEN
+                    EXECUTE format(
+                        'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM %I.%I), 1), true)',
+                        r.seq_name,
+                        r.column_name,
+                        r.table_schema,
+                        r.table_name
+                    );
+                END IF;
+            END LOOP;
+        END $$;
+        ```
+
+    5. Start the instance to complete the data migration.
 
 ### 4. Setup Radarr and Sonarr.
 
