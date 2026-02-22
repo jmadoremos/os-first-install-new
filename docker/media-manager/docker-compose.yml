@@ -1,0 +1,524 @@
+################################################
+# DEFINE SERVICES
+#
+# Environment Variables:
+# - CAPTCHA_SOLVER (default: none)
+# - DIR_ARR_EXTENDED_COMMON
+# - DIR_CALIBRE_INGEST
+# - DIR_CALIBRE_LIBRARY (default: ./calibre)
+# - DIR_DOWNLOADS_ARR
+# - DIR_DOWNLOADS_DEEMIX
+# - DIR_MEDIA_MOVIES
+# - DIR_MEDIA_SERIES
+# - DIR_RADARR (default: ./radarr)
+# - DIR_SONARR  (default: ./sonarr)
+# - HOST_CIDR (default: 192.168.1.0/24)
+# - LOG_LEVEL (default: info)
+# - LOG_HTML (default: false)
+# - NAME_SERVERS (default: 192.168.1.1)
+# - PUID (default: 1000)
+# - PGADMIN4_EMAIL
+# - PGADMIN4_PASS
+# - PGID (default: 1000)
+# - POSTGRESQL_ADMIN_USER (default: iam_user)
+# - POSTGRESQL_ADMIN_PASS
+# - SEERR_DB_NAME (default: seerr)
+# - SEERR_DB_USER
+# - SEERR_DB_PASS
+# - TRAEFIK_DOMAIN
+# - TZ (default: Europe/London)
+# - UMASK (default: 000)
+# - VPN_CLIENT (default: wireguard)
+# - VPN_INPUT_PORTS (default: no value)
+# - VPN_OUTPUT_PORTS (default: no value)
+# - VPN_PASS (default: no value)
+# - VPN_PROV (default: custom)
+# - VPN_USER (default: no value)
+################################################
+services:
+
+  # *** Calibre: Web Automated ***
+  # Calibre-Web Automated aims to be an all-in-one solution, combining the
+  # modern lightweight web UI from Calibre-Web with the robust, versatile
+  # feature set of Calibre, with a slew of extra features and automations
+  # thrown in on top.
+
+  calibre:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre
+    volumes:
+      # CW users migrating should stop their existing CW instance, make a copy of the config folder, and bind that here to carry over all of their user settings ect.
+      - calibre_config:/config
+      # This is an ingest dir, NOT a library one. Anything added here will be automatically added to your library according to the settings you have configured in CWA Settings page. All files placed here are REMOVED AFTER PROCESSING
+      - ${DIR_CALIBRE_INGEST}:/cwa-book-ingest
+      # If you don't have an existing library, CWA will automatically create one at the bind provided here
+      - ${DIR_CALIBRE_LIBRARY:-./calibre}:/calibre-library
+    networks:
+      traefik_vlan: {}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-UTC}
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8083 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.calibre.rule: Host(`calibre.${TRAEFIK_DOMAIN}`) || Host(`ebooks.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.calibre.entrypoints: web,websecure
+      traefik.http.routers.calibre.middlewares: secured@file
+      traefik.http.routers.calibre.tls: "true"
+      traefik.http.services.calibre.loadbalancer.server.port: "8083"
+
+  # *** Deluge VPN (custom image) ***
+  # Deluge is a full-featured BitTorrent client for Linux, OS X, Unix and
+  # Windows.
+  #
+  # This Docker includes OpenVPN and WireGuard to ensure a secure and private
+  # connection to the Internet, including use of iptables to prevent IP leakage
+  # when the tunnel is down. It also includes Privoxy to allow unfiltered
+  # access to index sites, to use Privoxy please point your application at
+  # http://<host ip>:8118.
+
+  deluge-vpn:
+    image: binhex/arch-delugevpn:latest
+    container_name: deluge-vpn
+    volumes:
+      - deluge_config:/config
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      traefik_vlan: {}
+      vpn_vlan: {}
+    environment:
+      DEBUG: false # Options: true|false
+      DELUGE_DAEMON_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
+      DELUGE_WEB_LOG_LEVEL: error # Options: info|warning|error|none|debug|trace|garbage
+      ENABLE_PRIVOXY: yes # Options: yes|no
+      LAN_NETWORK: ${HOST_CIDR:-192.168.1.0/24}
+      NAME_SERVERS: ${NAME_SERVERS:-192.168.1.1}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      STRICT_PORT_FORWARD: "yes" # Options: yes|no
+      UMASK: ${UMASK:-000}
+      VPN_ENABLED: yes # Options: yes|no
+      VPN_USER: ${VPN_USER:-}
+      VPN_PASS: ${VPN_PASS:-}
+      VPN_PROV: ${VPN_PROV:-custom} # Options: pia|airvpn|custom
+      VPN_CLIENT: ${VPN_CLIENT:-wireguard} # Options: openvpn|wireguard
+      VPN_INPUT_PORTS: ${VPN_INPUT_PORTS:-}
+      VPN_OUTPUT_PORTS: ${VPN_OUTPUT_PORTS:-}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:8112 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    privileged: true
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      # Deluge UI
+      traefik.http.routers.deluge.service: deluge
+      traefik.http.routers.deluge.rule: Host(`deluge.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.deluge.entrypoints: web,websecure
+      traefik.http.routers.deluge.middlewares: restricted@file
+      traefik.http.routers.deluge.tls: "true"
+      traefik.http.services.deluge.loadbalancer.server.port: "8112"
+      # Privoxy
+      traefik.http.routers.privoxy.service: privoxy
+      traefik.http.routers.privoxy.rule: Host(`privoxy.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.privoxy.entrypoints: web,websecure
+      traefik.http.routers.privoxy.middlewares: restricted@file
+      traefik.http.routers.privoxy.tls: "true"
+      traefik.http.services.privoxy.loadbalancer.server.port: "8118"
+
+  # *** Deemix ***
+  # deemix (lowercase) is a barebone deezer downloader library built from the
+  # ashes of Deezloader Remix
+
+  deemix:
+    image: registry.gitlab.com/bockiii/deemix-docker
+    container_name: deemix
+    volumes:
+      - deemix_config:/config
+      - ${DIR_DOWNLOADS_DEEMIX}:/downloads
+    networks:
+      traefik_vlan: {}
+    environment:
+      DEEMIX_SINGLE_USER: true
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: ${UMASK:-022}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:6595 || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.deemix.rule: Host(`deemix.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.deemix.entrypoints: web,websecure
+      traefik.http.routers.deemix.middlewares: secured@file
+      traefik.http.routers.deemix.tls: "true"
+      traefik.http.services.deemix.loadbalancer.server.port: "6595"
+
+  # *** FlareSolverr ***
+  # FlareSolverr is a proxy server to bypass Cloudflare and DDoS-GUARD
+  # protection.
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    volumes:
+      - flaresolverr_config:/config
+    networks:
+      traefik_vlan: {}
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_HTML: ${LOG_HTML:-false}
+      CAPTCHA_SOLVER: ${CAPTCHA_SOLVER:-none}
+      TZ: ${TZ:-Europe/London}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:8191/health || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.flaresolverr.rule: Host(`flaresolverr.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.flaresolverr.entrypoints: web,websecure
+      traefik.http.routers.flaresolverr.middlewares: secured@file
+      traefik.http.routers.flaresolverr.tls: "true"
+      traefik.http.services.flaresolverr.loadbalancer.server.port: "8191"
+
+  # *** PostgreSQL ***
+  # PostgreSQL, often simply "Postgres", is an object-relational database
+  # management system (ORDBMS) with an emphasis on extensibility and
+  # standards-compliance. As a database server, its primary function is to
+  # store data, securely and supporting best practices, and retrieve it later,
+  # as requested by other software applications, be it those on the same
+  # computer or those running on another computer across a network (including
+  # the Internet). It can handle workloads ranging from small single-machine
+  # applications to large Internet-facing applications with many concurrent
+  # users. Recent versions also provide replication of the database itself for
+  # security and scalability.
+
+  postgresql:
+    image: postgres:18-alpine
+    container_name: postgresql
+    volumes:
+      - postgresql_data:/var/lib/postgresql
+    networks:
+      database_vlan: {}
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_ADMIN_USER:-iam_user}
+      POSTGRES_PASSWORD: ${POSTGRESQL_ADMIN_PASS}
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=${POSTGRESQL_ADMIN_USER:-iam_user}", "--dbname=${POSTGRESQL_ADMIN_USER:-iam_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    shm_size: 128mb
+    restart: always
+
+  # *** Prowlarr ***
+  # Prowlarr is a indexer manager/proxy built on the popular arr .net/reactjs
+  # base stack to integrate with your various PVR apps. Prowlarr supports both
+  # Torrent Trackers and Usenet Indexers. It integrates seamlessly with Sonarr,
+  # Radarr, Lidarr, and Readarr offering complete management of your indexers
+  # with no per app Indexer setup required (we do it all).
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    volumes:
+      - prowlarr_config:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      database_vlan: {}
+      traefik_vlan: {}
+    dns: 10.162.10.202
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:9696/ping || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.prowlarr.rule: Host(`prowlarr.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.prowlarr.entrypoints: web,websecure
+      traefik.http.routers.prowlarr.middlewares: secured@file
+      traefik.http.routers.prowlarr.tls: "true"
+      traefik.http.services.prowlarr.loadbalancer.server.port: "9696"
+    depends_on:
+      - postgresql
+      - flaresolverr
+      - deluge-vpn
+      - radarr
+      - sonarr
+
+  # ** pgAdmin4 **
+  # pgAdmin 4 is a web based administration tool for the PostgreSQL database.
+
+  pgadmin4:
+    image: dpage/pgadmin4:9
+    container_name: pgadmin4
+    volumes:
+      - pgadmin4_data:/var/lib/pgadmin
+    networks:
+      database_vlan: {}
+      traefik_vlan: {}
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN4_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN4_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O - http://localhost:80/misc/ping || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 2m30s
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.pgadmin4.rule: Host(`pgadmin4.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.pgadmin4.entrypoints: web,websecure
+      traefik.http.routers.pgadmin4.middlewares: secured@file
+      traefik.http.routers.pgadmin4.tls: "true"
+      traefik.http.services.pgadmin4.loadbalancer.server.port: "80"
+
+  # *** Radarr ***
+  # This fork of Sonarr aims to turn it into something like Couchpotato.
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    volumes:
+      # Download location
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      # Media bind
+      - ${DIR_MEDIA_MOVIES}:/data/media
+      # Common files
+      - ${DIR_ARR_EXTENDED_COMMON}/radarr/recyclarr:/recyclarr:rw
+      - ${DIR_ARR_EXTENDED_COMMON}/radarr/extended.conf:/config/extended.conf:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/radarr/extended/Extras.bash:/config/extended/Extras.bash:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/radarr/extended/functions.bash:/config/extended/functions:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/radarr/extended/PlexNotify.bash:/config/extended/PlexNotify.bash:ro
+      - /etc/localtime:/etc/localtime:ro
+      # Instance configurations
+      - radarr_config:/config
+      # Add scripts from https://github.com/RandomNinjaAtk/arr-scripts
+      - ${DIR_RADARR:-./radarr}/custom-services.d:/custom-services.d:rw
+      - ${DIR_RADARR:-./radarr}/custom-cont-init.d:/custom-cont-init.d:rw
+    networks:
+      database_vlan: {}
+      traefik_vlan: {}
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:7878/ping || exit 1"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30m
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.radarr.rule: Host(`radarr.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.radarr.entrypoints: web,websecure
+      traefik.http.routers.radarr.middlewares: secured@file
+      traefik.http.routers.radarr.tls: "true"
+      traefik.http.services.radarr.loadbalancer.server.port: "7878"
+    depends_on:
+      - postgresql
+      - deluge-vpn
+
+  # *** Seerr ***
+  # Seerr is a free and open source software application for managing requests
+  # for your media library. It integrates with the media server of your choice:
+  # Jellyfin, Plex, and Emby. In addition, it integrates with your existing
+  # services, such as Sonarr, Radarr.
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    volumes:
+      - seerr_config:/app/config
+    networks:
+      database_vlan: {}
+      traefik_vlan: {}
+    environment:
+      LOG_LEVEL: debug
+      TZ: ${TZ}
+      PORT: "5055"
+      DB_TYPE: postgres
+      DB_HOST: ${SEERR_DB_HOST:-postgresql.database-vlan}
+      DB_PORT: ${SEERR_DB_PORT:-5432}
+      DB_NAME: ${SEERR_DB_NAME:-seerr}
+      DB_USER: ${SEERR_DB_USER}
+      DB_PASS: ${SEERR_DB_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1"]
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    init: true
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.seerr.rule: Host(`seerr.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.seerr.entrypoints: web,websecure
+      traefik.http.routers.seerr.middlewares: secured@file
+      traefik.http.routers.seerr.tls: "true"
+      traefik.http.services.seerr.loadbalancer.server.port: "5055"
+    depends_on:
+      - postgresql
+      - deluge-vpn
+      - radarr
+      - sonarr
+
+  # *** Sonarr ***
+  # Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple
+  # RSS feeds for new episodes of your favorite shows and will grab, sort and
+  # rename them. It can also be configured to automatically upgrade the quality
+  # of files already downloaded when a better quality format becomes available.
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    volumes:
+      # Download location
+      - ${DIR_DOWNLOADS_ARR}:/data/downloading
+      # Media bind
+      - ${DIR_MEDIA_SERIES}:/data/media
+      # Common files
+      - ${DIR_ARR_EXTENDED_COMMON}/sonarr/recyclarr:/recyclarr:rw
+      - ${DIR_ARR_EXTENDED_COMMON}/sonarr/extended.conf:/config/extended.conf:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/sonarr/extended/Extras.bash:/config/extended/Extras.bash:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/sonarr/extended/functions.bash:/config/extended/functions:ro
+      - ${DIR_ARR_EXTENDED_COMMON}/sonarr/extended/PlexNotify.bash:/config/extended/PlexNotify.bash:ro
+      - /etc/localtime:/etc/localtime:ro
+      # Instance configurations
+      - sonarr_config:/config
+      # Add scripts from https://github.com/RandomNinjaAtk/arr-scripts
+      - ${DIR_SONARR:-./sonarr}/custom-services.d:/custom-services.d:rw
+      - ${DIR_SONARR:-./sonarr}/custom-cont-init.d:/custom-cont-init.d:rw
+    networks:
+      database_vlan: {}
+      traefik_vlan: {}
+    environment:
+      UMASK: ${UMASK:-000}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik-vlan
+      traefik.http.routers.sonarr.rule: Host(`sonarr.${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.sonarr.entrypoints: web,websecure
+      traefik.http.routers.sonarr.middlewares: secured@file
+      traefik.http.routers.sonarr.tls: "true"
+      traefik.http.services.sonarr.loadbalancer.server.port: "8989"
+    restart: unless-stopped
+    depends_on:
+      - deluge-vpn
+
+################################################
+# DEFINE NETWORKS
+################################################
+networks:
+
+  # *** External networks ****
+  database_vlan:
+    name: database-vlan
+    external: true
+
+  traefik_vlan:
+    name: traefik-vlan
+    external: true
+
+  vpn_vlan:
+    name: vpn-vlan
+    external: true
+
+################################################
+# DEFINE VOLUMES
+################################################
+volumes:
+
+  # *** Persistent storage for Deluge ***
+  # For /config
+  calibre_config:
+    name: calibre-config
+
+  # *** Persistent storage for Deluge ***
+  # For /config
+  deluge_config:
+    name: deluge-config
+
+  # *** Persistent storage for Deemix ***
+  # For /config
+  deemix_config:
+    name: deemix-config
+
+  # *** Persistent storage for Flaresolverr ***
+  # For /config
+  flaresolverr_config:
+    name: flaresolverr-config
+
+  # *** Persistent storage for PostgreSQL ***
+  # For /var/lib/postgresql
+  postgresql_data:
+    name: postgresql-data
+
+  # *** Persistent storage for Prowlarr ***
+  # For /config
+  prowlarr_config:
+    name: prowlarr-config
+
+  # *** Persistent storage for pgAdmin4 ***
+  # For /var/lib/pgadmin
+  pgadmin4_data:
+    name: pgadmin4-data
+
+  # *** Persistent storage for Radarr ***
+  # For /config
+  radarr_config:
+    name: radarr-config
+
+  # *** Persistent storage for Seerr ***
+  # For /config
+  seerr_config:
+    name: seerr-config
+
+  # *** Persistent storage for Sonarr ***
+  # For /config
+  sonarr_config:
+    name: sonarr-config

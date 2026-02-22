@@ -1,16 +1,13 @@
-version: '3'
-
 ################################################
 # DEFINE SERVICES
 #
 # Environment variables:
-# - DIR_DNSCRYPT
-# - HOST_CIDR
-# - HOST_GATEWAY
+# - DIR_DNSCRYPT (default: ./dnscrypt)
+# - DIR_PIHOLE (default: ./pihole)
 # - HOST_IPADDR
 # - NETWORK_INTERFACE (default: eth0)
 # - PIHOLE_PASS
-# - TIME_ZONE (default: America/Chicago)
+# - TZ (default: America/Chicago)
 ################################################
 services:
 
@@ -22,12 +19,13 @@ services:
     image: gists/dnscrypt-proxy:latest
     container_name: dns-over-https
     volumes:
-      - ${DIR_DNSCRYPT}/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro
+      - ${DIR_DNSCRYPT:-./dnscrypt}/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro
+      - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
         ipv4_address: 10.53.0.2
     healthcheck:
-      test: nslookup cloudflare.com 127.0.0.11 || exit 1
+      test: nslookup -port=5353 cloudflare.com 127.0.0.1 || exit 1
       interval: 30s
       timeout: 5s
       retries: 3
@@ -45,46 +43,31 @@ services:
       - '${HOST_IPADDR}:53:53/udp'
       - '${HOST_IPADDR}:8053:80/tcp'
     volumes:
-      - doh-sinkhole_dnsmasq_data:/etc/dnsmasq.d
-      - doh-sinkhole_pihole_data:/etc/pihole
+      - ${DIR_PIHOLE:-./pihole}/dnsmasq.d:/etc/dnsmasq.d:rw
+      - pihole_data:/etc/pihole
+      - /etc/localtime:/etc/localtime:ro
     networks:
       internal_net:
         ipv4_address: 10.53.0.3
+      traefik_vlan: {}
     environment:
-      INTERFACE: ${NETWORK_INTERFACE:-eth0}
-      PIHOLE_DNS_: 10.53.0.2#5353
-      REV_SERVER: true
-      REV_SERVER_CIDR: ${HOST_CIDR}
-      REV_SERVER_TARGET: ${HOST_GATEWAY}
-      TZ: ${TIME_ZONE:-America/Chicago}
-      WEBPASSWORD: ${PIHOLE_PASS}
+      FTLCONF_dns_interface: ${NETWORK_INTERFACE:-eth0}
+      FTLCONF_dns_upstreams: 10.53.0.2#5353
+      FTLCONF_misc_etc_dnsmasq_d: "true"
+      FTLCONF_webserver_api_password: ${PIHOLE_PASS}
+      TZ: ${TZ:-America/Chicago}
+    cap_add:
+      # FTL needs to be able to set the system time to update it using the
+      # Network Time Protocol (NTP) in the background.
+      - SYS_TIME
     healthcheck:
-      test: nslookup cloudflare.com 127.0.0.11 || exit 1
+      test: nslookup -port=5353 cloudflare.com 10.53.0.2 || exit 1
       interval: 30s
       timeout: 10s
       retries: 3
     restart: always
     depends_on:
       - dnscrypt-proxy
-
-  # *** Prometheus Exporter ***
-  # A Prometheus exporter for Pi-hole.
-
-  prometheus:
-    image: ekofr/pihole-exporter:latest
-    container_name: doh-sinkhole-monitor
-    volumes:
-      - /etc/ssl/certs:/etc/ssl/certs:ro
-    networks:
-      internal_net:
-        ipv4_address: 10.53.0.4
-    environment:
-      PIHOLE_HOSTNAME: 10.53.0.3
-      PIHOLE_PASSWORD: ${PIHOLE_PASS}
-      PORT: '9617'
-    restart: always
-    depends_on:
-      - pihole
 
 ################################################
 # DEFINE NETWORKS
@@ -100,15 +83,17 @@ networks:
         - subnet: 10.53.0.0/24
           gateway: 10.53.0.1
 
+  # *** External network ****
+  traefik_vlan:
+    name: traefik-vlan
+    external: true
+
 ################################################
 # DEFINE VOLUMES
 ################################################
 volumes:
 
   # *** Persistent storage for Pi-hole ***
-  # For /etc/dnsmasq.d
-  doh-sinkhole_dnsmasq_data:
-    name: doh-sinkhole-dnsmasq-data
-  # For /etc/pihole 
-  doh-sinkhole_pihole_data:
-    name: doh-sinkhole-pihole-data
+  # For /etc/pihole
+  pihole_data:
+    name: pihole-data

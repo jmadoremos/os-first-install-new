@@ -10,57 +10,53 @@ For more information, refer to [A cartoon intro into DNS-over-HTTPS](https://hac
 
 * [Pi-hole](https://pi-hole.net) is a DNS sinkhole that blocks advertisements. It has an informative Web interface that shows stats on all the domains being queried on your network.
 
-* [Prometheus Exporter](https://github.com/eko/pihole-exporter) A Prometheus exporter for Pi-hole.
-
 ## Environment variables
 
 Configure the following environment variables when creating the stack:
 
-`DIR_DNSCRYPT`
+### DIR_DNSCRYPT
 
-The directory containing DNSCrypt-proxy configuration. This should contain the [dnscrypt-proxy.toml](./res/dnscrypt-proxy.toml) file.
+Used by DNSCrypt Proxy. The directory containing its configuration. This path should contain the [dnscrypt-proxy.toml](./res/dnscrypt-proxy.toml) file.
 
-_Required_: Yes
+**Required**: No
 
-`HOST_CIDR`
+**Default**: `./dnscrypt`
 
-The host network's CIDR notation (e.g., 192.168.0.0/24).
+### DIR_PIHOLE
 
-_Required_: Yes
+Used by Pi-hole. The directory containing its configuration. This path should contain a **dnsmasq.d** folder.
 
-`HOST_GATEWAY`
+**Required**: No
 
-The host network's gateway address (e.g., 192.168.0.1).
+**Default**: `./pihole`
 
-_Required_: Yes
-
-`HOST_IPADDR`
+### HOST_IPADDR
 
 The host's assigned IP address from a DHCP server.
 
-_Required_: Yes
+**Required**: Yes
 
-`NETWORK_INTERFACE`
+### NETWORK_INTERFACE
 
 The network interface used.
 
-_Required_: No
+**Required**: No
 
-_Default_: `eth0`
+**Default**: `eth0`
 
-`PIHOLE_PASS`
+### PIHOLE_PASS
 
 The pre-defined Pi-hole web password.
 
-_Required_: Yes
+**Required**: Yes
 
-`TIME_ZONE`
+### TZ
 
-The time zone used by Pi-hole to report the time of requests made.
+Used by Pi-hole. The time zone to report the time of requests made.
 
-_Required_: No
+**Required**: No
 
-_Default_: `America/Chicago`
+**Default**: `America/Chicago`
 
 ## Exposed ports
 
