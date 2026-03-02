@@ -1,0 +1,6 @@
+http:
+  # Add the router
+  routers: {}
+
+  # Add the service
+  services: {}
