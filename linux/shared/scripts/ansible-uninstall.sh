@@ -23,13 +23,4 @@ sudo rm -rf ${HOME}/.ansible &> /dev/null
 
 # Uninstall ansible
 echo -n "Uninstalling ansible..."
-sudo apt-get remove -y ansible &> /dev/null
-[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
-
-echo -n "Running apt-get autoclean..."
-sudo apt-get autoclean &> /dev/null
-[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
-
-echo -n "Running apt-get autoremove..."
-sudo apt-get autoremove -y &> /dev/null
-[[ $? -eq 0 ]] && echo -e " $DONE" || echo -e " $FAILED"
+pipx uninstall ansible

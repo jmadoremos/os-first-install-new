@@ -1,0 +1,117 @@
+########################################################################
+# Pre-requisites:
+# - None
+#
+# Extra variables:
+# - user_home  (optional)
+# - user_name  (optional)
+#
+# Host inventory variables:
+# - None
+#
+# Example usage:
+# > ansible-playbook linux/shared/ansible/os-install-zsh.ansible.yml \
+#     --extra-vars "user_home= user_name="
+#
+# > ansible-playbook linux/shared/ansible/os-install-zsh.ansible.yml \
+#     --limit inventory_or_host
+#
+# > ansible-playbook linux/shared/ansible/os-install-zsh.ansible.yml \
+#     --connection=local -i localhost,
+########################################################################
+- name: Ensure Python is installed on target hosts
+  hosts: all
+  gather_facts: yes
+  become: true
+  pre_tasks:
+    - name: Install Python 3
+      ansible.builtin.package:
+        name: python3
+        state: present
+        update_cache: yes
+
+- name: Install zsh, Oh My Zsh, Powerlevel10k, and MesloLGS NF fonts on remote hosts
+  hosts: all
+  become: false
+  gather_facts: yes
+  vars:
+    user_home: "{{ ansible_env.HOME }}"
+    user_name: "{{ ansible_user | default(ansible_env.USER) }}"
+  tasks:
+    - name: Install zsh and pre-requisites
+      ansible.builtin.package:
+        name:
+          - fontconfig
+          - git
+          - zsh
+        state: present
+      become: true
+
+    - name: Set zsh as default shell
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        shell: /usr/bin/zsh
+      become: true
+
+    - name: Check if Oh My Zsh is already installed
+      ansible.builtin.stat:
+        path: "{{ user_home }}/.oh-my-zsh"
+      register: zsh_installed
+
+    - name: Install Oh My Zsh
+      when: not zsh_installed.stat.exists
+      ansible.builtin.shell: |
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      args:
+        executable: /bin/bash
+
+    - name: Create local fonts directory
+      ansible.builtin.file:
+        path: "{{ user_home }}/.local/share/fonts"
+        state: directory
+        mode: '0755'
+
+    - name: Download MesloLGS NF Regular font
+      ansible.builtin.get_url:
+        url: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+        dest: "{{ user_home }}/.local/share/fonts/MesloLGS NF Regular.ttf"
+        mode: '0644'
+      register: font_regular
+
+    - name: Download MesloLGS NF Bold font
+      ansible.builtin.get_url:
+        url: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+        dest: "{{ user_home }}/.local/share/fonts/MesloLGS NF Bold.ttf"
+        mode: '0644'
+      register: font_bold
+
+    - name: Download MesloLGS NF Italic font
+      ansible.builtin.get_url:
+        url: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+        dest: "{{ user_home }}/.local/share/fonts/MesloLGS NF Italic.ttf"
+        mode: '0644'
+      register: font_italic
+
+    - name: Download MesloLGS NF Bold Italic font
+      ansible.builtin.get_url:
+        url: https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+        dest: "{{ user_home }}/.local/share/fonts/MesloLGS NF Bold Italic.ttf"
+        mode: '0644'
+      register: font_bold_italic
+
+    - name: Update font cache
+      when: font_regular.changed or font_bold.changed or font_italic.changed or font_bold_italic.changed
+      ansible.builtin.command: fc-cache -fv
+
+    - name: Install Powerlevel10k theme
+      ansible.builtin.git:
+        repo: https://github.com/romkatv/powerlevel10k.git
+        dest: "{{ user_home }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        depth: 1
+
+    - name: Set Powerlevel10k theme in .zshrc
+      ansible.builtin.lineinfile:
+        path: "{{ user_home }}/.zshrc"
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+        create: true

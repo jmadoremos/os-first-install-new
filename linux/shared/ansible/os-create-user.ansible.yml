@@ -1,0 +1,73 @@
+########################################################################
+# Pre-requisites:
+# - ansible-galaxy collection list --format json | jq -r 'to_entries[] | .value | keys[]' | xargs -I {} ansible-galaxy collection install --upgrade {}
+# - ansible-galaxy collection install ansible.posix
+#
+# Extra variables:
+# - target_host   (required)
+# - new_username  (required)
+# - new_password  (required)
+#
+# Host inventory variables:
+# - None
+#
+# Example usage:
+# > ansible-playbook linux/shared/ansible/os-create-user.ansible.yml \
+#     --extra-vars "target_host=myserver new_username=john new_password=secure123 ssh_pubkey_file=~/.ssh/id_rsa.pub"
+########################################################################
+- name: Create and setup a new user to target host
+  hosts: "{{ target_host }}"
+  become: true
+  vars:
+    new_username: "{{ new_username }}"
+    new_password: "{{ new_password }}"
+    ssh_pubkey_file: "{{ ssh_pubkey_file }}"
+  tasks:
+    - name: Create the user with a hashed password
+      ansible.builtin.user:
+        name: "{{ new_username }}"
+        password: "{{ new_password | password_hash('sha512') }}"
+        shell: /bin/bash
+        createhome: yes
+        state: present
+        update_password: on_create
+      no_log: true
+
+    - name: Validate and read SSH public key from controller
+      ansible.builtin.assert:
+        that:
+          - lookup('file', ssh_pubkey_file) is string
+          - lookup('file', ssh_pubkey_file) | regex_search('^ssh-|ecdsa-sha2-nistp|ssh-ed25519')
+        fail_msg: "The file '{{ ssh_pubkey_file }}' is not a valid public SSH key."
+      no_log: true
+
+    - name: Add SSH public key to user's authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ new_username }}"
+        state: present
+        key: "{{ lookup('file', ssh_pubkey_file) }}"
+      no_log: true
+
+    - name: Ensure sudo package is installed
+      ansible.builtin.package:
+        name: sudo
+        state: present
+        update_cache: yes
+
+    - name: Ensure /etc/sudoers.d/ directory exists
+      ansible.builtin.file:
+        path: /etc/sudoers.d/
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Grant user passwordless sudo via /etc/sudoers.d
+      ansible.builtin.copy:
+        content: "{{ new_username }} ALL=(ALL) NOPASSWD: ALL\n"
+        dest: "/etc/sudoers.d/{{ new_username }}"
+        mode: '0440'
+        owner: root
+        group: root
+        validate: "/usr/sbin/visudo -cf %s"
+      no_log: true
