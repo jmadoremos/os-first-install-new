@@ -9,7 +9,12 @@
             "*.ansible.yml", "*.ansible.yaml"
         ],
     },
-    // Disable ansible-lint
-    "ansible.validation.lint.enabled": false,
-    "ansible.python.interpreterPath": "/bin/python3"
+    // Define terminal fonts
+    "terminal.integrated.fontFamily": "'MesloLGS NF', 'FiraCode Nerd Font', Consolas, 'Courier New', monospace",
+    "terminal.integrated.fontLigatures.enabled": true,
+    "terminal.integrated.customGlyphs": true,
+    "terminal.integrated.fontSize": 10,
+    "terminal.integrated.lineHeight": 1.2,
+    // Fix: incorrect foreground color in VSCode Terminal
+    "terminal.integrated.minimumContrastRatio": 1,
 }
